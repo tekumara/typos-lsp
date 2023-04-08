@@ -30,7 +30,20 @@
           "scope": "machine-overridable",
           "type": "string",
           "default": null,
-          "description": "When set to a path to the `typos-lsp` binary, extension will use that."
+          "description": "Path to the `typos-lsp` binary."
+        },
+        "typos.logLevel": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug",
+            "trace"
+          ],
+          "default": "error",
+          "description": "Logging level of the language server."
         },
         "typos.trace.server": {
           "scope": "window",

@@ -17,8 +17,9 @@
   "contributes": {
     "commands": [
       {
-        "command": "typos-vscode.helloWorld",
-        "title": "Hello World"
+        "category": "Typos",
+        "command": "typos.restart",
+        "title": "Restart"
       }
     ],
     "configuration": {

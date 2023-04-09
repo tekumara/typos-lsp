@@ -83,5 +83,15 @@
   },
   "dependencies": {
     "vscode-languageclient": "^8.1.0"
+  },
+  "prettier": {
+    "overrides": [
+      {
+        "files": "*.ts",
+        "options": {
+          "tabWidth": 4
+        }
+      }
+    ]
   }
 }

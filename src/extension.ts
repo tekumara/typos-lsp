@@ -79,6 +79,7 @@ function createClient(
 
     const run: Executable = {
         command: path,
+		args: ["--lsp"],
         options: { env: env },
     };
 

@@ -29,13 +29,14 @@
         "typos.path": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": null,
-          "description": "Path to the `typos-lsp` binary."
+          "default": "typos",
+          "description": "Path to the `typos` binary."
         },
         "typos.logLevel": {
           "scope": "window",
           "type": "string",
           "enum": [
+            "off",
             "error",
             "warn",
             "info",

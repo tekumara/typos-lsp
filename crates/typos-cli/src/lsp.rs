@@ -1,4 +1,7 @@
+use std::collections::HashMap;
+
 use bstr::ByteSlice;
+use serde_json::json;
 use tower_lsp::lsp_types::*;
 use tower_lsp::*;
 use tower_lsp::{Client, LanguageServer};
@@ -14,11 +17,37 @@ pub struct Backend<'a> {
 impl LanguageServer for Backend<'static> {
     async fn initialize(&self, params: InitializeParams) -> jsonrpc::Result<InitializeResult> {
         tracing::debug!("initialize: {:?}", params);
+
+        if let Some(TextDocumentClientCapabilities {
+            publish_diagnostics:
+                Some(PublishDiagnosticsClientCapabilities {
+                    data_support: Some(true),
+                    ..
+                }),
+            ..
+        }) = params.capabilities.text_document
+        {
+            tracing::debug!("client supports diagnostics data")
+        } else {
+            tracing::warn!(
+                "client does not support diagnostics data.. code actions will not be available"
+            )
+        }
+
         Ok(InitializeResult {
             capabilities: ServerCapabilities {
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
                     // TODO: should we support incremental?
                     TextDocumentSyncKind::FULL,
+                )),
+                code_action_provider: Some(CodeActionProviderCapability::Options(
+                    CodeActionOptions {
+                        code_action_kinds: Some(vec![CodeActionKind::QUICKFIX]),
+                        work_done_progress_options: WorkDoneProgressOptions {
+                            work_done_progress: Some(false),
+                        },
+                        resolve_provider: None,
+                    },
                 )),
                 ..ServerCapabilities::default()
             },
@@ -66,6 +95,63 @@ impl LanguageServer for Backend<'static> {
             .await;
     }
 
+    async fn code_action(
+        &self,
+        params: CodeActionParams,
+    ) -> jsonrpc::Result<Option<CodeActionResponse>> {
+        tracing::debug!("code_action: {:?}", params);
+
+        let actions = params
+            .context
+            .diagnostics
+            .iter()
+            .map(|diag| match &diag.data {
+                Some(data) => {
+                    if let Ok(status) = serde_json::from_value::<typos::Status>(data.clone()) {
+                        if let typos::Status::Corrections(corrections) = status {
+                            corrections.iter().map(|c| {
+                                CodeActionOrCommand::CodeAction(CodeAction {
+                                    title: c.to_string(),
+                                    kind: Some(CodeActionKind::QUICKFIX),
+                                    diagnostics: Some(vec![diag.clone()]),
+                                    edit: Some(WorkspaceEdit {
+                                        changes: Some(HashMap::from([(
+                                            params.text_document.uri.clone(),
+                                            vec![TextEdit {
+                                                range: Range::new(
+                                                    diag.range.start,
+                                                    Position::new(diag.range.start.line, diag.range.start.character + c.len() as u32),
+                                                ),
+                                                new_text: c.to_string()
+                                            }],
+                                        )])),
+                                        ..WorkspaceEdit::default()
+                                    }),
+                                    // TODO
+                                    is_preferred: if corrections.len() == 1 { Some(true) } else { None },
+                                    ..CodeAction::default()
+                                })
+                            }).collect()
+                        } else {
+                            tracing::warn!("Unexpected status: {:?}", status);
+                            vec![]
+                        }
+                    } else {
+                        tracing::warn!("Deserialisation failed: {:?}", data);
+                        vec![]
+                    }
+                }
+                _ => {
+                    tracing::warn!("client doesn't support diagnostic data");
+                    vec![]
+                }
+            })
+            .flatten()
+            .collect::<Vec<_>>();
+
+        Ok(Some(actions))
+    }
+
     async fn shutdown(&self) -> jsonrpc::Result<()> {
         Ok(())
     }
@@ -97,15 +183,14 @@ impl Backend<'static> {
 
                 let (line_num, line_pos) = accum.pos(buffer.as_bytes(), typo.byte_offset);
 
-                Diagnostic::new(
-                    Range::new(
+                Diagnostic {
+                    range: Range::new(
                         Position::new(line_num as u32, line_pos as u32),
                         Position::new(line_num as u32, (line_pos + typo.typo.len()) as u32),
                     ),
-                    Some(DiagnosticSeverity::WARNING),
-                    None,
-                    Some("typos".to_string()),
-                    match typo.corrections {
+                    severity: Some(DiagnosticSeverity::WARNING),
+                    source: Some("typos".to_string()),
+                    message: match &typo.corrections {
                         typos::Status::Invalid => format!("`{}` is disallowed", typo.typo),
                         typos::Status::Corrections(corrections) => format!(
                             "`{}` should be {}",
@@ -114,9 +199,13 @@ impl Backend<'static> {
                         ),
                         typos::Status::Valid => panic!("unexpected typos::Status::Valid"),
                     },
-                    None,
-                    None,
-                )
+                    // store corrections for retrieval during code_action
+                    data: match &typo.corrections {
+                        typos::Status::Corrections(_) => Some(json!(&typo.corrections)),
+                        _ => None,
+                    },
+                    ..Diagnostic::default()
+                }
             })
             .collect()
     }
@@ -185,7 +274,7 @@ mod tests {
             .serve(service)
             .await;
 
-        assert_eq!(
+        similar_asserts::assert_eq!(
             body(&output).unwrap(),
             format!(
                 r#"{{"jsonrpc":"2.0","result":{{"capabilities":{{"textDocumentSync":1}},"serverInfo":{{"name":"typos","version":"{}"}}}},"id":1}}"#,
@@ -228,9 +317,9 @@ mod tests {
             .unwrap();
         let n = resp_client.read(&mut buf).await.unwrap();
 
-        assert_eq!(
+        similar_asserts::assert_eq!(
             body(&buf[..n]).unwrap(),
-            r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///foo.rs","version":1}}"#,
+            r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":["of","for"],"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///foo.rs","version":1}}"#,
         )
     }
 

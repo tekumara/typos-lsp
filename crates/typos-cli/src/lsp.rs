@@ -105,33 +105,43 @@ impl LanguageServer for Backend<'static> {
             .context
             .diagnostics
             .iter()
-            .map(|diag| match &diag.data {
+            .flat_map(|diag| match &diag.data {
                 Some(data) => {
                     if let Ok(status) = serde_json::from_value::<typos::Status>(data.clone()) {
                         if let typos::Status::Corrections(corrections) = status {
-                            corrections.iter().map(|c| {
-                                CodeActionOrCommand::CodeAction(CodeAction {
-                                    title: c.to_string(),
-                                    kind: Some(CodeActionKind::QUICKFIX),
-                                    diagnostics: Some(vec![diag.clone()]),
-                                    edit: Some(WorkspaceEdit {
-                                        changes: Some(HashMap::from([(
-                                            params.text_document.uri.clone(),
-                                            vec![TextEdit {
-                                                range: Range::new(
-                                                    diag.range.start,
-                                                    Position::new(diag.range.start.line, diag.range.start.character + c.len() as u32),
-                                                ),
-                                                new_text: c.to_string()
-                                            }],
-                                        )])),
-                                        ..WorkspaceEdit::default()
-                                    }),
-                                    // TODO
-                                    is_preferred: if corrections.len() == 1 { Some(true) } else { None },
-                                    ..CodeAction::default()
+                            corrections
+                                .iter()
+                                .map(|c| {
+                                    CodeActionOrCommand::CodeAction(CodeAction {
+                                        title: c.to_string(),
+                                        kind: Some(CodeActionKind::QUICKFIX),
+                                        diagnostics: Some(vec![diag.clone()]),
+                                        edit: Some(WorkspaceEdit {
+                                            changes: Some(HashMap::from([(
+                                                params.text_document.uri.clone(),
+                                                vec![TextEdit {
+                                                    range: Range::new(
+                                                        diag.range.start,
+                                                        Position::new(
+                                                            diag.range.start.line,
+                                                            diag.range.start.character
+                                                                + c.len() as u32,
+                                                        ),
+                                                    ),
+                                                    new_text: c.to_string(),
+                                                }],
+                                            )])),
+                                            ..WorkspaceEdit::default()
+                                        }),
+                                        is_preferred: if corrections.len() == 1 {
+                                            Some(true)
+                                        } else {
+                                            None
+                                        },
+                                        ..CodeAction::default()
+                                    })
                                 })
-                            }).collect()
+                                .collect()
                         } else {
                             tracing::warn!("Unexpected status: {:?}", status);
                             vec![]
@@ -146,7 +156,6 @@ impl LanguageServer for Backend<'static> {
                     vec![]
                 }
             })
-            .flatten()
             .collect::<Vec<_>>();
 
         Ok(Some(actions))

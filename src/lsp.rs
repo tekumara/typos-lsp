@@ -6,7 +6,7 @@ use tower_lsp::lsp_types::*;
 use tower_lsp::*;
 use tower_lsp::{Client, LanguageServer};
 
-use crate::policy;
+use typos_cli::policy;
 
 pub struct Backend<'a> {
     client: Client,

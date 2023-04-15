@@ -286,29 +286,84 @@ mod tests {
         similar_asserts::assert_eq!(
             body(&output).unwrap(),
             format!(
-                r#"{{"jsonrpc":"2.0","result":{{"capabilities":{{"textDocumentSync":1}},"serverInfo":{{"name":"typos","version":"{}"}}}},"id":1}}"#,
+                r#"{{"jsonrpc":"2.0","result":{{"capabilities":{{"codeActionProvider":{{"codeActionKinds":["quickfix"],"workDoneProgress":false}},"textDocumentSync":1}},"serverInfo":{{"name":"typos","version":"{}"}}}},"id":1}}"#,
                 env!("CARGO_PKG_VERSION")
             )
         )
     }
 
     #[test_log::test(tokio::test)]
-    async fn test_did_open_e2e() {
-        let initialize = r#"{"jsonrpc":"2.0","method":"initialize","params":{"capabilities":{"textDocumentSync":1}},"id":1}"#;
+    async fn test_e2e() {
+        let initialize = r#"{
+            "jsonrpc": "2.0",
+            "method": "initialize",
+            "params": {
+              "capabilities": {
+                "textDocument": { "publishDiagnostics": { "dataSupport": true } }
+              }
+            },
+            "id": 1
+          }
+        "#;
 
         let did_open = r#"{
                 "jsonrpc": "2.0",
                 "method": "textDocument/didOpen",
                 "params": {
                   "textDocument": {
-                    "uri": "file:///foo.rs",
-                    "languageId": "rust",
+                    "uri": "file:///diagnostics.txt",
+                    "languageId": "plaintext",
                     "version": 1,
                     "text": "this is a\ntest fo typos\n"
                   }
                 }
               }
-              "#;
+            "#;
+
+        let code_action = r#"
+        {
+            "jsonrpc": "2.0",
+            "method": "textDocument/codeAction",
+            "params": {
+              "textDocument": {
+                "uri": "file:///diagnostics.txt"
+              },
+              "range": {
+                "start": {
+                  "line": 1,
+                  "character": 5
+                },
+                "end": {
+                  "line": 1,
+                  "character": 7
+                }
+              },
+              "context": {
+                "diagnostics": [
+                  {
+                    "range": {
+                      "start": {
+                        "line": 1,
+                        "character": 5
+                      },
+                      "end": {
+                        "line": 1,
+                        "character": 7
+                      }
+                    },
+                    "message": "`fo` should be `of`, `for`",
+                    "data": ["of", "for"],
+                    "severity": 2,
+                    "source": "typos"
+                  }
+                ],
+                "only": ["quickfix"],
+                "triggerKind": 1
+              }
+            },
+            "id": 2
+          }
+        "#;
 
         let (mut req_client, mut resp_client) = start_server();
         let mut buf = vec![0; 1024];
@@ -328,8 +383,21 @@ mod tests {
 
         similar_asserts::assert_eq!(
             body(&buf[..n]).unwrap(),
-            r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":["of","for"],"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///foo.rs","version":1}}"#,
-        )
+            r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":["of","for"],"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///diagnostics.txt","version":1}}"#,
+        );
+
+        tracing::debug!("{}", code_action);
+        req_client
+            .write_all(req(code_action).as_bytes())
+            .await
+            .unwrap();
+        let n = resp_client.read(&mut buf).await.unwrap();
+
+        similar_asserts::assert_eq!(
+            body(&buf[..n]).unwrap(),
+            r#"{"jsonrpc":"2.0","result":[{"diagnostics":[{"data":["of","for"],"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"of","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"of"},{"diagnostics":[{"data":["of","for"],"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"for","range":{"end":{"character":8,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"for"}],"id":2}"#,
+        );
+
     }
 
     fn start_server() -> (tokio::io::DuplexStream, tokio::io::DuplexStream) {

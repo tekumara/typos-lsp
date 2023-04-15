@@ -2,25 +2,25 @@
 
 > **Source code spell checker for Visual Studio Code**
 
-A Visual Studio Code Extension for [typos](https://github.com/crate-ci/typos) a low false-positive source code spell checker.
+A Visual Studio Code Extension and LSP server for [typos](https://github.com/crate-ci/typos) a low false-positive source code spell checker.
 
 ## Features
 
-Identification of typos for any file type:
+- For all file types, identification of typos with Quick Fix that provides suggested corrections:
 
-<img width="394" alt="Diagnostics example" src="https://user-images.githubusercontent.com/125105/230765737-230c92d7-c5db-4179-a22d-bb6aaf6d0aad.png">
+<img width="373" alt="Diagnostics example with Quick Fix" src="https://user-images.githubusercontent.com/125105/232224205-eb9c6123-0d38-4d60-ac93-0990016453e0.png">
 
 ## Usage
 
 Once installed `typos` will automatically execute when you open or edit any file.
 
-To disable typos per workspace, see [disable this extension](https://code.visualstudio.com/docs/editor/extension-marketplace#_disable-an-extension).
+To disable `typos` per workspace, see [disable this extension](https://code.visualstudio.com/docs/editor/extension-marketplace#_disable-an-extension).
 
 ## Settings
 
 This extension contributes the following settings:
 
-- `typos.path`: Path to the `typos` binary.
+- `typos.path`: Path to the `typos-lsp` binary.
 - `typos.logLevel`: Logging level of the language server.
 - `typos.trace.server`: Traces the communication between VS Code and the language server.
 

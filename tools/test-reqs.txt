@@ -1,0 +1,8 @@
+Content-Length: 96
+
+{"jsonrpc":"2.0","method":"initialize","params":{"capabilities":{"textDocumentSync":1}},"id":1}
+
+
+Content-Length: 177
+
+{"jsonrpc": "2.0","method": "textDocument/didOpen","params": {"textDocument": {"uri": "file:///foo.rs","languageId": "rust","version": 1,"text": "this is a\ntest fo typos\n"}}}

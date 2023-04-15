@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 
 use bstr::ByteSlice;
@@ -11,6 +12,11 @@ use typos_cli::policy;
 pub struct Backend<'a> {
     client: Client,
     policy: policy::Policy<'a, 'a, 'a>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct DiagnosticData<'c> {
+    corrections: Vec<Cow<'c, str>>,
 }
 
 #[tower_lsp::async_trait]
@@ -107,51 +113,47 @@ impl LanguageServer for Backend<'static> {
             .iter()
             .flat_map(|diag| match &diag.data {
                 Some(data) => {
-                    if let Ok(status) = serde_json::from_value::<typos::Status>(data.clone()) {
-                        if let typos::Status::Corrections(corrections) = status {
-                            corrections
-                                .iter()
-                                .map(|c| {
-                                    CodeActionOrCommand::CodeAction(CodeAction {
-                                        title: c.to_string(),
-                                        kind: Some(CodeActionKind::QUICKFIX),
-                                        diagnostics: Some(vec![diag.clone()]),
-                                        edit: Some(WorkspaceEdit {
-                                            changes: Some(HashMap::from([(
-                                                params.text_document.uri.clone(),
-                                                vec![TextEdit {
-                                                    range: Range::new(
-                                                        diag.range.start,
-                                                        Position::new(
-                                                            diag.range.start.line,
-                                                            diag.range.start.character
-                                                                + c.len() as u32,
-                                                        ),
+                    if let Ok(DiagnosticData { corrections }) =
+                        serde_json::from_value::<DiagnosticData>(data.clone())
+                    {
+                        corrections
+                            .iter()
+                            .map(|c| {
+                                CodeActionOrCommand::CodeAction(CodeAction {
+                                    title: c.to_string(),
+                                    kind: Some(CodeActionKind::QUICKFIX),
+                                    diagnostics: Some(vec![diag.clone()]),
+                                    edit: Some(WorkspaceEdit {
+                                        changes: Some(HashMap::from([(
+                                            params.text_document.uri.clone(),
+                                            vec![TextEdit {
+                                                range: Range::new(
+                                                    diag.range.start,
+                                                    Position::new(
+                                                        diag.range.start.line,
+                                                        diag.range.start.character + c.len() as u32,
                                                     ),
-                                                    new_text: c.to_string(),
-                                                }],
-                                            )])),
-                                            ..WorkspaceEdit::default()
-                                        }),
-                                        is_preferred: if corrections.len() == 1 {
-                                            Some(true)
-                                        } else {
-                                            None
-                                        },
-                                        ..CodeAction::default()
-                                    })
+                                                ),
+                                                new_text: c.to_string(),
+                                            }],
+                                        )])),
+                                        ..WorkspaceEdit::default()
+                                    }),
+                                    is_preferred: if corrections.len() == 1 {
+                                        Some(true)
+                                    } else {
+                                        None
+                                    },
+                                    ..CodeAction::default()
                                 })
-                                .collect()
-                        } else {
-                            tracing::warn!("Unexpected status: {:?}", status);
-                            vec![]
-                        }
+                            })
+                            .collect()
                     } else {
-                        tracing::warn!("Deserialisation failed: {:?}", data);
+                        tracing::error!("Deserialization failed: received {:?} as diagnostic data", data);
                         vec![]
                     }
                 }
-                _ => {
+                None => {
                     tracing::warn!("client doesn't support diagnostic data");
                     vec![]
                 }
@@ -209,8 +211,10 @@ impl Backend<'static> {
                         typos::Status::Valid => panic!("unexpected typos::Status::Valid"),
                     },
                     // store corrections for retrieval during code_action
-                    data: match &typo.corrections {
-                        typos::Status::Corrections(_) => Some(json!(&typo.corrections)),
+                    data: match typo.corrections {
+                        typos::Status::Corrections(corrections) => {
+                            Some(json!(DiagnosticData { corrections }))
+                        }
                         _ => None,
                     },
                     ..Diagnostic::default()
@@ -352,7 +356,9 @@ mod tests {
                       }
                     },
                     "message": "`fo` should be `of`, `for`",
-                    "data": ["of", "for"],
+                    "data": {
+                        "corrections": ["of", "for"]
+                    },
                     "severity": 2,
                     "source": "typos"
                   }
@@ -383,7 +389,7 @@ mod tests {
 
         similar_asserts::assert_eq!(
             body(&buf[..n]).unwrap(),
-            r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":["of","for"],"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///diagnostics.txt","version":1}}"#,
+            r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":{"corrections":["of","for"]},"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///diagnostics.txt","version":1}}"#,
         );
 
         tracing::debug!("{}", code_action);
@@ -395,7 +401,7 @@ mod tests {
 
         similar_asserts::assert_eq!(
             body(&buf[..n]).unwrap(),
-            r#"{"jsonrpc":"2.0","result":[{"diagnostics":[{"data":["of","for"],"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"of","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"of"},{"diagnostics":[{"data":["of","for"],"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"for","range":{"end":{"character":8,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"for"}],"id":2}"#,
+            r#"{"jsonrpc":"2.0","result":[{"diagnostics":[{"data":{"corrections":["of","for"]},"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"of","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"of"},{"diagnostics":[{"data":{"corrections":["of","for"]},"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"for","range":{"end":{"character":8,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"for"}],"id":2}"#,
         );
 
     }

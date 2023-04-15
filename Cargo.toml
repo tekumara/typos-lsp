@@ -3,12 +3,6 @@ name = "typos-lsp"
 version = "0.1.0"
 edition = "2021"
 
-<<<<<<< HEAD
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-||||||| parent of 72920ec (refactor: move lsp back into typos-lsp)
-[profile.dev]
-panic = "abort"
-=======
 [dependencies]
 tracing-subscriber = { version = "0.3.16", default-features = false, features = ["env-filter", "fmt", "smallvec", "std"] }
 tower-lsp = "0.19.0"
@@ -19,32 +13,11 @@ anyhow = "1.0.70"
 bstr = "1.4.0"
 itertools = "0.10.5"
 env_logger = "0.10.0"
-typos = { version = "0.10.11", path = "../typos" }
-typos-cli = { version = "1.14.5", path = "../typos-cli" }
->>>>>>> 72920ec (refactor: move lsp back into typos-lsp)
+typos = "0.10"
+typos-cli = "1.14"
+serde = { version = "1.0.160", features = ["derive"] }
 
-<<<<<<< HEAD
-[dependencies]
-anyhow = "1.0.70"
-futures = "0.3.27"
-httparse = "1.8.0"
-tokio = { version = "1.26.0", features = ["full"] }
-tokio-util = "0.7.7"
-tower-lsp = "0.19.0"
-tracing = "0.1.37"
-tracing-subscriber = "0.3.16"
-
-[dev-dependencies]
-env_logger = "*"
-test-log = { version = "0.2.11", features = ["trace"] }
-tracing = {version = "0.1", default-features = false}
-tracing-subscriber = {version = "0.3", default-features = false, features = ["env-filter", "fmt"]}
-||||||| parent of 72920ec (refactor: move lsp back into typos-lsp)
-[profile.release]
-panic = "abort"
-=======
 [dev-dependencies]
 test-log = { version = "0.2.11", features = ["trace"] }
 httparse = "1.8.0"
 similar-asserts = "1.4.2"
->>>>>>> 72920ec (refactor: move lsp back into typos-lsp)

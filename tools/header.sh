@@ -2,7 +2,6 @@
 
 stdin=$(cat)
 
-#length=$(echo "$stdin" | wc -c)
 length=$((${#stdin}+1))
 
 cat <<EOF

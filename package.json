@@ -29,8 +29,8 @@
         "typos.path": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": "typos",
-          "description": "Path to the `typos` binary."
+          "default": "typos-lsp",
+          "description": "Path to the `typos-lsp` binary."
         },
         "typos.logLevel": {
           "scope": "window",
@@ -43,7 +43,7 @@
             "debug",
             "trace"
           ],
-          "default": "error",
+          "default": "warn",
           "description": "Logging level of the language server."
         },
         "typos.trace.server": {

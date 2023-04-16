@@ -1,11 +1,5 @@
-import {
-    window,
-    workspace,
-    commands,
-    ConfigurationChangeEvent,
-    ExtensionContext,
-    OutputChannel,
-} from "vscode";
+import * as vscode from "vscode";
+import * as os from "os";
 
 import {
     LanguageClient,
@@ -16,64 +10,69 @@ import {
 
 let client: LanguageClient | undefined;
 
-export function activate(context: ExtensionContext) {
+export async function activate(
+    context: vscode.ExtensionContext
+): Promise<void> {
     let name = "Typos";
 
-    const outputChannel = window.createOutputChannel(name);
+    const outputChannel = vscode.window.createOutputChannel(name);
+
+    // context.subscriptions holds the disposables we want called
+    // when the extension is deactivated
     context.subscriptions.push(outputChannel);
 
     context.subscriptions.push(
-        workspace.onDidChangeConfiguration(
-            async (e: ConfigurationChangeEvent) => {
+        vscode.workspace.onDidChangeConfiguration(
+            async (e: vscode.ConfigurationChangeEvent) => {
                 const restartTriggeredBy = [
                     "typos.path",
                     "typos.logLevel",
                 ].find((s) => e.affectsConfiguration(s));
 
                 if (restartTriggeredBy) {
-                    await commands.executeCommand("typos.restart");
+                    await vscode.commands.executeCommand("typos.restart");
                 }
             }
         )
     );
 
     context.subscriptions.push(
-        commands.registerCommand("typos.restart", async () => {
+        vscode.commands.registerCommand("typos.restart", async () => {
             // can't stop if the client has previously failed to start
             if (client && client.needsStop()) {
                 await client.stop();
             }
 
             try {
-                client = createClient(name, outputChannel);
+                client = await createClient(context, name, outputChannel);
             } catch (err) {
-                window.showErrorMessage(
-                    `Typos: ${err instanceof Error ? err.message : err}`
+                vscode.window.showErrorMessage(
+                    `${err instanceof Error ? err.message : err}`
                 );
                 return;
             }
+
+            // Start the client. This will also launch the server
             await client.start();
         })
     );
 
-    client = createClient(name, outputChannel);
-
-    // Start the client. This will also launch the server
-    client.start();
+    // use the command as our single entry point for (re)starting
+    // the client and server. This ensures at activation time we
+    // start and handle errors in a way that's consistent with the
+    // other triggers
+    await vscode.commands.executeCommand("typos.restart");
 }
 
-function createClient(
+async function createClient(
+    context: vscode.ExtensionContext,
     name: string,
-    outputChannel: OutputChannel
-): LanguageClient {
+    outputChannel: vscode.OutputChannel
+): Promise<LanguageClient> {
     const env = { ...process.env };
 
-    let config = workspace.getConfiguration("typos");
-    let path = config.get<null | string>("path");
-
-    if (!path) {
-        throw new Error(`Please specify the typos.path setting.`);
-    }
+    let config = vscode.workspace.getConfiguration("typos");
+    let path = await getServerPath(context, config);
 
     env.RUST_LOG = config.get("logLevel");
 
@@ -97,7 +96,51 @@ function createClient(
         traceOutputChannel: outputChannel,
     };
 
-    return new LanguageClient("typos", name, serverOptions, clientOptions);
+    return new LanguageClient(name, name, serverOptions, clientOptions);
+}
+
+async function getServerPath(
+    context: vscode.ExtensionContext,
+    config: vscode.WorkspaceConfiguration
+): Promise<string> {
+    let path = process.env.TYPOS_LSP_PATH ?? config.get<null | string>("path");
+
+    if (path) {
+        if (path.startsWith("~/")) {
+            path = os.homedir() + path.slice("~".length);
+        }
+        const pathUri = vscode.Uri.file(path);
+
+        return await vscode.workspace.fs.stat(pathUri).then(
+            () => pathUri.fsPath,
+            () => {
+                throw new Error(
+                    `${path} does not exist. Please check typos.path in Settings.`
+                );
+            }
+        );
+    }
+
+    //if (config.package.releaseTag === null) return "typos-lsp";
+
+    const ext = process.platform === "win32" ? ".exe" : "";
+    const bundled = vscode.Uri.joinPath(
+        context.extensionUri,
+        "bundled",
+        `typos-lsp${ext}`
+    );
+
+    return await vscode.workspace.fs.stat(bundled).then(
+        () => bundled.fsPath,
+        () => {
+            throw new Error(
+                "Unfortunately we don't ship binaries for your platform yet. " +
+                    "Try specifying typos.path in Settings. " +
+                    "Or raise an issue [here](https://github.com/tekumara/typos-vscode/issues) " +
+                    "to request a binary for your platform."
+            );
+        }
+    );
 }
 
 export function deactivate(): Thenable<void> | undefined {

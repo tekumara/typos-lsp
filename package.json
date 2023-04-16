@@ -30,7 +30,7 @@
           "scope": "machine-overridable",
           "type": "string",
           "default": "typos-lsp",
-          "description": "Path to the `typos-lsp` binary."
+          "description": "Path to the `typos-lsp` binary. If empty the bundled binary will be used."
         },
         "typos.logLevel": {
           "scope": "window",

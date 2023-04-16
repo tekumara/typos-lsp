@@ -149,7 +149,10 @@ impl LanguageServer for Backend<'static> {
                             })
                             .collect()
                     } else {
-                        tracing::error!("Deserialization failed: received {:?} as diagnostic data", data);
+                        tracing::error!(
+                            "Deserialization failed: received {:?} as diagnostic data",
+                            data
+                        );
                         vec![]
                     }
                 }
@@ -403,7 +406,6 @@ mod tests {
             body(&buf[..n]).unwrap(),
             r#"{"jsonrpc":"2.0","result":[{"diagnostics":[{"data":{"corrections":["of","for"]},"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"of","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"of"},{"diagnostics":[{"data":{"corrections":["of","for"]},"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"for","range":{"end":{"character":8,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"for"}],"id":2}"#,
         );
-
     }
 
     fn start_server() -> (tokio::io::DuplexStream, tokio::io::DuplexStream) {

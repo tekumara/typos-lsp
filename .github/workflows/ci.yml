@@ -22,13 +22,10 @@ jobs:
     - run: cargo clippy
     - name: cargo build
       run: |
-        cargo build --release
+        cargo build
         mkdir -p bundled
-        cp target/release/typos-lsp bundled/
+        cp target/debug/typos-lsp bundled/
     - run: npm ci
     - name: npm test
-      env:
-        VSCODE_CLI: 1
-      run: |
-        sudo apt-get install -y xvfb
-        xvfb-run npm test
+      # vscode requires an X Server
+      run: xvfb-run npm test

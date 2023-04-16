@@ -7,6 +7,7 @@ suite('Should get diagnostics', () => {
 
 	test('Diagnoses typo', async () => {
 		await testDiagnostics(docUri, [
+			{ message: '`apropriate` should be `appropriate`', range: toRange(0, 11, 0, 21), severity: vscode.DiagnosticSeverity.Warning, source: 'ex' },
 			{ message: '`fo` should be `of`, `for`', range: toRange(1, 5, 1, 7), severity: vscode.DiagnosticSeverity.Warning, source: 'ex' },
 		]);
 	});
@@ -22,7 +23,6 @@ async function testDiagnostics(docUri: vscode.Uri, expectedDiagnostics: vscode.D
 	await activate(docUri);
 
 	const actualDiagnostics = vscode.languages.getDiagnostics(docUri);
-
 	assert.equal(actualDiagnostics.length, expectedDiagnostics.length);
 
 	expectedDiagnostics.forEach((expectedDiagnostic, i) => {

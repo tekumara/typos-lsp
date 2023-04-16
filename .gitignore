@@ -3,5 +3,5 @@ dist
 node_modules
 .vscode-test/
 *.vsix
-/target
+target/
 bundled/

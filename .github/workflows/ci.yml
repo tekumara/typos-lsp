@@ -13,15 +13,22 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
- 
+
     steps:
     - uses: actions/checkout@v3
     - uses: Swatinem/rust-cache@v2
-    - name: Build
-      run: cargo build
-    - name: Run tests
-      run: cargo test
-    - name: Check formatting
-      run: cargo fmt --all -- --check
-    - name: Clippy
-      run: cargo clippy
+    - run: cargo test
+    - run: cargo fmt --all -- --check
+    - run: cargo clippy
+    - name: cargo build
+      run: |
+        cargo build --release
+        mkdir -p bundled
+        cp target/release/typos-lsp bundled/
+    - run: npm ci
+    - name: npm test
+      env:
+        VSCODE_CLI: 1
+      run: |
+        sudo apt-get install -y xvfb
+        xvfb-run npm test

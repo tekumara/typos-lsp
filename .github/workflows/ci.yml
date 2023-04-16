@@ -13,9 +13,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    permissions:
-      checks: write
-
+ 
     steps:
     - uses: actions/checkout@v3
     - uses: Swatinem/rust-cache@v2
@@ -25,6 +23,5 @@ jobs:
       run: cargo test
     - name: Check formatting
       run: cargo fmt --all -- --check
-    - uses: actions-rs/clippy-check@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Clippy
+      run: cargo clippy

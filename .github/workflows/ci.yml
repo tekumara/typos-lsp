@@ -21,11 +21,8 @@ jobs:
       run: cargo build
     - name: Run tests
       run: cargo test
-    - name: Run cargo fmt
-      uses: actions-rs/cargo@v1
-      with:
-        command: fmt
-        args: --all -- --check
+    - name: Check formatting
+      run: cargo fmt --all -- --check
     - uses: actions-rs/clippy-check@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}

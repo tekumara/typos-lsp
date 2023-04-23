@@ -1,11 +1,11 @@
-name: release
+name: Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   dist:
-    needs: [CI]  # require CI workflow to pass
     strategy:
       matrix:
         include:
@@ -51,14 +51,20 @@ jobs:
         run: sudo apt-get install gcc-arm-linux-gnueabihf
       - run: cargo build --release
       - run: npm ci
-      - name: npx vsce package
+      - name: npx vsce package (unix)
+        if: matrix.os != 'windows-latest'
         run: |
           mkdir -p bundled dist
           cp target/release/typos-lsp bundled/
           npx vsce package -o "dist/typos-${{ matrix.code-target }}.vsix" --target ${{ matrix.code-target }}
-        working-directory: editors/code
+      - name: npx vsce package (windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir bundled,dist
+          copy crates/typos-lsp bundled/
+          npx vsce package -o "dist/typos-${{ matrix.code-target }}.vsix" --target ${{ matrix.code-target }}
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
-          name: dist-${{ matrix.target }}
-          path: ./dist
+          name: typos-dist-${{ matrix.target }}.vsix
+          path: dist

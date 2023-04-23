@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_call:  # so release can depend on CI
 
 env:
   CARGO_TERM_COLOR: always
@@ -20,12 +21,11 @@ jobs:
     - run: cargo test
     - run: cargo fmt --all -- --check
     - run: cargo clippy
-    - name: cargo build
-      run: |
-        cargo build
-        mkdir -p bundled
-        cp target/debug/typos-lsp bundled/
+    - run: cargo build
     - run: npm ci
     - name: npm test
-      # vscode requires an X Server
-      run: xvfb-run npm test
+      run: |
+        mkdir -p bundled
+        cp target/debug/typos-lsp bundled/
+        # vscode requires an X Server
+        xvfb-run npm test

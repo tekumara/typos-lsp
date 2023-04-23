@@ -1,0 +1,64 @@
+name: release
+on:
+  release:
+    types: [published]
+
+jobs:
+  dist:
+    needs: [CI]  # require CI workflow to pass
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            code-target: win32-x64
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+            code-target: win32-ia32
+          - os: windows-latest
+            target: aarch64-pc-windows-msvc
+            code-target: win32-arm64
+          - os: ubuntu-20.04
+            target: x86_64-unknown-linux-gnu
+            code-target: linux-x64
+          - os: ubuntu-20.04
+            target: aarch64-unknown-linux-gnu
+            code-target: linux-arm64
+          - os: ubuntu-20.04
+            target: arm-unknown-linux-gnueabihf
+            code-target: linux-armhf
+          - os: macos-11
+            target: x86_64-apple-darwin
+            code-target: darwin-x64
+          - os: macos-11
+            target: aarch64-apple-darwin
+            code-target: darwin-arm64
+
+    name: dist (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+
+    env:
+      RA_TARGET: ${{ matrix.target }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+      - name: Install gcc-aarch64
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: sudo apt-get install gcc-aarch64-linux-gnu
+      - name: Install gcc-arm
+        if: matrix.target == 'arm-unknown-linux-gnueabihf'
+        run: sudo apt-get install gcc-arm-linux-gnueabihf
+      - run: cargo build --release
+      - run: npm ci
+      - name: npx vsce package
+        run: |
+          mkdir -p bundled dist
+          cp target/release/typos-lsp bundled/
+          npx vsce package -o "dist/typos-${{ matrix.code-target }}.vsix" --target ${{ matrix.code-target }}
+        working-directory: editors/code
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: dist-${{ matrix.target }}
+          path: ./dist

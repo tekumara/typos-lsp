@@ -4,16 +4,28 @@
   "publisher": "tekumara",
   "description": "Source code spell checker",
   "version": "0.0.1",
-  "engines": {
-    "vscode": "^1.77.0"
+  "private": true,
+  "repository": {
+    "url": "https://github.com/tekumara/typos-vscode.git",
+    "type": "git"
   },
+  "license": "MIT",
+  "keywords": [
+    "spell",
+    "checker",
+    "spelling",
+    "spellchecker"
+  ],
   "categories": [
     "Other"
   ],
+  "engines": {
+    "vscode": "^1.77.0"
+  },
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./out/extension.js",
+  "main": "./out/main.js",
   "contributes": {
     "commands": [
       {
@@ -60,11 +72,16 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "package": "vsce package",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
+    "lint": "prettier --check . && eslint src --ext ts",
+    "fix": "prettier --write . && eslint src --ext ts --fix",
+    "pretest": "npm run compile && npm run lint && npm run esbuild",
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
@@ -75,9 +92,12 @@
     "@typescript-eslint/eslint-plugin": "^5.53.0",
     "@typescript-eslint/parser": "^5.53.0",
     "@vscode/test-electron": "^2.2.3",
+    "@vscode/vsce": "^2.19.0",
+    "esbuild": "^0.17.18",
     "eslint": "^8.34.0",
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
+    "prettier": "^2.8.7",
     "typescript": "^4.9.5"
   },
   "dependencies": {
@@ -86,7 +106,7 @@
   "prettier": {
     "overrides": [
       {
-        "files": "*.ts",
+        "files": ["*.ts","*.json"],
         "options": {
           "tabWidth": 4
         }

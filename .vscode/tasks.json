@@ -11,6 +11,12 @@
 			"presentation": {
 				"reveal": "never"
 			},
+			"group": "build",
+		},
+		{
+			"type": "npm",
+			"script": "esbuild",
+			"problemMatcher": "$tsc",
 			"group": {
 				"kind": "build",
 				"isDefault": true

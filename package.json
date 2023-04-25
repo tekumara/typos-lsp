@@ -85,7 +85,7 @@
     "lint": "prettier --check . && eslint src --ext ts",
     "fix": "prettier --write . && eslint src --ext ts --fix",
     "pretest": "tsc && npm run build",
-    "test": "node ./out/test/runTest.js"
+    "test": "cross-env TYPOS_LSP_PATH=$PWD/target/debug/typos-lsp node ./out/test/runTest.js"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
@@ -96,6 +96,7 @@
     "@typescript-eslint/parser": "^5.53.0",
     "@vscode/test-electron": "^2.2.3",
     "@vscode/vsce": "^2.19.0",
+    "cross-env": "^7.0.3",
     "esbuild": "^0.17.18",
     "eslint": "^8.34.0",
     "glob": "^8.1.0",

@@ -127,13 +127,7 @@ impl LanguageServer for Backend<'static> {
                                         changes: Some(HashMap::from([(
                                             params.text_document.uri.clone(),
                                             vec![TextEdit {
-                                                range: Range::new(
-                                                    diag.range.start,
-                                                    Position::new(
-                                                        diag.range.start.line,
-                                                        diag.range.start.character + c.len() as u32,
-                                                    ),
-                                                ),
+                                                range: diag.range,
                                                 new_text: c.to_string(),
                                             }],
                                         )])),
@@ -321,7 +315,7 @@ mod tests {
                     "uri": "file:///diagnostics.txt",
                     "languageId": "plaintext",
                     "version": 1,
-                    "text": "this is a\ntest fo typos\n"
+                    "text": "this is an apropriate test\nfo typos\n"
                   }
                 }
               }
@@ -374,6 +368,53 @@ mod tests {
           }
         "#;
 
+        let code_action_insertion = r#"
+        {
+            "jsonrpc": "2.0",
+            "method": "textDocument/codeAction",
+            "params": {
+              "textDocument": {
+                "uri": "file:///diagnostics.txt"
+              },
+              "range": {
+                "start": {
+                  "line": 0,
+                  "character": 11
+                },
+                "end": {
+                  "line": 0,
+                  "character": 21
+                }
+              },
+              "context": {
+                "diagnostics": [
+                  {
+                    "range": {
+                      "start": {
+                        "line": 0,
+                        "character": 11
+                      },
+                      "end": {
+                        "line": 0,
+                        "character": 21
+                      }
+                    },
+                    "message": "`apropriate` should be `appropriate`",
+                    "data": {
+                      "corrections": ["appropriate"]
+                    },
+                    "severity": 2,
+                    "source": "typos"
+                  }
+                ],
+                "only": ["quickfix"],
+                "triggerKind": 1
+              }
+            },
+            "id": 3
+          }
+        "#;
+
         let (mut req_client, mut resp_client) = start_server();
         let mut buf = vec![0; 1024];
 
@@ -392,7 +433,7 @@ mod tests {
 
         similar_asserts::assert_eq!(
             body(&buf[..n]).unwrap(),
-            r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":{"corrections":["of","for"]},"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///diagnostics.txt","version":1}}"#,
+            r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":{"corrections":["appropriate"]},"message":"`apropriate` should be `appropriate`","range":{"end":{"character":21,"line":0},"start":{"character":11,"line":0}},"severity":2,"source":"typos"},{"data":{"corrections":["of","for"]},"message":"`fo` should be `of`, `for`","range":{"end":{"character":2,"line":1},"start":{"character":0,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///diagnostics.txt","version":1}}"#,
         );
 
         tracing::debug!("{}", code_action);
@@ -404,7 +445,19 @@ mod tests {
 
         similar_asserts::assert_eq!(
             body(&buf[..n]).unwrap(),
-            r#"{"jsonrpc":"2.0","result":[{"diagnostics":[{"data":{"corrections":["of","for"]},"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"of","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"of"},{"diagnostics":[{"data":{"corrections":["of","for"]},"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"for","range":{"end":{"character":8,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"for"}],"id":2}"#,
+            r#"{"jsonrpc":"2.0","result":[{"diagnostics":[{"data":{"corrections":["of","for"]},"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"of","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"of"},{"diagnostics":[{"data":{"corrections":["of","for"]},"message":"`fo` should be `of`, `for`","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"for","range":{"end":{"character":7,"line":1},"start":{"character":5,"line":1}}}]}},"kind":"quickfix","title":"for"}],"id":2}"#,
+        );
+
+        tracing::debug!("{}", code_action_insertion);
+        req_client
+            .write_all(req(code_action_insertion).as_bytes())
+            .await
+            .unwrap();
+        let n = resp_client.read(&mut buf).await.unwrap();
+
+        similar_asserts::assert_eq!(
+            body(&buf[..n]).unwrap(),
+            r#"{"jsonrpc":"2.0","result":[{"diagnostics":[{"data":{"corrections":["appropriate"]},"message":"`apropriate` should be `appropriate`","range":{"end":{"character":21,"line":0},"start":{"character":11,"line":0}},"severity":2,"source":"typos"}],"edit":{"changes":{"file:///diagnostics.txt":[{"newText":"appropriate","range":{"end":{"character":21,"line":0},"start":{"character":11,"line":0}}}]}},"isPreferred":true,"kind":"quickfix","title":"appropriate"}],"id":3}"#,
         );
     }
 

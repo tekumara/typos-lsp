@@ -23,9 +23,6 @@ jobs:
     - run: cargo build
     - run: npm ci
     - run: npm run lint
+    # vscode requires an X Server
     - name: npm test
-      run: |
-        mkdir -p bundled
-        cp target/debug/typos-lsp bundled/
-        # vscode requires an X Server
-        xvfb-run npm test
+      run: xvfb-run npm test

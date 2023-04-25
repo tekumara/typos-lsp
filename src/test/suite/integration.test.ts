@@ -1,9 +1,13 @@
 import * as vscode from "vscode";
 import * as assert from "assert";
-import { getDocUri, activate } from "./helper";
+import { activate, getDocUri, sleep } from "./helper";
 
-suite("Should get diagnostics", () => {
+suite("VS Code Integration Tests", async () => {
   const docUri = getDocUri("diagnostics.txt");
+
+  suiteSetup(async () => {
+    await activate(docUri);
+  });
 
   test("Diagnoses typo", async () => {
     await testDiagnostics(docUri, [
@@ -15,11 +19,31 @@ suite("Should get diagnostics", () => {
       },
       {
         message: "`fo` should be `of`, `for`",
-        range: toRange(1, 5, 1, 7),
+        range: toRange(1, 0, 1, 2),
         severity: vscode.DiagnosticSeverity.Warning,
         source: "ex",
       },
     ]);
+  });
+
+  test("Auto fix applies corrections", async () => {
+    let editor = vscode.window.activeTextEditor;
+
+    if (!editor) {
+      throw new Error("no active editor");
+    }
+
+    // place cursor on the spelling mistake
+    let position = new vscode.Position(0, 13);
+    let selection = new vscode.Selection(position, position);
+    editor.selection = selection;
+
+    // trigger correction
+    await vscode.commands.executeCommand("editor.action.autoFix");
+    await sleep(100);
+
+    let contents = vscode.window.activeTextEditor?.document.getText();
+    assert.equal(contents, "this is an appropriate test\nfo typos\n");
   });
 });
 
@@ -33,8 +57,6 @@ async function testDiagnostics(
   docUri: vscode.Uri,
   expectedDiagnostics: vscode.Diagnostic[]
 ) {
-  await activate(docUri);
-
   const actualDiagnostics = vscode.languages.getDiagnostics(docUri);
   assert.equal(actualDiagnostics.length, expectedDiagnostics.length);
 

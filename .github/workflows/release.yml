@@ -66,5 +66,5 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: typos-dist-${{ matrix.target }}.vsix
+          name: typos-vscode-${{ matrix.target }}.vsix
           path: dist

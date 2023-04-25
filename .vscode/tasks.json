@@ -4,6 +4,12 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"type": "cargo",
+			"command": "build",
+			"problemMatcher": "$rustc",
+			"group": "build"
+		},
+		{
 			"type": "npm",
 			"script": "watch",
 			"problemMatcher": "$tsc-watch",
@@ -11,12 +17,30 @@
 			"presentation": {
 				"reveal": "never"
 			},
-			"group": "build",
+			"group": "build"
 		},
 		{
 			"type": "npm",
-			"script": "esbuild",
+			"script": "build",
 			"problemMatcher": "$tsc",
+			"group": "build"
+		},
+		{
+			"type": "npm",
+			"script": "pretest",
+			"problemMatcher": "$tsc",
+			"group": "build"
+		},
+		{
+			"label": "build all",
+			"dependsOn": [
+				"cargo: build",
+				"npm: pretest"
+			],
+			"problemMatcher": [
+				"$rustc",
+				"$tsc"
+			],
 			"group": {
 				"kind": "build",
 				"isDefault": true

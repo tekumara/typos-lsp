@@ -22,6 +22,7 @@ jobs:
     - run: cargo clippy
     - run: cargo build
     - run: npm ci
+    - run: npm run lint
     - name: npm test
       run: |
         mkdir -p bundled

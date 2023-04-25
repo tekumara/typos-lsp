@@ -17,6 +17,9 @@
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
 			],
+			"env": {
+				"TYPOS_LSP_PATH": "${workspaceFolder}/target/debug/typos-lsp"
+			},
 			"preLaunchTask": "${defaultBuildTask}"
 		},
 		{
@@ -32,6 +35,9 @@
 			"outFiles": [
 				"${workspaceFolder}/out/test/**/*.js"
 			],
+			"env": {
+				"TYPOS_LSP_PATH": "${workspaceFolder}/target/debug/typos-lsp"
+			},
 			"preLaunchTask": "${defaultBuildTask}"
 		},
 	]

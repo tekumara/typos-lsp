@@ -75,13 +75,11 @@
     "vscode:prepublish": "npm run esbuild-base -- --minify",
     "package": "vsce package",
     "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
-    "esbuild": "npm run esbuild-base -- --sourcemap",
-    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "build": "npm run esbuild-base -- --sourcemap",
+    "watch": "npm run esbuild-base -- --sourcemap --watch",
     "lint": "prettier --check . && eslint src --ext ts",
     "fix": "prettier --write . && eslint src --ext ts --fix",
-    "pretest": "npm run compile && npm run lint && npm run esbuild",
+    "pretest": "tsc && npm run build",
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {

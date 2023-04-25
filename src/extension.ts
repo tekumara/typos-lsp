@@ -73,6 +73,8 @@ async function createClient(
   let config = vscode.workspace.getConfiguration("typos");
   let path = await getServerPath(context, config);
 
+  outputChannel.appendLine("Using typos server " + path);
+
   env.RUST_LOG = config.get("logLevel");
 
   const run: Executable = {

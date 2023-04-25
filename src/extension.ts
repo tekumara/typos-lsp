@@ -97,7 +97,12 @@ async function createClient(
     traceOutputChannel: outputChannel,
   };
 
-  return new LanguageClient(name, name, serverOptions, clientOptions);
+  return new LanguageClient(
+    name.toLowerCase(),
+    name,
+    serverOptions,
+    clientOptions
+  );
 }
 
 async function getServerPath(

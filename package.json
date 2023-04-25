@@ -65,8 +65,13 @@
             "messages",
             "verbose"
           ],
+          "enumDescriptions": [
+            "No traces",
+            "Trace sent/received",
+            "Includes content of messages"
+          ],
           "default": "off",
-          "description": "Traces the communication between VS Code and the language server."
+          "description": "Traces the communication between VS Code and the language server. Recommended for debugging only."
         }
       }
     }

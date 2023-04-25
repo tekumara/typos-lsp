@@ -20,8 +20,8 @@ To disable `typos` per workspace, see [disable this extension](https://code.visu
 
 This extension contributes the following settings:
 
-- `typos.path`: Path to the `typos-lsp` binary.
 - `typos.logLevel`: Logging level of the language server.
+- `typos.path`: Path to the `typos-lsp` binary. If empty the bundled binary will be used.
 - `typos.trace.server`: Traces the communication between VS Code and the language server.
 
 ## Commands

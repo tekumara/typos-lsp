@@ -90,10 +90,9 @@ async function createClient(
 
   const clientOptions: LanguageClientOptions = {
     // Register the server for all documents
-    documentSelector: [
-      { scheme: "untitled" },
-      { scheme: "file", pattern: "**" },
-    ],
+    // We use scheme = file to ignore Untitled documents because that generates
+    // too much request chatter
+    documentSelector: [{ scheme: "file", pattern: "**" }],
     outputChannel: outputChannel,
     traceOutputChannel: outputChannel,
   };

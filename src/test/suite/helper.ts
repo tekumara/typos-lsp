@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as path from "path";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -22,3 +23,11 @@ export async function activate(docUri: vscode.Uri) {
 export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export const getDocPath = (p: string) => {
+  return path.resolve(__dirname, "../../../src/test/fixture", p);
+};
+
+export const getDocUri = (p: string) => {
+  return vscode.Uri.file(getDocPath(p));
+};

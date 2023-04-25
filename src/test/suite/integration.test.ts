@@ -1,14 +1,12 @@
 import * as vscode from "vscode";
 import * as assert from "assert";
-import { activate, sleep } from "./helper";
+import { activate, getDocUri, sleep } from "./helper";
 
 suite("VS Code Integration Tests", async () => {
-  const docUri = vscode.Uri.parse("untitled:integration.txt");
+  const docUri = getDocUri("diagnostics.txt");
 
   suiteSetup(async () => {
     await activate(docUri);
-    const contents = "this is an apropriate test\nfo typos\n";
-    vscode.window.activeTextEditor?.edit((edit) => edit.insert(new vscode.Position(0, 0), contents));
   });
 
   test("Diagnoses typo", async () => {
@@ -42,7 +40,7 @@ suite("VS Code Integration Tests", async () => {
 
     // trigger correction
     await vscode.commands.executeCommand("editor.action.autoFix");
-    await sleep(10000);
+    await sleep(100);
 
     let contents = vscode.window.activeTextEditor?.document.getText();
     assert.equal(contents, "this is an appropriate test\nfo typos\n");

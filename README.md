@@ -6,7 +6,7 @@ A Visual Studio Code Extension and LSP server for [typos](https://github.com/cra
 
 ## Features
 
-- For all file types, identification of typos with Quick Fix that provides suggested corrections:
+- Identify misspellings and provide a Quick Fix with suggested corrections:
 
 <img width="373" alt="Diagnostics example with Quick Fix" src="https://user-images.githubusercontent.com/125105/232224205-eb9c6123-0d38-4d60-ac93-0990016453e0.png">
 

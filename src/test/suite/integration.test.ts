@@ -38,6 +38,11 @@ suite("VS Code Integration Tests", async () => {
     let selection = new vscode.Selection(position, position);
     editor.selection = selection;
 
+    // for GHA CI to work, we need to wait long enough for the
+    // cursor to move to the spelling mistake, otherwise the
+    // autofix won't trigger
+    await sleep(1000);
+
     // trigger correction
     await vscode.commands.executeCommand("editor.action.autoFix");
     await sleep(100);

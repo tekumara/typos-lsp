@@ -76,12 +76,24 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v3
       # download each artifact into its own self-named directory
       - uses: actions/download-artifact@v3
         with:
           path: dist
-      - run: ls -al dist/*
+      - run: npm ci
+      - name: Inspect dist
+        run: |
+          ls -al dist/*
+          npx glob dist/**/*.vsix
+      - name: vsce publish
+        run: npx vsce publish --packagePath $(npx glob dist/**/*.vsix)
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
       - name: Upload to GH release
         uses: softprops/action-gh-release@v1
         with:
           files: dist/**/*.vsix
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3

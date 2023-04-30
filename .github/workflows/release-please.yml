@@ -13,7 +13,18 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
+      - name: Generate app token for release-please
+        uses: tibdex/github-app-token@v1
+        id: app-token
+        with:
+          # https://github.com/apps/potatobot-prime
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
       - uses: google-github-actions/release-please-action@v3
         with:
+          # use app token so that PRs and releases created by release-please trigger
+          # additional workflows. They'll also be authored by the app.
+          # see https://github.com/google-github-actions/release-please-action#github-credentials
+          token: ${{ steps.app-token.outputs.token }}
           release-type: node
           package-name: typos-vscode

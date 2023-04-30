@@ -111,6 +111,7 @@ impl LanguageServer for Backend<'static> {
             .context
             .diagnostics
             .iter()
+            .filter(|diag| diag.source == Some("typos".to_string()))
             .flat_map(|diag| match &diag.data {
                 Some(data) => {
                     if let Ok(DiagnosticData { corrections }) =

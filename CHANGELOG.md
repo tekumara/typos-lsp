@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/tekumara/typos-vscode/compare/v0.1.0...v0.1.1) (2023-05-01)
+
+
+### Bug Fixes
+
+* npm lints + test ([77a832a](https://github.com/tekumara/typos-vscode/commit/77a832a824b016f196764bb6586c5d6947744b1d))
+
 ## 0.1.0 (2023-04-30)
 
 

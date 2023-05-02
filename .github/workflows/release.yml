@@ -7,6 +7,17 @@ on:
   workflow_call:
 
 jobs:
+  wait:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for all ci checks to succeed
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.ref }}
+          running-workflow-name: ci
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 5
+
   dist:
     strategy:
       matrix:
@@ -38,6 +49,7 @@ jobs:
 
     name: dist (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
+    needs: wait
 
     env:
       RA_TARGET: ${{ matrix.target }}

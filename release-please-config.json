@@ -2,14 +2,18 @@
   "plugins": ["cargo-workspace"],
   "bump-minor-pre-major": true,
   "bump-patch-for-minor-pre-major": true,
-  "include-component-in-tag": false,
+  "include-component-in-tag": false, 
   "packages": {
     ".": {
       "release-type": "node"
-    },
-    "crates/typos-lsp": {
-      "release-type": "rust"
     }
   },
+  "extra-files": [
+    {
+      "type": "toml",
+      "path": "crates/typos-lsp/Cargo.toml",
+      "jsonpath": "package.version"
+    }
+  ],  
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
 }

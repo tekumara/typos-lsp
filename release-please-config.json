@@ -16,7 +16,7 @@
     {
       "type": "toml",
       "path": "Cargo.lock",
-      "jsonpath": "$.package[?(@.name == 'typos-lsp')].version"
+      "jsonpath": "$.package[?(@.name.value == 'typos-lsp')].version"
     }
   ],
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"

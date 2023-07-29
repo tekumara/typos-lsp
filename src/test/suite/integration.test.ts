@@ -18,7 +18,7 @@ suite("VS Code Integration Tests", async () => {
         source: "ex",
       },
       {
-        message: "`fo` should be `of`, `for`",
+        message: "`fo` should be `of`, `for`, `do`, `go`, `to`",
         range: toRange(1, 0, 1, 2),
         severity: vscode.DiagnosticSeverity.Warning,
         source: "ex",

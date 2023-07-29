@@ -14,7 +14,7 @@ bstr = "1.4"
 itertools = "0.10.5"
 env_logger = "0.10.0"
 typos = "0.10"
-typos-cli = "1.14"
+typos-cli = "1.16"
 serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]

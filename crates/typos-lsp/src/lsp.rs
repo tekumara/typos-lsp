@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
+use std::sync::Mutex;
 
 use bstr::ByteSlice;
 use serde_json::json;
@@ -12,6 +13,12 @@ use typos_cli::policy;
 pub struct Backend<'a> {
     client: Client,
     policy: policy::Policy<'a, 'a, 'a>,
+    state: Mutex<BackendState>,
+}
+
+#[derive(Default)]
+struct BackendState {
+    workspace_folders: Vec<WorkspaceFolder>,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -40,6 +47,9 @@ impl LanguageServer for Backend<'static> {
             )
         }
 
+        let mut state = self.state.lock().unwrap();
+        state.workspace_folders = params.workspace_folders.unwrap_or_default();
+
         Ok(InitializeResult {
             capabilities: ServerCapabilities {
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
@@ -55,7 +65,14 @@ impl LanguageServer for Backend<'static> {
                         resolve_provider: None,
                     },
                 )),
-                ..ServerCapabilities::default()
+                workspace: Some(WorkspaceServerCapabilities {
+                    workspace_folders: Some(WorkspaceFoldersServerCapabilities {
+                        supported: Some(true),
+                        change_notifications: Some(OneOf::Left(true)),
+                    }),
+                    ..Default::default()
+                }),
+                ..Default::default()
             },
             server_info: Some(ServerInfo {
                 name: "typos".to_string(),
@@ -161,6 +178,16 @@ impl LanguageServer for Backend<'static> {
         Ok(Some(actions))
     }
 
+    async fn did_change_workspace_folders(&self, params: DidChangeWorkspaceFoldersParams) {
+        tracing::debug!("did_change_workspace_folders: {:?}", params);
+
+        let mut state = self.state.lock().unwrap();
+        state.workspace_folders.extend(params.event.added);
+        if params.event.removed.len() > 0 {
+            state.workspace_folders.retain(|x| !params.event.removed.contains(x));
+        }
+    }
+
     async fn shutdown(&self) -> jsonrpc::Result<()> {
         Ok(())
     }
@@ -169,7 +196,11 @@ impl LanguageServer for Backend<'static> {
 impl Backend<'static> {
     pub fn new(client: Client) -> Self {
         let policy = policy::Policy::new();
-        Self { client, policy }
+        Self {
+            client,
+            policy,
+            state: Mutex::new(BackendState::default()),
+        }
     }
 
     async fn report_diagnostics(&self, params: TextDocumentItem) {
@@ -288,7 +319,7 @@ mod tests {
         similar_asserts::assert_eq!(
             body(&output).unwrap(),
             format!(
-                r#"{{"jsonrpc":"2.0","result":{{"capabilities":{{"codeActionProvider":{{"codeActionKinds":["quickfix"],"workDoneProgress":false}},"textDocumentSync":1}},"serverInfo":{{"name":"typos","version":"{}"}}}},"id":1}}"#,
+                r#"{{"jsonrpc":"2.0","result":{{"capabilities":{{"codeActionProvider":{{"codeActionKinds":["quickfix"],"workDoneProgress":false}},"textDocumentSync":1,"workspace":{{"workspaceFolders":{{"changeNotifications":true,"supported":true}}}}}},"serverInfo":{{"name":"typos","version":"{}"}}}},"id":1}}"#,
                 env!("CARGO_PKG_VERSION")
             )
         )

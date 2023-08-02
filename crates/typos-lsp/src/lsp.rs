@@ -1,6 +1,9 @@
+use anyhow::anyhow;
+use matchit::Router;
+
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Mutex, Arc};
 
 use bstr::ByteSlice;
 use serde_json::json;
@@ -8,17 +11,97 @@ use tower_lsp::lsp_types::*;
 use tower_lsp::*;
 use tower_lsp::{Client, LanguageServer};
 
+use ignore::overrides::{Override, OverrideBuilder};
 use typos_cli::policy;
-
-pub struct Backend<'a> {
+pub struct Backend<'s> {
     client: Client,
-    policy: policy::Policy<'a, 'a, 'a>,
-    state: Mutex<BackendState>,
+    policy: policy::Policy<'s, 's, 's>,
+    state: Mutex<BackendState<'s>>,
 }
 
 #[derive(Default)]
-struct BackendState {
+struct BackendState<'s> {
     workspace_folders: Vec<WorkspaceFolder>,
+    storage: typos_cli::policy::ConfigStorage,
+    router: Router<Config<'s>>,
+}
+
+struct Config<'s> {
+    overrides: Override,
+    engine: policy::ConfigEngine<'s>,
+}
+
+impl <'s> BackendState<'s> {
+    fn set_workspace_folders(&mut self, workspace_folders: Vec<WorkspaceFolder>) {
+        self.workspace_folders = workspace_folders;
+        self.update_router();
+    }
+
+    fn update_workspace_folders(
+        &mut self,
+        added: Vec<WorkspaceFolder>,
+        removed: Vec<WorkspaceFolder>,
+    ) {
+        self.workspace_folders.extend(added);
+        if removed.len() > 0 {
+            self.workspace_folders.retain(|x| !removed.contains(x));
+        }
+        self.update_router();
+    }
+
+    fn update_router(&'s mut self) -> anyhow::Result<(), anyhow::Error> {
+        self.router = Router::new();
+        for folder in self.workspace_folders.iter() {
+            let path = folder
+                .uri
+                .to_file_path()
+                .map_err(|_| anyhow!("Cannot convert uri {} to file path", folder.uri))?;
+
+            self.storage = typos_cli::policy::ConfigStorage::new();
+            let mut engine = typos_cli::policy::ConfigEngine::new(&self.storage);
+            engine.init_dir(&path)?;
+
+            let walk_policy = engine.walk(&path);
+
+            // add any explicit excludes
+            let mut overrides = OverrideBuilder::new(".");
+            for pattern in walk_policy.extend_exclude.iter() {
+                overrides.add(&format!("!{}", pattern))?;
+            }
+            let overrides = overrides.build()?;
+
+            let path_str = path.to_str().ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?;
+            let c = Config {overrides, engine};
+            self.router.insert(path_str, c)?;
+        }
+
+        Ok(())
+    }
+
+    // fn add_workspace_folder<'s>(
+    //     &'s mut self,
+    //     workspace_folder: &WorkspaceFolder,
+    // ) -> anyhow::Result<Config, anyhow::Error> {
+    //     let path = workspace_folder
+    //         .uri
+    //         .to_file_path()
+    //         .map_err(|_| anyhow!("Cannot convert uri {} to file path", workspace_folder.uri))?;
+    //     let storage = Arc::new(typos_cli::policy::ConfigStorage::new());
+    //     let mut engine = typos_cli::policy::ConfigEngine::new(&storage);
+
+    //     engine.init_dir(&path)?;
+
+    //     let walk_policy = engine.walk(&path);
+
+    //     // add any explicit excludes
+    //     let mut overrides = OverrideBuilder::new(".");
+    //     for pattern in walk_policy.extend_exclude.iter() {
+    //         overrides.add(&format!("!{}", pattern))?;
+    //     }
+    //     let overrides = overrides.build()?;
+
+    //     Ok(Config { overrides, storage, engine })
+    // }
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -48,7 +131,7 @@ impl LanguageServer for Backend<'static> {
         }
 
         let mut state = self.state.lock().unwrap();
-        state.workspace_folders = params.workspace_folders.unwrap_or_default();
+        state.set_workspace_folders(params.workspace_folders.unwrap_or_default());
 
         Ok(InitializeResult {
             capabilities: ServerCapabilities {
@@ -182,10 +265,7 @@ impl LanguageServer for Backend<'static> {
         tracing::debug!("did_change_workspace_folders: {:?}", params);
 
         let mut state = self.state.lock().unwrap();
-        state.workspace_folders.extend(params.event.added);
-        if params.event.removed.len() > 0 {
-            state.workspace_folders.retain(|x| !params.event.removed.contains(x));
-        }
+        state.update_workspace_folders(params.event.added, params.event.removed)
     }
 
     async fn shutdown(&self) -> jsonrpc::Result<()> {

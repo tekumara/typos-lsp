@@ -16,6 +16,14 @@ Once installed `typos` will automatically execute when you open or edit any file
 
 To disable `typos` per workspace, see [disable this extension](https://code.visualstudio.com/docs/editor/extension-marketplace#_disable-an-extension).
 
+## Config file support
+
+Supports the following [config fields](https://github.com/crate-ci/typos/blob/master/docs/reference.md) in `typos.toml`, `_typos.toml`, or `.typos.toml`:
+
+- files.extend-exclude
+
+Config files will be read from the workspace folder or its parents. If there is no workspace folder, then no config file will be read and the typos defaults will be used.
+
 ## Settings
 
 This extension contributes the following settings:

@@ -782,6 +782,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "matchit"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67827e6ea8ee8a7c4a72227ef4fc08957040acffdb5f122733b24fa12daff41b"
+
+[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1519,7 +1525,9 @@ dependencies = [
  "bstr 1.6.0",
  "env_logger",
  "httparse",
+ "ignore",
  "itertools",
+ "matchit",
  "serde",
  "serde_json",
  "similar-asserts",

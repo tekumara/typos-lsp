@@ -22,8 +22,14 @@ pub struct Backend<'s> {
 #[derive(Default)]
 struct BackendState<'s> {
     workspace_folders: Vec<WorkspaceFolder>,
-    storage: typos_cli::policy::ConfigStorage,
+    storages: Vec<policy::ConfigStorage>,
     router: Router<Config<'s>>,
+}
+
+struct Workspace<'s> {
+    workspace_folder: WorkspaceFolder,
+    storage: policy::ConfigStorage,
+    config: Config<'s>,
 }
 
 struct Config<'s> {
@@ -34,6 +40,7 @@ struct Config<'s> {
 impl <'s> BackendState<'s> {
     fn set_workspace_folders(&mut self, workspace_folders: Vec<WorkspaceFolder>) {
         self.workspace_folders = workspace_folders;
+        self.storages = self.workspace_folders.iter().map(|_| policy::ConfigStorage::new()).collect();
         self.update_router();
     }
 
@@ -49,34 +56,39 @@ impl <'s> BackendState<'s> {
         self.update_router();
     }
 
-    fn update_router(&'s mut self) -> anyhow::Result<(), anyhow::Error> {
+    fn update_router(&mut self) -> anyhow::Result<(), anyhow::Error> {
         self.router = Router::new();
-        for folder in self.workspace_folders.iter() {
+        for i in 0..self.workspace_folders.len() {
+            let folder = &self.workspace_folders[i];
             let path = folder
                 .uri
                 .to_file_path()
                 .map_err(|_| anyhow!("Cannot convert uri {} to file path", folder.uri))?;
+            let path_str = path.to_str().ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?.to_owned();
 
-            self.storage = typos_cli::policy::ConfigStorage::new();
-            let mut engine = typos_cli::policy::ConfigEngine::new(&self.storage);
+            // leak to get a 'static which is needed to satisfy the 's lifetime
+            // but does mean memory will grow unbounded
+            let storage = Box::leak(Box::new(policy::ConfigStorage::new()));
+            let mut engine = typos_cli::policy::ConfigEngine::new(storage);
             engine.init_dir(&path)?;
 
             let walk_policy = engine.walk(&path);
 
             // add any explicit excludes
-            let mut overrides = OverrideBuilder::new(".");
+            let mut overrides = OverrideBuilder::new(path);
             for pattern in walk_policy.extend_exclude.iter() {
                 overrides.add(&format!("!{}", pattern))?;
             }
             let overrides = overrides.build()?;
 
-            let path_str = path.to_str().ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?;
             let c = Config {overrides, engine};
             self.router.insert(path_str, c)?;
         }
 
         Ok(())
     }
+
+}
 
     // fn add_workspace_folder<'s>(
     //     &'s mut self,
@@ -102,7 +114,7 @@ impl <'s> BackendState<'s> {
 
     //     Ok(Config { overrides, storage, engine })
     // }
-}
+
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct DiagnosticData<'c> {
@@ -130,8 +142,11 @@ impl LanguageServer for Backend<'static> {
             )
         }
 
-        let mut state = self.state.lock().unwrap();
-        state.set_workspace_folders(params.workspace_folders.unwrap_or_default());
+        {
+            let mut state = self.state.lock().unwrap();
+            state.set_workspace_folders(params.workspace_folders.unwrap_or_default());
+            state.update_router();
+        }
 
         Ok(InitializeResult {
             capabilities: ServerCapabilities {
@@ -605,3 +620,5 @@ mod tests {
         std::str::from_utf8(skipped).map_err(anyhow::Error::from)
     }
 }
+
+

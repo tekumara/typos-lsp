@@ -1,9 +1,10 @@
 use anyhow::anyhow;
+use anyhow::{Context, Result};
 use matchit::{Match, Router};
 
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use bstr::ByteSlice;
@@ -84,12 +85,12 @@ impl<'s> BackendState<'s> {
                 .uri
                 .to_file_path()
                 .map_err(|_| anyhow!("Cannot convert uri {} to file path", folder.uri))?;
-            let path_str = path
+            let path_string = path
                 .to_str()
                 .ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?
                 .to_owned();
             let config = TyposCli::try_from(&path)?;
-            self.router.insert(path_str, config)?;
+            self.router.insert(path_string, config)?;
         }
 
         Ok(())
@@ -261,12 +262,15 @@ impl LanguageServer for Backend<'static> {
     }
 
     async fn did_change_workspace_folders(&self, params: DidChangeWorkspaceFoldersParams) {
-        tracing::debug!("did_change_workspace_folders: {:?}", to_string(&params).unwrap_or_default());
+        tracing::debug!(
+            "did_change_workspace_folders: {:?}",
+            to_string(&params).unwrap_or_default()
+        );
 
         let mut state = self.state.lock().unwrap();
         match state.update_workspace_folders(params.event.added, params.event.removed) {
             Err(e) => {
-                tracing::warn!("cannot update workspace folders {}", e);
+                tracing::warn!("Cannot update workspace folders {}", e);
             }
             Ok(()) => {}
         }
@@ -287,7 +291,13 @@ impl Backend<'static> {
     }
 
     async fn report_diagnostics(&self, params: TextDocumentItem) {
-        let diagnostics = self.check_text(&params.text, params.uri.as_str());
+        let diagnostics = match self.check_text(&params.text, &params.uri) {
+            Err(e) => {
+                tracing::warn!("{}", e);
+                Vec::new()
+            }
+            Ok(diagnostics) => diagnostics,
+        };
 
         self.client
             .publish_diagnostics(params.uri, diagnostics, Some(params.version))
@@ -295,19 +305,28 @@ impl Backend<'static> {
     }
 
     // mimics typos_cli::file::FileChecker::check_file
-    fn check_text(&self, buffer: &str, uri: &str) -> Vec<Diagnostic> {
-        let mut accum = AccumulatePosition::new();
+    fn check_text(
+        &self,
+        buffer: &str,
+        uri: &Url,
+    ) -> anyhow::Result<Vec<Diagnostic>, anyhow::Error> {
+        let path = uri
+            .to_file_path()
+            .map_err(|_| anyhow!("Cannot convert uri {} to file path", uri))?;
 
+        let path_str = path
+            .to_str()
+            .ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?;
 
         let state = self.state.lock().unwrap();
 
-        match state.router.at(uri) {
-            Err(e) => {
-                tracing::warn!("no workspace folder found for {} ({})", uri, e);
-                Vec::new()
-            }
-            Ok(Match { value, params: _ }) => {
-                let policy = value.engine.policy(&Path::new(uri));
+        state
+            .router
+            .at(path_str)
+            .with_context(|| format!("No workspace folder found for {}", uri))
+            .map(|Match { value, params: _ }| {
+                let policy = value.engine.policy(&path);
+                let mut accum = AccumulatePosition::new();
 
                 typos::check_str(buffer, policy.tokenizer, policy.dict)
                     .map(|typo| {
@@ -345,10 +364,10 @@ impl Backend<'static> {
                         }
                     })
                     .collect()
-            }
-        }
+            })
     }
 }
+
 struct AccumulatePosition {
     line_num: usize,
     line_pos: usize,
@@ -644,9 +663,7 @@ mod tests {
             body(&buf[..n]).unwrap(),
             r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":{"corrections":["appropriate"]},"message":"`apropriate` should be `appropriate`","range":{"end":{"character":21,"line":0},"start":{"character":11,"line":0}},"severity":2,"source":"typos"},{"data":{"corrections":["of","for","do","go","to"]},"message":"`fo` should be `of`, `for`, `do`, `go`, `to`","range":{"end":{"character":2,"line":1},"start":{"character":0,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///diagnostics.txt","version":1}}"#,
         );
-
     }
-
 
     fn start_server() -> (tokio::io::DuplexStream, tokio::io::DuplexStream) {
         let (req_client, req_server) = tokio::io::duplex(1024);

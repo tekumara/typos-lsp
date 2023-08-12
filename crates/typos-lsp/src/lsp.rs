@@ -1,12 +1,13 @@
 use anyhow::anyhow;
-use matchit::Router;
+use matchit::{Match, Router};
 
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::sync::{Mutex, Arc};
+use std::path::{PathBuf, Path};
+use std::sync::Mutex;
 
 use bstr::ByteSlice;
-use serde_json::json;
+use serde_json::{json, to_string};
 use tower_lsp::lsp_types::*;
 use tower_lsp::*;
 use tower_lsp::{Client, LanguageServer};
@@ -15,106 +16,85 @@ use ignore::overrides::{Override, OverrideBuilder};
 use typos_cli::policy;
 pub struct Backend<'s> {
     client: Client,
-    policy: policy::Policy<'s, 's, 's>,
     state: Mutex<BackendState<'s>>,
 }
 
 #[derive(Default)]
 struct BackendState<'s> {
     workspace_folders: Vec<WorkspaceFolder>,
-    storages: Vec<policy::ConfigStorage>,
-    router: Router<Config<'s>>,
+    router: Router<TyposCli<'s>>,
 }
 
-struct Workspace<'s> {
-    workspace_folder: WorkspaceFolder,
-    storage: policy::ConfigStorage,
-    config: Config<'s>,
-}
-
-struct Config<'s> {
+struct TyposCli<'s> {
     overrides: Override,
     engine: policy::ConfigEngine<'s>,
 }
 
-impl <'s> BackendState<'s> {
-    fn set_workspace_folders(&mut self, workspace_folders: Vec<WorkspaceFolder>) {
+impl<'s> TryFrom<&PathBuf> for TyposCli<'s> {
+    type Error = anyhow::Error;
+
+    // initialise an engine and overrides using the config file from path or its parent
+    fn try_from(path: &PathBuf) -> anyhow::Result<Self, Self::Error> {
+        // leak to get a 'static which is needed to satisfy the 's lifetime
+        // but does mean memory will grow unbounded
+        let storage = Box::leak(Box::new(policy::ConfigStorage::new()));
+        let mut engine = typos_cli::policy::ConfigEngine::new(storage);
+        engine.init_dir(path)?;
+
+        let walk_policy = engine.walk(path);
+
+        // add any explicit excludes
+        let mut overrides = OverrideBuilder::new(path);
+        for pattern in walk_policy.extend_exclude.iter() {
+            overrides.add(&format!("!{}", pattern))?;
+        }
+        let overrides = overrides.build()?;
+
+        Ok(TyposCli { overrides, engine })
+    }
+}
+
+impl<'s> BackendState<'s> {
+    fn set_workspace_folders(
+        &mut self,
+        workspace_folders: Vec<WorkspaceFolder>,
+    ) -> anyhow::Result<(), anyhow::Error> {
         self.workspace_folders = workspace_folders;
-        self.storages = self.workspace_folders.iter().map(|_| policy::ConfigStorage::new()).collect();
-        self.update_router();
+        self.update_router()?;
+        Ok(())
     }
 
     fn update_workspace_folders(
         &mut self,
         added: Vec<WorkspaceFolder>,
         removed: Vec<WorkspaceFolder>,
-    ) {
+    ) -> anyhow::Result<(), anyhow::Error> {
         self.workspace_folders.extend(added);
         if removed.len() > 0 {
             self.workspace_folders.retain(|x| !removed.contains(x));
         }
-        self.update_router();
+        self.update_router()?;
+        Ok(())
     }
 
     fn update_router(&mut self) -> anyhow::Result<(), anyhow::Error> {
         self.router = Router::new();
-        for i in 0..self.workspace_folders.len() {
-            let folder = &self.workspace_folders[i];
+        for folder in self.workspace_folders.iter() {
             let path = folder
                 .uri
                 .to_file_path()
                 .map_err(|_| anyhow!("Cannot convert uri {} to file path", folder.uri))?;
-            let path_str = path.to_str().ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?.to_owned();
-
-            // leak to get a 'static which is needed to satisfy the 's lifetime
-            // but does mean memory will grow unbounded
-            let storage = Box::leak(Box::new(policy::ConfigStorage::new()));
-            let mut engine = typos_cli::policy::ConfigEngine::new(storage);
-            engine.init_dir(&path)?;
-
-            let walk_policy = engine.walk(&path);
-
-            // add any explicit excludes
-            let mut overrides = OverrideBuilder::new(path);
-            for pattern in walk_policy.extend_exclude.iter() {
-                overrides.add(&format!("!{}", pattern))?;
-            }
-            let overrides = overrides.build()?;
-
-            let c = Config {overrides, engine};
-            self.router.insert(path_str, c)?;
+            let path_str = path
+                .to_str()
+                .ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?
+                .to_owned();
+            let config = TyposCli::try_from(&path)?;
+            self.router.insert(path_str, config)?;
         }
 
         Ok(())
     }
-
 }
-
-    // fn add_workspace_folder<'s>(
-    //     &'s mut self,
-    //     workspace_folder: &WorkspaceFolder,
-    // ) -> anyhow::Result<Config, anyhow::Error> {
-    //     let path = workspace_folder
-    //         .uri
-    //         .to_file_path()
-    //         .map_err(|_| anyhow!("Cannot convert uri {} to file path", workspace_folder.uri))?;
-    //     let storage = Arc::new(typos_cli::policy::ConfigStorage::new());
-    //     let mut engine = typos_cli::policy::ConfigEngine::new(&storage);
-
-    //     engine.init_dir(&path)?;
-
-    //     let walk_policy = engine.walk(&path);
-
-    //     // add any explicit excludes
-    //     let mut overrides = OverrideBuilder::new(".");
-    //     for pattern in walk_policy.extend_exclude.iter() {
-    //         overrides.add(&format!("!{}", pattern))?;
-    //     }
-    //     let overrides = overrides.build()?;
-
-    //     Ok(Config { overrides, storage, engine })
-    // }
-
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct DiagnosticData<'c> {
@@ -124,7 +104,7 @@ struct DiagnosticData<'c> {
 #[tower_lsp::async_trait]
 impl LanguageServer for Backend<'static> {
     async fn initialize(&self, params: InitializeParams) -> jsonrpc::Result<InitializeResult> {
-        tracing::debug!("initialize: {:?}", params);
+        tracing::debug!("initialize: {}", to_string(&params).unwrap_or_default());
 
         if let Some(TextDocumentClientCapabilities {
             publish_diagnostics:
@@ -144,8 +124,12 @@ impl LanguageServer for Backend<'static> {
 
         {
             let mut state = self.state.lock().unwrap();
-            state.set_workspace_folders(params.workspace_folders.unwrap_or_default());
-            state.update_router();
+            match state.set_workspace_folders(params.workspace_folders.unwrap_or_default()) {
+                Err(e) => {
+                    tracing::warn!("cannot set workspace folders: {}", e);
+                }
+                Ok(_) => {}
+            }
         }
 
         Ok(InitializeResult {
@@ -186,12 +170,12 @@ impl LanguageServer for Backend<'static> {
     }
 
     async fn did_open(&self, params: DidOpenTextDocumentParams) {
-        tracing::debug!("did_open: {:?}", params);
+        tracing::debug!("did_open: {:?}", to_string(&params).unwrap_or_default());
         self.report_diagnostics(params.text_document).await;
     }
 
     async fn did_change(&self, mut params: DidChangeTextDocumentParams) {
-        tracing::debug!("did_change: {:?}", params);
+        tracing::debug!("did_change: {:?}", to_string(&params).unwrap_or_default());
         self.report_diagnostics(TextDocumentItem {
             language_id: "FOOBAR".to_string(),
             uri: params.text_document.uri,
@@ -202,12 +186,12 @@ impl LanguageServer for Backend<'static> {
     }
 
     async fn did_save(&self, params: DidSaveTextDocumentParams) {
-        tracing::debug!("did_save: {:?}", params);
+        tracing::debug!("did_save: {:?}", to_string(&params).unwrap_or_default());
         // noop to avoid unimplemented warning log line
     }
 
     async fn did_close(&self, params: DidCloseTextDocumentParams) {
-        tracing::debug!("did_close: {:?}", params);
+        tracing::debug!("did_close: {:?}", to_string(&params).unwrap_or_default());
         // clear diagnostics to avoid a stale diagnostics flash on open
         // if the file has typos fixed outside of vscode
         // see https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_publishDiagnostics
@@ -220,7 +204,7 @@ impl LanguageServer for Backend<'static> {
         &self,
         params: CodeActionParams,
     ) -> jsonrpc::Result<Option<CodeActionResponse>> {
-        tracing::debug!("code_action: {:?}", params);
+        tracing::debug!("code_action: {:?}", to_string(&params).unwrap_or_default());
 
         let actions = params
             .context
@@ -277,10 +261,15 @@ impl LanguageServer for Backend<'static> {
     }
 
     async fn did_change_workspace_folders(&self, params: DidChangeWorkspaceFoldersParams) {
-        tracing::debug!("did_change_workspace_folders: {:?}", params);
+        tracing::debug!("did_change_workspace_folders: {:?}", to_string(&params).unwrap_or_default());
 
         let mut state = self.state.lock().unwrap();
-        state.update_workspace_folders(params.event.added, params.event.removed)
+        match state.update_workspace_folders(params.event.added, params.event.removed) {
+            Err(e) => {
+                tracing::warn!("cannot update workspace folders {}", e);
+            }
+            Ok(()) => {}
+        }
     }
 
     async fn shutdown(&self) -> jsonrpc::Result<()> {
@@ -293,13 +282,12 @@ impl Backend<'static> {
         let policy = policy::Policy::new();
         Self {
             client,
-            policy,
             state: Mutex::new(BackendState::default()),
         }
     }
 
     async fn report_diagnostics(&self, params: TextDocumentItem) {
-        let diagnostics = self.check_text(&params.text);
+        let diagnostics = self.check_text(&params.text, params.uri.as_str());
 
         self.client
             .publish_diagnostics(params.uri, diagnostics, Some(params.version))
@@ -307,44 +295,58 @@ impl Backend<'static> {
     }
 
     // mimics typos_cli::file::FileChecker::check_file
-    fn check_text(&self, buffer: &str) -> Vec<Diagnostic> {
+    fn check_text(&self, buffer: &str, uri: &str) -> Vec<Diagnostic> {
         let mut accum = AccumulatePosition::new();
 
-        // TODO: support ignores & typos.toml
 
-        typos::check_str(buffer, self.policy.tokenizer, self.policy.dict)
-            .map(|typo| {
-                tracing::debug!("typo: {:?}", typo);
+        let state = self.state.lock().unwrap();
 
-                let (line_num, line_pos) = accum.pos(buffer.as_bytes(), typo.byte_offset);
+        match state.router.at(uri) {
+            Err(e) => {
+                tracing::warn!("no workspace folder found for {} ({})", uri, e);
+                Vec::new()
+            }
+            Ok(Match { value, params: _ }) => {
+                let policy = value.engine.policy(&Path::new(uri));
 
-                Diagnostic {
-                    range: Range::new(
-                        Position::new(line_num as u32, line_pos as u32),
-                        Position::new(line_num as u32, (line_pos + typo.typo.len()) as u32),
-                    ),
-                    severity: Some(DiagnosticSeverity::WARNING),
-                    source: Some("typos".to_string()),
-                    message: match &typo.corrections {
-                        typos::Status::Invalid => format!("`{}` is disallowed", typo.typo),
-                        typos::Status::Corrections(corrections) => format!(
-                            "`{}` should be {}",
-                            typo.typo,
-                            itertools::join(corrections.iter().map(|s| format!("`{}`", s)), ", ")
-                        ),
-                        typos::Status::Valid => panic!("unexpected typos::Status::Valid"),
-                    },
-                    // store corrections for retrieval during code_action
-                    data: match typo.corrections {
-                        typos::Status::Corrections(corrections) => {
-                            Some(json!(DiagnosticData { corrections }))
+                typos::check_str(buffer, policy.tokenizer, policy.dict)
+                    .map(|typo| {
+                        tracing::debug!("typo: {:?}", typo);
+
+                        let (line_num, line_pos) = accum.pos(buffer.as_bytes(), typo.byte_offset);
+
+                        Diagnostic {
+                            range: Range::new(
+                                Position::new(line_num as u32, line_pos as u32),
+                                Position::new(line_num as u32, (line_pos + typo.typo.len()) as u32),
+                            ),
+                            severity: Some(DiagnosticSeverity::WARNING),
+                            source: Some("typos".to_string()),
+                            message: match &typo.corrections {
+                                typos::Status::Invalid => format!("`{}` is disallowed", typo.typo),
+                                typos::Status::Corrections(corrections) => format!(
+                                    "`{}` should be {}",
+                                    typo.typo,
+                                    itertools::join(
+                                        corrections.iter().map(|s| format!("`{}`", s)),
+                                        ", "
+                                    )
+                                ),
+                                typos::Status::Valid => panic!("unexpected typos::Status::Valid"),
+                            },
+                            // store corrections for retrieval during code_action
+                            data: match typo.corrections {
+                                typos::Status::Corrections(corrections) => {
+                                    Some(json!(DiagnosticData { corrections }))
+                                }
+                                _ => None,
+                            },
+                            ..Diagnostic::default()
                         }
-                        _ => None,
-                    },
-                    ..Diagnostic::default()
-                }
-            })
-            .collect()
+                    })
+                    .collect()
+            }
+        }
     }
 }
 struct AccumulatePosition {
@@ -588,6 +590,64 @@ mod tests {
         );
     }
 
+    #[test_log::test(tokio::test)]
+    async fn test_config_file_e2e() {
+        let initialize = r#"{
+            "jsonrpc": "2.0",
+            "method": "initialize",
+            "params": {
+              "capabilities": {
+                "textDocument": { "publishDiagnostics": { "dataSupport": true } }
+              },
+              "workspaceFolders": [
+                {
+                  "uri": "file:///example/",
+                  "name": "example"
+                }
+              ]
+            },
+            "id": 1
+          }
+        "#;
+
+        let did_open = r#"{
+                "jsonrpc": "2.0",
+                "method": "textDocument/didOpen",
+                "params": {
+                  "textDocument": {
+                    "uri": "file:///example/diagnostics.txt",
+                    "languageId": "plaintext",
+                    "version": 1,
+                    "text": "this is an apropriate test\nfo typos\n"
+                  }
+                }
+              }
+            "#;
+
+        let (mut req_client, mut resp_client) = start_server();
+        let mut buf = vec![0; 1024];
+
+        req_client
+            .write_all(req(initialize).as_bytes())
+            .await
+            .unwrap();
+        let _ = resp_client.read(&mut buf).await.unwrap();
+
+        tracing::debug!("{}", did_open);
+        req_client
+            .write_all(req(did_open).as_bytes())
+            .await
+            .unwrap();
+        let n = resp_client.read(&mut buf).await.unwrap();
+
+        similar_asserts::assert_eq!(
+            body(&buf[..n]).unwrap(),
+            r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":{"corrections":["appropriate"]},"message":"`apropriate` should be `appropriate`","range":{"end":{"character":21,"line":0},"start":{"character":11,"line":0}},"severity":2,"source":"typos"},{"data":{"corrections":["of","for","do","go","to"]},"message":"`fo` should be `of`, `for`, `do`, `go`, `to`","range":{"end":{"character":2,"line":1},"start":{"character":0,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///diagnostics.txt","version":1}}"#,
+        );
+
+    }
+
+
     fn start_server() -> (tokio::io::DuplexStream, tokio::io::DuplexStream) {
         let (req_client, req_server) = tokio::io::duplex(1024);
         let (resp_server, resp_client) = tokio::io::duplex(1024);
@@ -620,5 +680,3 @@ mod tests {
         std::str::from_utf8(skipped).map_err(anyhow::Error::from)
     }
 }
-
-

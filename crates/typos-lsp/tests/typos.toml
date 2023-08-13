@@ -1,5 +1,5 @@
 [default.extend-words]
-# tell typos which of the several possibile corrections to use
+# tell typos which of the several possible corrections to use
 fo = "of"
 
 [files]

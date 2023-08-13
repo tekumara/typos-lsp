@@ -341,6 +341,13 @@ impl<'s, 'p> Backend<'s, 'p> {
             }
         };
 
+        // skip file if
+        if let Some(overrides) = overrides {
+            if overrides.matched(path_str, false).is_ignore() {
+                return Ok(Vec::default())
+            }
+        }
+
         let mut accum = AccumulatePosition::new();
 
         Ok(typos::check_str(buffer, tokenizer, dict)
@@ -625,8 +632,6 @@ mod tests {
         let workspace_folder_uri =
             Url::from_file_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")).unwrap();
 
-        println!("{}", workspace_folder_uri);
-
         let initialize = format!(
             r#"{{
             "jsonrpc": "2.0",
@@ -638,7 +643,7 @@ mod tests {
               "workspaceFolders": [
                 {{
                   "uri": "{}",
-                  "name": "example"
+                  "name": "tests"
                 }}
               ]
             }},
@@ -648,13 +653,30 @@ mod tests {
             workspace_folder_uri
         );
 
-        let did_open = format!(
+        let did_open_diag_txt = format!(
             r#"{{
                 "jsonrpc": "2.0",
                 "method": "textDocument/didOpen",
                 "params": {{
                   "textDocument": {{
                     "uri": "{}/diagnostics.txt",
+                    "languageId": "plaintext",
+                    "version": 1,
+                    "text": "this is an apropriate test\nfo typos\n"
+                  }}
+                }}
+              }}
+            "#,
+            workspace_folder_uri
+        );
+
+        let did_open_changelog = format!(
+            r#"{{
+                "jsonrpc": "2.0",
+                "method": "textDocument/didOpen",
+                "params": {{
+                  "textDocument": {{
+                    "uri": "{}/CHANGELOG.md",
                     "languageId": "plaintext",
                     "version": 1,
                     "text": "this is an apropriate test\nfo typos\n"
@@ -674,9 +696,10 @@ mod tests {
             .unwrap();
         let _ = resp_client.read(&mut buf).await.unwrap();
 
-        tracing::debug!("{}", did_open);
+        // check default.extend-words
+        tracing::debug!("{}", did_open_diag_txt);
         req_client
-            .write_all(req(did_open).as_bytes())
+            .write_all(req(did_open_diag_txt).as_bytes())
             .await
             .unwrap();
         let n = resp_client.read(&mut buf).await.unwrap();
@@ -688,6 +711,23 @@ mod tests {
                 workspace_folder_uri
             ),
         );
+
+        // check files.extend-exclude
+        tracing::debug!("{}", did_open_changelog);
+        req_client
+            .write_all(req(did_open_changelog).as_bytes())
+            .await
+            .unwrap();
+        let n = resp_client.read(&mut buf).await.unwrap();
+
+        similar_asserts::assert_eq!(
+            body(&buf[..n]).unwrap(),
+            format!(
+                r#"{{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{{"diagnostics":[],"uri":"{}/CHANGELOG.md","version":1}}}}"#,
+                workspace_folder_uri
+            ),
+        );
+
     }
 
     fn start_server() -> (tokio::io::DuplexStream, tokio::io::DuplexStream) {

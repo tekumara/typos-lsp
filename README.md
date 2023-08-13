@@ -21,6 +21,7 @@ To disable `typos` per workspace, see [disable this extension](https://code.visu
 Supports the following [config fields](https://github.com/crate-ci/typos/blob/master/docs/reference.md) in `typos.toml`, `_typos.toml`, or `.typos.toml`:
 
 - files.extend-exclude
+- default.extend-words
 
 Config files will be read from the workspace folder or its parents. If there is no workspace folder, then no config file will be read and the typos defaults will be used.
 

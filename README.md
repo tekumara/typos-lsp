@@ -18,10 +18,12 @@ To disable `typos` per workspace, see [disable this extension](https://code.visu
 
 ## Config file support
 
-Supports the following [config fields](https://github.com/crate-ci/typos/blob/master/docs/reference.md) in `typos.toml`, `_typos.toml`, or `.typos.toml`:
+Supports [config fields](https://github.com/crate-ci/typos/blob/master/docs/reference.md) in `typos.toml`, `_typos.toml`, or `.typos.toml`, except:
 
-- files.extend-exclude
-- default.extend-words
+- `files.ignore*` - have no effect.
+- `default.check-filename` - file names are never spell checked.
+- `default.check-file` - files are always checked.
+- `*.binary` - binary files are always checked.
 
 Config files will be read from the workspace folder or its parents. If there is no workspace folder, then no config file will be read and the typos defaults will be used.
 
@@ -41,4 +43,5 @@ This extension contributes the following settings:
 
 ## Caveats
 
-File names are not spell checked.
+- File names are not spell checked.
+- Server must be restarted after changing the config files (ie: typos.toml).

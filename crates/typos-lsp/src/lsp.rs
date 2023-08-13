@@ -117,20 +117,16 @@ impl LanguageServer for Backend<'static, 'static> {
             ..
         }) = params.capabilities.text_document
         {
-            tracing::debug!("client supports diagnostics data")
+            tracing::debug!("Client supports diagnostics data")
         } else {
             tracing::warn!(
-                "client does not support diagnostics data.. code actions will not be available"
+                "Client does not support diagnostics data.. code actions will not be available"
             )
         }
 
-        {
-            let mut state = self.state.lock().unwrap();
-            if let Err(e) =
-                state.set_workspace_folders(params.workspace_folders.unwrap_or_default())
-            {
-                tracing::warn!("Cannot set workspace folders: {}", e);
-            }
+        let mut state = self.state.lock().unwrap();
+        if let Err(e) = state.set_workspace_folders(params.workspace_folders.unwrap_or_default()) {
+            tracing::warn!("Cannot set workspace folders: {}", e);
         }
 
         Ok(InitializeResult {
@@ -252,7 +248,7 @@ impl LanguageServer for Backend<'static, 'static> {
                     }
                 }
                 None => {
-                    tracing::warn!("client doesn't support diagnostic data");
+                    tracing::warn!("Client doesn't support diagnostic data");
                     vec![]
                 }
             })
@@ -317,11 +313,11 @@ impl<'s, 'p> Backend<'s, 'p> {
 
         let state = self.state.lock().unwrap();
 
-        // find relevant engine for the workspace folder
+        // find relevant overrides and engine for the workspace folder
         let (overrides, tokenizer, dict) = match state.router.at(path_str) {
             Err(_) => {
                 tracing::debug!(
-                    "Using default policy because no workspace folder found for {}.",
+                    "Using default policy because no workspace folder found for {}",
                     uri
                 );
                 (
@@ -336,9 +332,13 @@ impl<'s, 'p> Backend<'s, 'p> {
             }
         };
 
-        // skip file if
+        // skip file if matches extend-exclude
         if let Some(overrides) = overrides {
             if overrides.matched(path_str, false).is_ignore() {
+                tracing::debug!(
+                    "Ignoring {} because it matches extend-exclude.",
+                    uri
+                );
                 return Ok(Vec::default());
             }
         }
@@ -691,7 +691,7 @@ mod tests {
             .unwrap();
         let _ = resp_client.read(&mut buf).await.unwrap();
 
-        // check default.extend-words
+        // check "fo" is corrected to "of" because of default.extend-words
         tracing::debug!("{}", did_open_diag_txt);
         req_client
             .write_all(req(did_open_diag_txt).as_bytes())
@@ -707,7 +707,7 @@ mod tests {
             ),
         );
 
-        // check files.extend-exclude
+        // check changelog is excluded because of files.extend-exclude
         tracing::debug!("{}", did_open_changelog);
         req_client
             .write_all(req(did_open_changelog).as_bytes())

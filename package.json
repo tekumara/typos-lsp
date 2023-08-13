@@ -1,8 +1,8 @@
 {
   "name": "typos-vscode",
-  "displayName": "Typos",
+  "displayName": "Typos spell checker",
+  "description": "Low false-positive source code spell checker",
   "publisher": "tekumara",
-  "description": "Source code spell checker",
   "version": "0.1.2",
   "private": true,
   "repository": {

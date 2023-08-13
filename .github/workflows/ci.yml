@@ -24,3 +24,9 @@ jobs:
     # vscode requires an X Server
     - name: npm test
       run: xvfb-run npm test
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Swatinem/rust-cache@v2
+    - run: cargo test

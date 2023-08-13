@@ -2,7 +2,7 @@
 
 > **Source code spell checker for Visual Studio Code**
 
-A Visual Studio Code Extension and LSP server for [typos](https://github.com/crate-ci/typos) a low false-positive source code spell checker.
+[typos](https://github.com/crate-ci/typos) is a low false-positive source code spell checker. This Visual Studio Code extension provides a fast, low memory, in-editor spell checker by integrating with typos through the Language Server Protocol (LSP).
 
 ## Features
 
@@ -15,6 +15,17 @@ A Visual Studio Code Extension and LSP server for [typos](https://github.com/cra
 Once installed `typos` will automatically execute when you open or edit any file.
 
 To disable `typos` per workspace, see [disable this extension](https://code.visualstudio.com/docs/editor/extension-marketplace#_disable-an-extension).
+
+## Config file support
+
+Supports [config fields](https://github.com/crate-ci/typos/blob/master/docs/reference.md) in `typos.toml`, `_typos.toml`, or `.typos.toml`, except:
+
+- `files.ignore*` - have no effect.
+- `default.check-filename` - file names are never spell checked.
+- `default.check-file` - files are always checked.
+- `*.binary` - binary files are always checked.
+
+Config files will be read from the workspace folder or its parents. If there is no workspace folder, then no config file will be read and the typos defaults will be used.
 
 ## Settings
 
@@ -29,3 +40,8 @@ This extension contributes the following settings:
 | Command        | Description         |
 | -------------- | ------------------- |
 | Typos: Restart | Restart the server. |
+
+## Caveats
+
+- File names are not spell checked.
+- Server must be restarted after changing the config files (ie: typos.toml).

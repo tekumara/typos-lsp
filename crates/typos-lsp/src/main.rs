@@ -1,5 +1,4 @@
 mod lsp;
-
 use tower_lsp::LspService;
 use tower_lsp::Server;
 

@@ -1,0 +1,7 @@
+[default.extend-words]
+# tell typos which of the several possible corrections to use
+fo = "of"
+
+[files]
+# ignore typos in CHANGELOG.md
+extend-exclude = ["CHANGELOG.md"]

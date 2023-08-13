@@ -1,10 +1,9 @@
 use anyhow::anyhow;
-use anyhow::{Context, Result};
 use matchit::{Match, Router};
 
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Mutex;
 
 use bstr::ByteSlice;
@@ -72,7 +71,7 @@ impl<'s> BackendState<'s> {
         removed: Vec<WorkspaceFolder>,
     ) -> anyhow::Result<(), anyhow::Error> {
         self.workspace_folders.extend(added);
-        if removed.len() > 0 {
+        if !removed.is_empty() {
             self.workspace_folders.retain(|x| !removed.contains(x));
         }
         self.update_router()?;
@@ -127,11 +126,10 @@ impl LanguageServer for Backend<'static, 'static> {
 
         {
             let mut state = self.state.lock().unwrap();
-            match state.set_workspace_folders(params.workspace_folders.unwrap_or_default()) {
-                Err(e) => {
-                    tracing::warn!("Cannot set workspace folders: {}", e);
-                }
-                Ok(_) => {}
+            if let Err(e) =
+                state.set_workspace_folders(params.workspace_folders.unwrap_or_default())
+            {
+                tracing::warn!("Cannot set workspace folders: {}", e);
             }
         }
 
@@ -270,11 +268,8 @@ impl LanguageServer for Backend<'static, 'static> {
         );
 
         let mut state = self.state.lock().unwrap();
-        match state.update_workspace_folders(params.event.added, params.event.removed) {
-            Err(e) => {
-                tracing::warn!("Cannot update workspace folders {}", e);
-            }
-            Ok(()) => {}
+        if let Err(e) = state.update_workspace_folders(params.event.added, params.event.removed) {
+            tracing::warn!("Cannot update workspace folders {}", e);
         }
     }
 
@@ -344,7 +339,7 @@ impl<'s, 'p> Backend<'s, 'p> {
         // skip file if
         if let Some(overrides) = overrides {
             if overrides.matched(path_str, false).is_ignore() {
-                return Ok(Vec::default())
+                return Ok(Vec::default());
             }
         }
 
@@ -727,7 +722,6 @@ mod tests {
                 workspace_folder_uri
             ),
         );
-
     }
 
     fn start_server() -> (tokio::io::DuplexStream, tokio::io::DuplexStream) {

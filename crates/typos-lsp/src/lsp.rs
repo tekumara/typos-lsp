@@ -15,9 +15,10 @@ use tower_lsp::{Client, LanguageServer};
 
 use ignore::overrides::{Override, OverrideBuilder};
 use typos_cli::policy;
-pub struct Backend<'s> {
+pub struct Backend<'s, 'p> {
     client: Client,
     state: Mutex<BackendState<'s>>,
+    default_policy: policy::Policy<'p, 'p, 'p>,
 }
 
 #[derive(Default)]
@@ -29,19 +30,6 @@ struct BackendState<'s> {
 struct TyposCli<'s> {
     overrides: Override,
     engine: policy::ConfigEngine<'s>,
-}
-
-impl Default for TyposCli<'static> {
-    fn default() -> Self {
-        let storage = Box::leak(Box::new(policy::ConfigStorage::new()));
-        let mut engine = typos_cli::policy::ConfigEngine::new(storage);
-        engine.init_dir(Path::new(".")).unwrap();
-
-        Self {
-            overrides: Override::empty(),
-            engine: engine,
-        }
-    }
 }
 
 impl<'s> TryFrom<&PathBuf> for TyposCli<'s> {
@@ -93,7 +81,6 @@ impl<'s> BackendState<'s> {
 
     fn update_router(&mut self) -> anyhow::Result<(), anyhow::Error> {
         self.router = Router::new();
-        self.router.insert("/*p", TyposCli::default())?;
         for folder in self.workspace_folders.iter() {
             let path = folder
                 .uri
@@ -118,7 +105,7 @@ struct DiagnosticData<'c> {
 }
 
 #[tower_lsp::async_trait]
-impl LanguageServer for Backend<'static> {
+impl LanguageServer for Backend<'static, 'static> {
     async fn initialize(&self, params: InitializeParams) -> jsonrpc::Result<InitializeResult> {
         tracing::debug!("initialize: {}", to_string(&params).unwrap_or_default());
 
@@ -296,11 +283,12 @@ impl LanguageServer for Backend<'static> {
     }
 }
 
-impl Backend<'static> {
+impl<'s, 'p> Backend<'s, 'p> {
     pub fn new(client: Client) -> Self {
         Self {
             client,
             state: Mutex::new(BackendState::default()),
+            default_policy: policy::Policy::default(),
         }
     }
 
@@ -334,51 +322,59 @@ impl Backend<'static> {
 
         let state = self.state.lock().unwrap();
 
-        state
-            .router
-            .at(path_str)
-            .with_context(|| format!("No workspace folder found for {}", uri))
-            .map(|Match { value, params: _ }| {
+        let (overrides, tokenizer, dict) = match state.router.at(path_str) {
+            Err(_) => {
+                tracing::debug!(
+                    "Using default policy because no workspace folder found for {}.",
+                    uri
+                );
+                (
+                    None,
+                    self.default_policy.tokenizer,
+                    self.default_policy.dict,
+                )
+            }
+            Ok(Match { value, params: _ }) => {
                 let policy = value.engine.policy(&path);
-                let mut accum = AccumulatePosition::new();
+                (Some(&value.overrides), policy.tokenizer, policy.dict)
+            }
+        };
 
-                typos::check_str(buffer, policy.tokenizer, policy.dict)
-                    .map(|typo| {
-                        tracing::debug!("typo: {:?}", typo);
+        let mut accum = AccumulatePosition::new();
 
-                        let (line_num, line_pos) = accum.pos(buffer.as_bytes(), typo.byte_offset);
+        Ok(typos::check_str(buffer, tokenizer, dict)
+            .map(|typo| {
+                tracing::debug!("typo: {:?}", typo);
 
-                        Diagnostic {
-                            range: Range::new(
-                                Position::new(line_num as u32, line_pos as u32),
-                                Position::new(line_num as u32, (line_pos + typo.typo.len()) as u32),
-                            ),
-                            severity: Some(DiagnosticSeverity::WARNING),
-                            source: Some("typos".to_string()),
-                            message: match &typo.corrections {
-                                typos::Status::Invalid => format!("`{}` is disallowed", typo.typo),
-                                typos::Status::Corrections(corrections) => format!(
-                                    "`{}` should be {}",
-                                    typo.typo,
-                                    itertools::join(
-                                        corrections.iter().map(|s| format!("`{}`", s)),
-                                        ", "
-                                    )
-                                ),
-                                typos::Status::Valid => panic!("unexpected typos::Status::Valid"),
-                            },
-                            // store corrections for retrieval during code_action
-                            data: match typo.corrections {
-                                typos::Status::Corrections(corrections) => {
-                                    Some(json!(DiagnosticData { corrections }))
-                                }
-                                _ => None,
-                            },
-                            ..Diagnostic::default()
+                let (line_num, line_pos) = accum.pos(buffer.as_bytes(), typo.byte_offset);
+
+                Diagnostic {
+                    range: Range::new(
+                        Position::new(line_num as u32, line_pos as u32),
+                        Position::new(line_num as u32, (line_pos + typo.typo.len()) as u32),
+                    ),
+                    severity: Some(DiagnosticSeverity::WARNING),
+                    source: Some("typos".to_string()),
+                    message: match &typo.corrections {
+                        typos::Status::Invalid => format!("`{}` is disallowed", typo.typo),
+                        typos::Status::Corrections(corrections) => format!(
+                            "`{}` should be {}",
+                            typo.typo,
+                            itertools::join(corrections.iter().map(|s| format!("`{}`", s)), ", ")
+                        ),
+                        typos::Status::Valid => panic!("unexpected typos::Status::Valid"),
+                    },
+                    // store corrections for retrieval during code_action
+                    data: match typo.corrections {
+                        typos::Status::Corrections(corrections) => {
+                            Some(json!(DiagnosticData { corrections }))
                         }
-                    })
-                    .collect()
+                        _ => None,
+                    },
+                    ..Diagnostic::default()
+                }
             })
+            .collect())
     }
 }
 

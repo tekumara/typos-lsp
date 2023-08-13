@@ -335,10 +335,7 @@ impl<'s, 'p> Backend<'s, 'p> {
         // skip file if matches extend-exclude
         if let Some(overrides) = overrides {
             if overrides.matched(path_str, false).is_ignore() {
-                tracing::debug!(
-                    "Ignoring {} because it matches extend-exclude.",
-                    uri
-                );
+                tracing::debug!("Ignoring {} because it matches extend-exclude.", uri);
                 return Ok(Vec::default());
             }
         }

@@ -90,7 +90,7 @@ impl<'s> BackendState<'s> {
                 "{}{}",
                 path.to_str()
                     .ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?,
-                "*p"
+                "/*p"
             );
             let config = TyposCli::try_from(&path)?;
             self.router.insert(path_wildcard, config)?;
@@ -322,6 +322,7 @@ impl<'s, 'p> Backend<'s, 'p> {
 
         let state = self.state.lock().unwrap();
 
+        // find relevant engine for the workspace folder
         let (overrides, tokenizer, dict) = match state.router.at(path_str) {
             Err(_) => {
                 tracing::debug!(
@@ -682,7 +683,10 @@ mod tests {
 
         similar_asserts::assert_eq!(
             body(&buf[..n]).unwrap(),
-            r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":{"corrections":["appropriate"]},"message":"`apropriate` should be `appropriate`","range":{"end":{"character":21,"line":0},"start":{"character":11,"line":0}},"severity":2,"source":"typos"},{"data":{"corrections":["of","for","do","go","to"]},"message":"`fo` should be `of`, `for`, `do`, `go`, `to`","range":{"end":{"character":2,"line":1},"start":{"character":0,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///example/diagnostics.txt","version":1}}"#,
+            format!(
+                r#"{{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{{"diagnostics":[{{"data":{{"corrections":["appropriate"]}},"message":"`apropriate` should be `appropriate`","range":{{"end":{{"character":21,"line":0}},"start":{{"character":11,"line":0}}}},"severity":2,"source":"typos"}},{{"data":{{"corrections":["of"]}},"message":"`fo` should be `of`","range":{{"end":{{"character":2,"line":1}},"start":{{"character":0,"line":1}}}},"severity":2,"source":"typos"}}],"uri":"{}/diagnostics.txt","version":1}}}}"#,
+                workspace_folder_uri
+            ),
         );
     }
 

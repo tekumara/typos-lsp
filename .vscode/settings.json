@@ -10,5 +10,6 @@
     "typescript.tsc.autoDetect": "off",
     "rust-analyzer.linkedProjects": [
         "./crates/typos-lsp/Cargo.toml"
-    ]
+    ],
+    "rust-analyzer.runnables.extraEnv": { "RUST_LOG": "warn"}
 }

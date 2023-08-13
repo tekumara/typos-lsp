@@ -31,6 +31,19 @@ struct TyposCli<'s> {
     engine: policy::ConfigEngine<'s>,
 }
 
+impl Default for TyposCli<'static> {
+    fn default() -> Self {
+        let storage = Box::leak(Box::new(policy::ConfigStorage::new()));
+        let mut engine = typos_cli::policy::ConfigEngine::new(storage);
+        engine.init_dir(Path::new(".")).unwrap();
+
+        Self {
+            overrides: Override::empty(),
+            engine: engine,
+        }
+    }
+}
+
 impl<'s> TryFrom<&PathBuf> for TyposCli<'s> {
     type Error = anyhow::Error;
 
@@ -80,6 +93,7 @@ impl<'s> BackendState<'s> {
 
     fn update_router(&mut self) -> anyhow::Result<(), anyhow::Error> {
         self.router = Router::new();
+        self.router.insert("/*p", TyposCli::default())?;
         for folder in self.workspace_folders.iter() {
             let path = folder
                 .uri
@@ -88,14 +102,12 @@ impl<'s> BackendState<'s> {
             let path_wildcard = format!(
                 "{}{}",
                 path.to_str()
-                    .ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?
-                    .to_owned(),
+                    .ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?,
                 "*p"
             );
             let config = TyposCli::try_from(&path)?;
             self.router.insert(path_wildcard, config)?;
         }
-
         Ok(())
     }
 }
@@ -130,7 +142,7 @@ impl LanguageServer for Backend<'static> {
             let mut state = self.state.lock().unwrap();
             match state.set_workspace_folders(params.workspace_folders.unwrap_or_default()) {
                 Err(e) => {
-                    tracing::warn!("cannot set workspace folders: {}", e);
+                    tracing::warn!("Cannot set workspace folders: {}", e);
                 }
                 Ok(_) => {}
             }
@@ -286,7 +298,6 @@ impl LanguageServer for Backend<'static> {
 
 impl Backend<'static> {
     pub fn new(client: Client) -> Self {
-        let policy = policy::Policy::new();
         Self {
             client,
             state: Mutex::new(BackendState::default()),
@@ -614,37 +625,48 @@ mod tests {
 
     #[test_log::test(tokio::test)]
     async fn test_config_file_e2e() {
-        let initialize = r#"{
+        let workspace_folder_uri =
+            Url::from_file_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")).unwrap();
+
+        println!("{}", workspace_folder_uri);
+
+        let initialize = format!(
+            r#"{{
             "jsonrpc": "2.0",
             "method": "initialize",
-            "params": {
-              "capabilities": {
-                "textDocument": { "publishDiagnostics": { "dataSupport": true } }
-              },
+            "params": {{
+              "capabilities": {{
+                "textDocument": {{ "publishDiagnostics": {{ "dataSupport": true }} }}
+              }},
               "workspaceFolders": [
-                {
-                  "uri": "file:///example/",
+                {{
+                  "uri": "{}",
                   "name": "example"
-                }
+                }}
               ]
-            },
+            }},
             "id": 1
-          }
-        "#;
+          }}
+        "#,
+            workspace_folder_uri
+        );
 
-        let did_open = r#"{
+        let did_open = format!(
+            r#"{{
                 "jsonrpc": "2.0",
                 "method": "textDocument/didOpen",
-                "params": {
-                  "textDocument": {
-                    "uri": "file:///example/diagnostics.txt",
+                "params": {{
+                  "textDocument": {{
+                    "uri": "{}/diagnostics.txt",
                     "languageId": "plaintext",
                     "version": 1,
                     "text": "this is an apropriate test\nfo typos\n"
-                  }
-                }
-              }
-            "#;
+                  }}
+                }}
+              }}
+            "#,
+            workspace_folder_uri
+        );
 
         let (mut req_client, mut resp_client) = start_server();
         let mut buf = vec![0; 1024];
@@ -680,8 +702,12 @@ mod tests {
         (req_client, resp_client)
     }
 
-    fn req(msg: &str) -> String {
-        format!("Content-Length: {}\r\n\r\n{}", msg.len(), msg)
+    fn req<T: AsRef<str>>(msg: T) -> String {
+        format!(
+            "Content-Length: {}\r\n\r\n{}",
+            msg.as_ref().len(),
+            msg.as_ref()
+        )
     }
 
     fn body(src: &[u8]) -> Result<&str, anyhow::Error> {

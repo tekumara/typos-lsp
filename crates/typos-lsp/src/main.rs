@@ -1,6 +1,5 @@
-mod lsp;
-use tower_lsp::LspService;
-use tower_lsp::Server;
+use tower_lsp::{LspService, Server};
+use typos_lsp::lsp;
 
 #[tokio::main]
 async fn main() {

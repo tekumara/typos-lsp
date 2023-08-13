@@ -8,9 +8,10 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUST_LOG: debug
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3

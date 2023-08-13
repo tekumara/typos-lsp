@@ -87,14 +87,32 @@ impl<'s> BackendState<'s> {
                 .map_err(|_| anyhow!("Cannot convert uri {} to file path", folder.uri))?;
             let path_wildcard = format!(
                 "{}{}",
-                path.to_str()
-                    .ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?,
+                path_to_route(
+                    path.to_str()
+                        .ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?
+                ),
                 "/*p"
             );
+            tracing::debug!("Adding route {}", &path_wildcard);
             let config = TyposCli::try_from(&path)?;
             self.router.insert(path_wildcard, config)?;
         }
         Ok(())
+    }
+}
+
+fn path_to_route(path: &str) -> Cow<str> {
+    if path.starts_with('\\') {
+        // unix path
+        path.into()
+    } else {
+        // normalise windows path to make matchit happy:
+        // - strip out : so matchit doesn't use it as a wildcard
+        // - path segments must be forward slashes not backslashes to match
+        // - leading / required on wildcard routes
+        let mut path = path.replace(':', "").replace('\\', "/");
+        path.insert(0, '/');
+        path.into()
     }
 }
 
@@ -284,41 +302,32 @@ impl<'s, 'p> Backend<'s, 'p> {
     }
 
     async fn report_diagnostics(&self, params: TextDocumentItem) {
-        let diagnostics = match self.check_text(&params.text, &params.uri) {
-            Err(e) => {
-                tracing::warn!("{}", e);
-                Vec::new()
-            }
-            Ok(diagnostics) => diagnostics,
-        };
-
+        let diagnostics = self.check_text(&params.text, &params.uri);
         self.client
             .publish_diagnostics(params.uri, diagnostics, Some(params.version))
             .await;
     }
 
     // mimics typos_cli::file::FileChecker::check_file
-    fn check_text(
-        &self,
-        buffer: &str,
-        uri: &Url,
-    ) -> anyhow::Result<Vec<Diagnostic>, anyhow::Error> {
-        let path = uri
-            .to_file_path()
-            .map_err(|_| anyhow!("Cannot convert uri {} to file path", uri))?;
+    fn check_text(&self, buffer: &str, uri: &Url) -> Vec<Diagnostic> {
+        let path = uri.to_file_path().unwrap_or_else(|_| {
+            tracing::warn!("check_text: Cannot convert uri {} to file path", uri);
+            PathBuf::default()
+        });
 
-        let path_str = path
-            .to_str()
-            .ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?;
+        let path_str = path_to_route(path.to_str().unwrap_or_else(|| {
+            tracing::warn!("check_text: Invalid unicode in path {:?}", path);
+            "/"
+        }));
 
         let state = self.state.lock().unwrap();
 
         // find relevant overrides and engine for the workspace folder
-        let (overrides, tokenizer, dict) = match state.router.at(path_str) {
+        let (overrides, tokenizer, dict) = match state.router.at(&path_str) {
             Err(_) => {
                 tracing::debug!(
-                    "Using default policy because no workspace folder found for {}",
-                    uri
+                    "Using default policy because no route found for {}",
+                    path_str
                 );
                 (
                     None,
@@ -334,15 +343,15 @@ impl<'s, 'p> Backend<'s, 'p> {
 
         // skip file if matches extend-exclude
         if let Some(overrides) = overrides {
-            if overrides.matched(path_str, false).is_ignore() {
+            if overrides.matched(path, false).is_ignore() {
                 tracing::debug!("Ignoring {} because it matches extend-exclude.", uri);
-                return Ok(Vec::default());
+                return Vec::default();
             }
         }
 
         let mut accum = AccumulatePosition::new();
 
-        Ok(typos::check_str(buffer, tokenizer, dict)
+        typos::check_str(buffer, tokenizer, dict)
             .map(|typo| {
                 tracing::debug!("typo: {:?}", typo);
 
@@ -374,7 +383,7 @@ impl<'s, 'p> Backend<'s, 'p> {
                     ..Diagnostic::default()
                 }
             })
-            .collect())
+            .collect()
     }
 }
 

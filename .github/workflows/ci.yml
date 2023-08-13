@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_LOG: debug
+  RUST_LOG: typos_cli,typos_lsp
 
 jobs:
   build-linux:

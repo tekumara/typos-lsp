@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.3](https://github.com/tekumara/typos-vscode/compare/v0.1.2...v0.1.3) (2023-08-15)
+
+
+### Features
+
+* support config files (typos.toml etc.) ([#8](https://github.com/tekumara/typos-vscode/issues/8)) ([f16a143](https://github.com/tekumara/typos-vscode/commit/f16a143ab660969e2162b8eb2d388f87a041ec59)), closes [#6](https://github.com/tekumara/typos-vscode/issues/6)
+* typos 1.16.5 ([29e2eac](https://github.com/tekumara/typos-vscode/commit/29e2eacc78406d648b422c21b6349eaadfa97007))
+
+
+### Bug Fixes
+
+* config files are now used on windows ([35080b3](https://github.com/tekumara/typos-vscode/commit/35080b374af3674dcc34938fed660333b772a9df))
+
 ## [0.1.2](https://github.com/tekumara/typos-vscode/compare/v0.1.1...v0.1.2) (2023-07-29)
 
 

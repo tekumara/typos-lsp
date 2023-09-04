@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/tekumara/typos-vscode/compare/v0.1.3...v0.1.4) (2023-09-04)
+
+
+### Bug Fixes
+
+* build arm64 binaries using correct target ([6f2c9d9](https://github.com/tekumara/typos-vscode/commit/6f2c9d9f89c74d5c6b0a8a57f7653550193c54b0)), closes [#13](https://github.com/tekumara/typos-vscode/issues/13)
+
 ## [0.1.3](https://github.com/tekumara/typos-vscode/compare/v0.1.2...v0.1.3) (2023-08-15)
 
 

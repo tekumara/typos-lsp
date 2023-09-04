@@ -53,12 +53,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
-      - name: Install gcc-aarch64
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: sudo apt-get update && sudo apt-get install gcc-aarch64-linux-gnu
-      - name: Install gcc-arm
-        if: matrix.target == 'arm-unknown-linux-gnueabihf'
-        run: sudo apt-get update && sudo apt-get install gcc-arm-linux-gnueabihf
+      # needed for arm targets
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          target: ${{ matrix.target }}
       - run: cargo build --target ${{ matrix.target }} --release
       - run: npm ci
       - name: vsce package (unix)

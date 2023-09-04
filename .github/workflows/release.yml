@@ -54,7 +54,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
       # needed for arm targets
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -62,6 +61,7 @@ jobs:
           toolchain: stable
           profile: minimal
           target: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
       - name: Update apt repositories (linux)
         if: matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'arm-unknown-linux-gnueabihf'
         run: sudo apt-get update

@@ -50,9 +50,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: wait
 
-    env:
-      RA_TARGET: ${{ matrix.target }}
-
     steps:
       - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
@@ -62,19 +59,19 @@ jobs:
       - name: Install gcc-arm
         if: matrix.target == 'arm-unknown-linux-gnueabihf'
         run: sudo apt-get install gcc-arm-linux-gnueabihf
-      - run: cargo build --release
+      - run: cargo build --target ${{ matrix.target }} --release
       - run: npm ci
       - name: vsce package (unix)
         if: matrix.os != 'windows-latest'
         run: |
           mkdir -p bundled dist
-          cp target/release/typos-lsp bundled/
+          cp target/${{ matrix.target }}/release/typos-lsp bundled/
           npx vsce package -o dist/ --target ${{ matrix.code-target }}
       - name: vsce package (windows)
         if: matrix.os == 'windows-latest'
         run: |
           mkdir bundled,dist
-          copy target\release\typos-lsp.exe bundled\
+          copy target\${{ matrix.target }}\release\typos-lsp.exe bundled\
           npx vsce package -o dist\ --target ${{ matrix.code-target }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v3

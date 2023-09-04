@@ -2,7 +2,7 @@
 
 > **Source code spell checker for Visual Studio Code**
 
-[typos](https://github.com/crate-ci/typos) is a low false-positive source code spell checker. This Visual Studio Code extension provides a fast, low memory, in-editor spell checker by integrating with typos through the Language Server Protocol (LSP).
+[typos](https://github.com/crate-ci/typos) is a low false-positive source code spell checker. This Visual Studio Code extension provides a fast, low memory, in-editor spell checker by exposing typos via the Language Server Protocol (LSP).
 
 ## Features
 

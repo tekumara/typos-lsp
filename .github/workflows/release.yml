@@ -10,12 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for build check to succeed
-        uses: lewagon/wait-on-check-action@v1.3.1
+        uses: poseidon/wait-for-status-checks@v0.3.0
         with:
-          ref: ${{ github.ref }}
-          check-regexp: build.*
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 5
+          token: ${{ secrets.GITHUB_TOKEN }}
+          interval: 5
 
   dist:
     strategy:

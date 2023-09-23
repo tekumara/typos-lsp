@@ -4,6 +4,12 @@
 
 [typos](https://github.com/crate-ci/typos) is a low false-positive source code spell checker. This Visual Studio Code extension provides a fast, low memory, in-editor spell checker by exposing typos via the Language Server Protocol (LSP).
 
+## Install
+
+Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
+
+To use the LSP server `typos-lsp` independently of VS Code download it from the [releases page](https://github.com/tekumara/typos-vscode/releases).
+
 ## Features
 
 - Identify misspellings and provide a Quick Fix with suggested corrections:

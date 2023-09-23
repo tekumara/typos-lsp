@@ -73,18 +73,26 @@ jobs:
         run: sudo apt-get install gcc-arm-linux-gnueabihf
       - run: cargo build --target ${{ matrix.target }} --release
       - run: npm ci
-      - name: vsce package (unix)
-        if: matrix.os != 'windows-latest'
+      - name: vsce package
+        # use bash on windows
+        shell: bash
         run: |
           mkdir -p bundled dist
-          cp target/${{ matrix.target }}/release/typos-lsp bundled/
+          cp target/${{ matrix.target }}/release/typos-lsp* bundled/
           npx vsce package -o dist/ --target ${{ matrix.code-target }}
-      - name: vsce package (windows)
-        if: matrix.os == 'windows-latest'
+      - name: Archive
+        shell: bash
         run: |
-          mkdir bundled,dist
-          copy target\${{ matrix.target }}\release\typos-lsp.exe bundled\
-          npx vsce package -o dist\ --target ${{ matrix.code-target }}
+          ver=${GITHUB_REF/refs\/*\//}
+          archive="typos-lsp-$ver-${{ matrix.target }}"
+
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            7z a "dist/${archive}.zip" target/${{ matrix.target }}/release/typos-lsp.exe
+          else
+            tar czf "dist/${archive}.tar.gz" -C target/${{ matrix.target }}/release typos-lsp
+          fi
+
+          ls -al dist/*
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -114,7 +122,7 @@ jobs:
       - name: Upload to GH release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/**/*.vsix
+          files: dist/**/*
       - name: Setup tmate session
         if: ${{ failure() }}
         uses: mxschmitt/action-tmate@v3

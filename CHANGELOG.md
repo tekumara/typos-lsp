@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/tekumara/typos-vscode/compare/v0.1.5...v0.1.6) (2023-09-23)
+
+
+### Features
+
+* typos 1.16.13 ([a67f844](https://github.com/tekumara/typos-vscode/commit/a67f844f5d369772dcd1be1d6eba89e607ccbe3e))
+
 ## [0.1.5](https://github.com/tekumara/typos-vscode/compare/v0.1.4...v0.1.5) (2023-09-23)
 
 

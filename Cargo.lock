@@ -1051,9 +1051,9 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "semver"
-version = "1.0.18"
+version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0293b4b29daaf487284529cc2f5675b8e57c61f70167ba415a463651fd6a918"
+checksum = "ad977052201c6de01a8ef2aa3378c4bd23217a056337d1d6da40468d267a4fb0"
 
 [[package]]
 name = "serde"
@@ -1471,9 +1471,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.16.12"
+version = "1.16.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2d73df8756d9b84611b4c4d8f66af619a9c070e82e6ec8e590909a68fe0ec25"
+checksum = "98018464e7ee785fe92bbab4ed81e369fde17ea6debda469662dd2a4b660fb5b"
 dependencies = [
  "ahash",
  "anstream",

@@ -1528,7 +1528,7 @@ dependencies = [
 
 [[package]]
 name = "typos-lsp"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "anyhow",
  "bstr 1.6.2",

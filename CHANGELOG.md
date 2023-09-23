@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.5](https://github.com/tekumara/typos-vscode/compare/v0.1.4...v0.1.5) (2023-09-23)
+
+
+### Features
+
+* publish typos-lsp during release ([1b933c7](https://github.com/tekumara/typos-vscode/commit/1b933c7f9f044330c18fa3ad32976f1b1acc9c87))
+* typos 1.16.12 ([1426919](https://github.com/tekumara/typos-vscode/commit/1426919066d94bb36bb0bf292d03504177268669))
+
 ## [0.1.4](https://github.com/tekumara/typos-vscode/compare/v0.1.3...v0.1.4) (2023-09-04)
 
 

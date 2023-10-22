@@ -3,7 +3,7 @@
   "displayName": "Typos spell checker",
   "description": "Low false-positive source code spell checker",
   "publisher": "tekumara",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": true,
   "repository": {
     "url": "https://github.com/tekumara/typos-vscode.git",

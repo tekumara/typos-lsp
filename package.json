@@ -43,6 +43,24 @@
           "type": "string",
           "description": "Path to the `typos-lsp` binary. If empty the bundled binary will be used."
         },
+        "typos.diagnosticSeverity": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "Error",
+            "Warning",
+            "Information",
+            "Hint"
+          ],
+          "enumDescriptions": [
+            "Red squiggle",
+            "Yellow squiggle",
+            "Blue squiggle",
+            "Dots"
+          ],
+          "default": "Warning",
+          "description": "How typos are rendered in the editor."
+        },
         "typos.logLevel": {
           "scope": "window",
           "type": "string",

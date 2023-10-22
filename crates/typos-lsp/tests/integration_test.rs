@@ -30,6 +30,9 @@ async fn test_e2e() {
         "jsonrpc": "2.0",
         "method": "initialize",
         "params": {
+          "initializationOptions": {
+            "diagnosticSeverity": "Warning"
+          },
           "capabilities": {
             "textDocument": { "publishDiagnostics": { "dataSupport": true } }
           }
@@ -202,6 +205,9 @@ async fn test_config_file_e2e() {
         "jsonrpc": "2.0",
         "method": "initialize",
         "params": {{
+          "initializationOptions": {{
+            "diagnosticSeverity": "Warning"
+          }},
           "capabilities": {{
             "textDocument": {{ "publishDiagnostics": {{ "dataSupport": true }} }}
           }},

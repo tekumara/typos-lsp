@@ -22,6 +22,7 @@ pub struct Backend<'s, 'p> {
 
 #[derive(Default)]
 struct BackendState<'s> {
+    severity: Option<DiagnosticSeverity>,
     workspace_folders: Vec<WorkspaceFolder>,
     router: Router<TyposCli<'s>>,
 }
@@ -138,11 +139,37 @@ impl LanguageServer for Backend<'static, 'static> {
             tracing::debug!("Client supports diagnostics data")
         } else {
             tracing::warn!(
-                "Client does not support diagnostics data.. code actions will not be available"
+                "Client does not support diagnostics data. Code actions will not be available"
             )
         }
 
         let mut state = self.state.lock().unwrap();
+
+        if let Some(ops) = params.initialization_options {
+            if let Some(value) = ops
+                .as_object()
+                .and_then(|o| o.get("diagnosticSeverity").cloned())
+            {
+                match value.as_str().unwrap_or("").to_lowercase().as_str() {
+                    "error" => {
+                        state.severity = Some(DiagnosticSeverity::ERROR);
+                    }
+                    "warning" => {
+                        state.severity = Some(DiagnosticSeverity::WARNING);
+                    }
+                    "information" => {
+                        state.severity = Some(DiagnosticSeverity::INFORMATION);
+                    }
+                    "hint" => {
+                        state.severity = Some(DiagnosticSeverity::HINT);
+                    }
+                    _ => {
+                        tracing::warn!("Unknown diagnostic severity: {}", value);
+                    }
+                }
+            }
+        }
+
         if let Err(e) = state.set_workspace_folders(params.workspace_folders.unwrap_or_default()) {
             tracing::warn!("Cannot set workspace folders: {}", e);
         }
@@ -362,7 +389,7 @@ impl<'s, 'p> Backend<'s, 'p> {
                         Position::new(line_num as u32, line_pos as u32),
                         Position::new(line_num as u32, (line_pos + typo.typo.len()) as u32),
                     ),
-                    severity: Some(DiagnosticSeverity::WARNING),
+                    severity: state.severity,
                     source: Some("typos".to_string()),
                     message: match &typo.corrections {
                         typos::Status::Invalid => format!("`{}` is disallowed", typo.typo),

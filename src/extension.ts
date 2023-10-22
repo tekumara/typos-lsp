@@ -24,9 +24,11 @@ export async function activate(
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(
       async (e: vscode.ConfigurationChangeEvent) => {
-        const restartTriggeredBy = ["typos.path", "typos.logLevel"].find((s) =>
-          e.affectsConfiguration(s)
-        );
+        const restartTriggeredBy = [
+          "typos.path",
+          "typos.logLevel",
+          "typos.diagnosticSeverity",
+        ].find((s) => e.affectsConfiguration(s));
 
         if (restartTriggeredBy) {
           await vscode.commands.executeCommand("typos.restart");
@@ -96,6 +98,9 @@ async function createClient(
     ],
     outputChannel: outputChannel,
     traceOutputChannel: outputChannel,
+    initializationOptions: {
+      diagnosticSeverity: config.get("diagnosticSeverity"),
+    },
   };
 
   return new LanguageClient(

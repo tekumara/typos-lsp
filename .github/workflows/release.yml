@@ -9,7 +9,7 @@ jobs:
   wait:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for build check to succeed
+      - name: Wait for checks to succeed
         uses: poseidon/wait-for-status-checks@v0.3.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

@@ -37,7 +37,8 @@ Config files will be read from the workspace folder or its parents. If there is 
 
 This extension contributes the following settings:
 
-- `typos.logLevel`: Logging level of the language server.
+- `typos.diagnosticSeverity`: How typos are rendered in the editor, eg: as errors, warnings, information, or hints.
+- `typos.logLevel`: Logging level of the language server. Logs appear in the Output -> Typos pane.
 - `typos.path`: Path to the `typos-lsp` binary. If empty the bundled binary will be used.
 - `typos.trace.server`: Traces the communication between VS Code and the language server.
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.7](https://github.com/tekumara/typos-vscode/compare/v0.1.6...v0.1.7) (2023-10-22)
+
+
+### Features
+
+* configurable diagnostic severity ([7e7e743](https://github.com/tekumara/typos-vscode/commit/7e7e74397e77bc23b07e3d10ea863af4cdc1dccb)), closes [#17](https://github.com/tekumara/typos-vscode/issues/17)
+* typos 1.16.20 ([fb013ea](https://github.com/tekumara/typos-vscode/commit/fb013ea3e96172e0c4ce07019fbebd71a2d6329e))
+
 ## [0.1.6](https://github.com/tekumara/typos-vscode/compare/v0.1.5...v0.1.6) (2023-09-23)
 
 

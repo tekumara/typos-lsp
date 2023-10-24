@@ -14,7 +14,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: Swatinem/rust-cache@v2
     - run: cargo test
     - run: cargo fmt --all -- --check
@@ -28,6 +28,6 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: Swatinem/rust-cache@v2
     - run: cargo test

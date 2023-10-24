@@ -51,7 +51,7 @@ jobs:
     needs: wait
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # needed for arm targets
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -103,7 +103,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       # download each artifact into its own self-named directory
       - uses: actions/download-artifact@v3
         with:

@@ -5,6 +5,7 @@
   "publisher": "tekumara",
   "version": "0.1.7",
   "private": true,
+  "icon": "images/typos.png",
   "repository": {
     "url": "https://github.com/tekumara/typos-vscode.git",
     "type": "git"
@@ -17,6 +18,7 @@
     "spellchecker"
   ],
   "categories": [
+    "Linters",
     "Other"
   ],
   "engines": {
@@ -73,7 +75,7 @@
             "trace"
           ],
           "default": "warn",
-          "description": "Logging level of the language server."
+          "markdownDescription": "Logging level of the language server. Logs appear in the _Output -> Typos_ pane."
         },
         "typos.trace.server": {
           "scope": "window",

@@ -10,6 +10,8 @@ Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemNam
 
 To use the LSP server `typos-lsp` independently of VS Code download it from the [releases page](https://github.com/tekumara/typos-vscode/releases).
 
+For a Neovim LSP config see [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig).
+
 ## Features
 
 - Identify misspellings and provide a Quick Fix with suggested corrections:

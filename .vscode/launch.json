@@ -29,7 +29,7 @@
 			"args": [
 				"--disable-extensions",
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
+				"--extensionTestsPath=${workspaceFolder}/out/test/suite",
 				"${workspaceRoot}/src/test/fixture"
 			],
 			"outFiles": [

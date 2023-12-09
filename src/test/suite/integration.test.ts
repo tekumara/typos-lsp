@@ -63,7 +63,7 @@ async function testDiagnostics(
   expectedDiagnostics: vscode.Diagnostic[]
 ) {
   const actualDiagnostics = vscode.languages.getDiagnostics(docUri);
-  assert.equal(actualDiagnostics.length, expectedDiagnostics.length);
+  assert.equal(actualDiagnostics.length, expectedDiagnostics.length, "Missing diagnostics");
 
   expectedDiagnostics.forEach((expectedDiagnostic, i) => {
     const actualDiagnostic = actualDiagnostics[i];

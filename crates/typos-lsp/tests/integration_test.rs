@@ -336,8 +336,6 @@ async fn test_custom_config_file_e2e() {
         workspace_folder_uri,
     );
 
-    println!("{}", initialize);
-
     let did_open_diag_txt = format!(
         r#"{{
             "jsonrpc": "2.0",
@@ -379,6 +377,60 @@ async fn test_custom_config_file_e2e() {
             r#"{{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{{"diagnostics":[{{"data":{{"corrections":["appropriate"]}},"message":"`apropriate` should be `appropriate`","range":{{"end":{{"character":21,"line":0}},"start":{{"character":11,"line":0}}}},"severity":2,"source":"typos"}},{{"data":{{"corrections":["go"]}},"message":"`fo` should be `go`","range":{{"end":{{"character":2,"line":1}},"start":{{"character":0,"line":1}}}},"severity":2,"source":"typos"}}],"uri":"{}/diagnostics.txt","version":1}}}}"#,
             workspace_folder_uri
         ),
+    );
+}
+
+#[test_log::test(tokio::test)]
+async fn test_unicode_diagnostics() {
+    let initialize = r#"{
+        "jsonrpc": "2.0",
+        "method": "initialize",
+        "params": {
+          "initializationOptions": {
+            "diagnosticSeverity": "Warning"
+          },
+          "capabilities": {
+            "textDocument": { "publishDiagnostics": { "dataSupport": true } }
+          }
+        },
+        "id": 1
+      }
+    "#;
+
+    let did_open = r#"{
+        "jsonrpc": "2.0",
+        "method": "textDocument/didOpen",
+        "params": {
+          "textDocument": {
+            "uri": "file:///diagnostics.txt",
+            "languageId": "plaintext",
+            "version": 1,
+            "text": "¿Qué hace él?"
+          }
+        }
+      }
+    "#;
+
+    let (mut req_client, mut resp_client) = start_server();
+    let mut buf = vec![0; 1024];
+
+    req_client
+        .write_all(req(initialize).as_bytes())
+        .await
+        .unwrap();
+    let _ = resp_client.read(&mut buf).await.unwrap();
+
+    tracing::debug!("{}", did_open);
+    req_client
+        .write_all(req(did_open).as_bytes())
+        .await
+        .unwrap();
+    let n = resp_client.read(&mut buf).await.unwrap();
+
+    // start position should count graphemes with multiple code points as one visible character
+    similar_asserts::assert_eq!(
+        body(&buf[..n]).unwrap(),
+        r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":{"corrections":["have"]},"message":"`hace` should be `have`","range":{"end":{"character":9,"line":0},"start":{"character":5,"line":0}},"severity":2,"source":"typos"}],"uri":"file:///diagnostics.txt","version":1}}"#,
     );
 }
 

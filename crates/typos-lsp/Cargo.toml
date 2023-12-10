@@ -19,6 +19,7 @@ serde = { version = "1.0", features = ["derive"] }
 ignore = "0.4.20"
 matchit = "0.7.1"
 shellexpand = "3.1.0"
+unicode-segmentation = "1.10.1"
 
 [dev-dependencies]
 test-log = { version = "0.2.11", features = ["trace"] }

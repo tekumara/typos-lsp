@@ -458,8 +458,13 @@ impl AccumulatePosition {
             .map(|s| s + 1)
             .unwrap_or(0);
 
+        let before_typo = String::from_utf8_lossy(&buffer[line_start..byte_offset]);
+        let line_pos =
+            unicode_segmentation::UnicodeSegmentation::graphemes(before_typo.as_ref(), true)
+                .count();
+
         self.line_num = line_num;
-        self.line_pos = byte_offset - line_start;
+        self.line_pos = line_pos;
         self.last_offset = byte_offset;
 
         (self.line_num, self.line_pos)

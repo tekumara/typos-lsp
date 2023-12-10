@@ -18,6 +18,7 @@ typos-cli = "1.16"
 serde = { version = "1.0", features = ["derive"] }
 ignore = "0.4.20"
 matchit = "0.7.1"
+shellexpand = "3.1.0"
 
 [dev-dependencies]
 test-log = { version = "0.2.11", features = ["trace"] }

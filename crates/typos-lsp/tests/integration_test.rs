@@ -300,6 +300,88 @@ async fn test_config_file_e2e() {
     );
 }
 
+// TODO refactor and extract the boilerplate
+#[test_log::test(tokio::test)]
+async fn test_custom_config_file_e2e() {
+    let workspace_folder_uri =
+        Url::from_file_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")).unwrap();
+
+    let custom_config = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("custom_typos.toml");
+
+    let initialize = format!(
+        r#"{{
+        "jsonrpc": "2.0",
+        "method": "initialize",
+        "params": {{
+          "initializationOptions": {{
+            "diagnosticSeverity": "Warning",
+            "config": "{}"
+          }},
+          "capabilities": {{
+            "textDocument": {{ "publishDiagnostics": {{ "dataSupport": true }} }}
+          }},
+          "workspaceFolders": [
+            {{
+              "uri": "{}",
+              "name": "tests"
+            }}
+          ]
+        }},
+        "id": 1
+      }}
+    "#,
+        custom_config.to_string_lossy().replace("\\", "\\\\"), // escape windows path separators to make valid json
+        workspace_folder_uri,
+    );
+
+    println!("{}", initialize);
+
+    let did_open_diag_txt = format!(
+        r#"{{
+            "jsonrpc": "2.0",
+            "method": "textDocument/didOpen",
+            "params": {{
+              "textDocument": {{
+                "uri": "{}/diagnostics.txt",
+                "languageId": "plaintext",
+                "version": 1,
+                "text": "this is an apropriate test\nfo typos\n"
+              }}
+            }}
+          }}
+        "#,
+        workspace_folder_uri
+    );
+
+    let (mut req_client, mut resp_client) = start_server();
+    let mut buf = vec![0; 10240];
+
+    req_client
+        .write_all(req(initialize).as_bytes())
+        .await
+        .unwrap();
+    let _ = resp_client.read(&mut buf).await.unwrap();
+
+    // check "fo" is corrected to "go" because of default.extend-words
+    // in custom_typos.toml which overrides typos.toml
+    tracing::debug!("{}", did_open_diag_txt);
+    req_client
+        .write_all(req(did_open_diag_txt).as_bytes())
+        .await
+        .unwrap();
+    let n = resp_client.read(&mut buf).await.unwrap();
+
+    similar_asserts::assert_eq!(
+        body(&buf[..n]).unwrap(),
+        format!(
+            r#"{{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{{"diagnostics":[{{"data":{{"corrections":["appropriate"]}},"message":"`apropriate` should be `appropriate`","range":{{"end":{{"character":21,"line":0}},"start":{{"character":11,"line":0}}}},"severity":2,"source":"typos"}},{{"data":{{"corrections":["go"]}},"message":"`fo` should be `go`","range":{{"end":{{"character":2,"line":1}},"start":{{"character":0,"line":1}}}},"severity":2,"source":"typos"}}],"uri":"{}/diagnostics.txt","version":1}}}}"#,
+            workspace_folder_uri
+        ),
+    );
+}
+
 fn start_server() -> (tokio::io::DuplexStream, tokio::io::DuplexStream) {
     let (req_client, req_server) = tokio::io::duplex(1024);
     let (resp_server, resp_client) = tokio::io::duplex(1024);

@@ -45,6 +45,11 @@
           "type": "string",
           "description": "Path to the `typos-lsp` binary. If empty the bundled binary will be used."
         },
+        "typos.config": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "description": "Path to a custom config file. Used together with any workspace config files, taking precedence for settings declared in both."
+        },
         "typos.diagnosticSeverity": {
           "scope": "window",
           "type": "string",

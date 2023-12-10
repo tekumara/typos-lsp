@@ -25,9 +25,10 @@ export async function activate(
     vscode.workspace.onDidChangeConfiguration(
       async (e: vscode.ConfigurationChangeEvent) => {
         const restartTriggeredBy = [
-          "typos.path",
-          "typos.logLevel",
+          "typos.config",
           "typos.diagnosticSeverity",
+          "typos.logLevel",
+          "typos.path",
         ].find((s) => e.affectsConfiguration(s));
 
         if (restartTriggeredBy) {
@@ -99,6 +100,7 @@ async function createClient(
     outputChannel: outputChannel,
     traceOutputChannel: outputChannel,
     initializationOptions: {
+      config: config.get("config") ? config.get("config") : null,
       diagnosticSeverity: config.get("diagnosticSeverity"),
     },
   };

@@ -1,0 +1,3 @@
+[default.extend-words]
+# tell typos which of the several possible corrections to use
+fo = "go"

@@ -3,7 +3,7 @@ use matchit::{Match, Router};
 
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use bstr::ByteSlice;
@@ -23,6 +23,7 @@ pub struct Backend<'s, 'p> {
 #[derive(Default)]
 struct BackendState<'s> {
     severity: Option<DiagnosticSeverity>,
+    config: Option<PathBuf>,
     workspace_folders: Vec<WorkspaceFolder>,
     router: Router<TyposCli<'s>>,
 }
@@ -32,28 +33,38 @@ struct TyposCli<'s> {
     engine: policy::ConfigEngine<'s>,
 }
 
-impl<'s> TryFrom<&PathBuf> for TyposCli<'s> {
-    type Error = anyhow::Error;
+// initialise an engine and overrides using the config file from path or its parent
+fn try_new_cli<'s>(
+    path: &Path,
+    config: Option<&Path>,
+) -> anyhow::Result<TyposCli<'s>, anyhow::Error> {
+    // leak to get a 'static which is needed to satisfy the 's lifetime
+    // but does mean memory will grow unbounded
+    let storage = Box::leak(Box::new(policy::ConfigStorage::new()));
+    let mut engine = typos_cli::policy::ConfigEngine::new(storage);
 
-    // initialise an engine and overrides using the config file from path or its parent
-    fn try_from(path: &PathBuf) -> anyhow::Result<Self, Self::Error> {
-        // leak to get a 'static which is needed to satisfy the 's lifetime
-        // but does mean memory will grow unbounded
-        let storage = Box::leak(Box::new(policy::ConfigStorage::new()));
-        let mut engine = typos_cli::policy::ConfigEngine::new(storage);
-        engine.init_dir(path)?;
-
-        let walk_policy = engine.walk(path);
-
-        // add any explicit excludes
-        let mut overrides = OverrideBuilder::new(path);
-        for pattern in walk_policy.extend_exclude.iter() {
-            overrides.add(&format!("!{}", pattern))?;
+    // TODO: currently mimicking typos here but do we need to create and the update
+    // a default config?
+    let mut overrides = typos_cli::config::Config::default();
+    if let Some(config_path) = config {
+        let custom = typos_cli::config::Config::from_file(config_path)?;
+        if let Some(custom) = custom {
+            overrides.update(&custom);
+            engine.set_overrides(overrides);
         }
-        let overrides = overrides.build()?;
-
-        Ok(TyposCli { overrides, engine })
     }
+
+    engine.init_dir(path)?;
+    let walk_policy = engine.walk(path);
+
+    // add any explicit excludes
+    let mut overrides = OverrideBuilder::new(path);
+    for pattern in walk_policy.extend_exclude.iter() {
+        overrides.add(&format!("!{}", pattern))?;
+    }
+    let overrides = overrides.build()?;
+
+    Ok(TyposCli { overrides, engine })
 }
 
 impl<'s> BackendState<'s> {
@@ -95,8 +106,8 @@ impl<'s> BackendState<'s> {
                 "/*p"
             );
             tracing::debug!("Adding route {}", &path_wildcard);
-            let config = TyposCli::try_from(&path)?;
-            self.router.insert(path_wildcard, config)?;
+            let cli = try_new_cli(&path, self.config.as_deref())?;
+            self.router.insert(path_wildcard, cli)?;
         }
         Ok(())
     }
@@ -146,32 +157,37 @@ impl LanguageServer for Backend<'static, 'static> {
         let mut state = self.state.lock().unwrap();
 
         if let Some(ops) = params.initialization_options {
-            if let Some(value) = ops
-                .as_object()
-                .and_then(|o| o.get("diagnosticSeverity").cloned())
-            {
-                match value.as_str().unwrap_or("").to_lowercase().as_str() {
-                    "error" => {
-                        state.severity = Some(DiagnosticSeverity::ERROR);
+            if let Some(values) = ops.as_object() {
+                if let Some(value) = values.get("diagnosticSeverity").cloned() {
+                    match value.as_str().unwrap_or("").to_lowercase().as_str() {
+                        "error" => {
+                            state.severity = Some(DiagnosticSeverity::ERROR);
+                        }
+                        "warning" => {
+                            state.severity = Some(DiagnosticSeverity::WARNING);
+                        }
+                        "information" => {
+                            state.severity = Some(DiagnosticSeverity::INFORMATION);
+                        }
+                        "hint" => {
+                            state.severity = Some(DiagnosticSeverity::HINT);
+                        }
+                        _ => {
+                            tracing::warn!("Unknown diagnostic severity: {}", value);
+                        }
                     }
-                    "warning" => {
-                        state.severity = Some(DiagnosticSeverity::WARNING);
-                    }
-                    "information" => {
-                        state.severity = Some(DiagnosticSeverity::INFORMATION);
-                    }
-                    "hint" => {
-                        state.severity = Some(DiagnosticSeverity::HINT);
-                    }
-                    _ => {
-                        tracing::warn!("Unknown diagnostic severity: {}", value);
+                }
+                if let Some(value) = values.get("config").cloned() {
+                    if let Some(value) = value.as_str() {
+                        let expanded_path = PathBuf::from(shellexpand::tilde(value).to_string());
+                        state.config = Some(expanded_path);
                     }
                 }
             }
         }
 
         if let Err(e) = state.set_workspace_folders(params.workspace_folders.unwrap_or_default()) {
-            tracing::warn!("Cannot set workspace folders: {}", e);
+            tracing::warn!("Falling back to default config: {}", e);
         }
 
         Ok(InitializeResult {

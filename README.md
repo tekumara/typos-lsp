@@ -1,5 +1,8 @@
 # typos-vscode
 
+[![ci](https://github.com/tekumara/typos-vscode/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/tekumara/typos-vscode/actions/workflows/ci.yml)
+[![release](https://github.com/tekumara/typos-vscode/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/tekumara/typos-vscode/actions/workflows/release.yml)
+
 > **Source code spell checker for Visual Studio Code**
 
 [typos](https://github.com/crate-ci/typos) is a low false-positive source code spell checker. This Visual Studio Code extension provides a fast, low memory, in-editor spell checker by exposing typos via the Language Server Protocol (LSP).

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9](https://github.com/tekumara/typos-vscode/compare/v0.1.8...v0.1.9) (2023-12-10)
+
+
+### Bug Fixes
+
+* typo start position corrected for multiple code point unicode ([e3d2752](https://github.com/tekumara/typos-vscode/commit/e3d2752a966889ba516f36e4c4de8c1ad48f9322)), closes [#22](https://github.com/tekumara/typos-vscode/issues/22)
+
 ## [0.1.8](https://github.com/tekumara/typos-vscode/compare/v0.1.7...v0.1.8) (2023-12-10)
 
 

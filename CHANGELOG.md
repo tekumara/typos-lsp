@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.8](https://github.com/tekumara/typos-vscode/compare/v0.1.7...v0.1.8) (2023-12-10)
+
+
+### Features
+
+* support custom config file ([67886b9](https://github.com/tekumara/typos-vscode/commit/67886b961fe9238fb6af19414bc07f18ad65959f)), closes [#19](https://github.com/tekumara/typos-vscode/issues/19)
+* typos 1.16.23 ([ae1d36c](https://github.com/tekumara/typos-vscode/commit/ae1d36ca33d191b39d88d859ce6caf1864735498))
+* typos 1.16.24 ([3006f24](https://github.com/tekumara/typos-vscode/commit/3006f2418e823902e7150d91b444d57eb78b7f64))
+
 ## [0.1.7](https://github.com/tekumara/typos-vscode/compare/v0.1.6...v0.1.7) (2023-10-22)
 
 

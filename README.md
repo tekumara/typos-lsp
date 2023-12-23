@@ -17,9 +17,11 @@ For a Neovim LSP config see [neovim/nvim-lspconfig](https://github.com/neovim/nv
 
 ## Features
 
+<!-- markdownlint-disable-file MD033 -->
+
 - Identify misspellings and provide a Quick Fix with suggested corrections:
 
-<img width="373" alt="Diagnostics example with Quick Fix" src="https://user-images.githubusercontent.com/125105/232224205-eb9c6123-0d38-4d60-ac93-0990016453e0.png">
+    <img width="373" alt="Diagnostics example with Quick Fix" src="https://user-images.githubusercontent.com/125105/232224205-eb9c6123-0d38-4d60-ac93-0990016453e0.png">
 
 ## Usage
 

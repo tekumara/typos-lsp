@@ -3,16 +3,56 @@ use tower_lsp::lsp_types::Url;
 mod common;
 use common::TestServer;
 
+fn initialize_default() -> String {
+    initialize(None, None)
+}
+
+fn initialize(workspace_folder_uri: Option<&Url>, custom_config: Option<&PathBuf>) -> String {
+    let workspace_folders = workspace_folder_uri.map_or(String::default(), |v| {
+        format!(
+            r#",
+            "workspaceFolders": [
+              {{
+                "uri": "{}",
+                "name": "tests"
+              }}
+            ]"#,
+            v
+        )
+    });
+
+    let config = custom_config.map_or(String::default(), |v| {
+        format!(
+            r#", "config": "{}""#,
+            v.to_string_lossy().replace("\\", "\\\\") // escape windows path separators to make valid json
+        )
+    });
+
+    format!(
+        r#"{{
+  "jsonrpc": "2.0",
+  "method": "initialize",
+  "params": {{
+    "initializationOptions": {{
+      "diagnosticSeverity": "Warning"{}
+    }},
+    "capabilities": {{
+      "textDocument": {{ "publishDiagnostics": {{ "dataSupport": true }} }}
+    }}{}
+  }},
+  "id": 1
+}}
+"#,
+        config, workspace_folders,
+    )
+}
+
 #[test_log::test(tokio::test)]
 async fn test_initialize_e2e() {
     let mut server = TestServer::new();
 
     similar_asserts::assert_eq!(
-        server
-            .request(
-                r#"{"jsonrpc":"2.0","method":"initialize","params":{"capabilities":{}},"id":1}"#
-            )
-            .await,
+        server.request(&initialize_default()).await,
         format!(
             r#"{{"jsonrpc":"2.0","result":{{"capabilities":{{"codeActionProvider":{{"codeActionKinds":["quickfix"],"workDoneProgress":false}},"textDocumentSync":1,"workspace":{{"workspaceFolders":{{"changeNotifications":true,"supported":true}}}}}},"serverInfo":{{"name":"typos","version":"{}"}}}},"id":1}}"#,
             env!("CARGO_PKG_VERSION")
@@ -21,22 +61,7 @@ async fn test_initialize_e2e() {
 }
 
 #[test_log::test(tokio::test)]
-async fn test_e2e() {
-    let initialize = r#"{
-        "jsonrpc": "2.0",
-        "method": "initialize",
-        "params": {
-          "initializationOptions": {
-            "diagnosticSeverity": "Warning"
-          },
-          "capabilities": {
-            "textDocument": { "publishDiagnostics": { "dataSupport": true } }
-          }
-        },
-        "id": 1
-      }
-    "#;
-
+async fn test_code_action() {
     let did_open = r#"{
             "jsonrpc": "2.0",
             "method": "textDocument/didOpen",
@@ -146,7 +171,7 @@ async fn test_e2e() {
     "#;
 
     let mut server = TestServer::new();
-    let _ = server.request(initialize).await;
+    let _ = server.request(&initialize_default()).await;
 
     similar_asserts::assert_eq!(
         server.request(did_open).await,
@@ -165,33 +190,9 @@ async fn test_e2e() {
 }
 
 #[test_log::test(tokio::test)]
-async fn test_config_file_e2e() {
+async fn test_config_file() {
     let workspace_folder_uri =
         Url::from_file_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")).unwrap();
-
-    let initialize = format!(
-        r#"{{
-        "jsonrpc": "2.0",
-        "method": "initialize",
-        "params": {{
-          "initializationOptions": {{
-            "diagnosticSeverity": "Warning"
-          }},
-          "capabilities": {{
-            "textDocument": {{ "publishDiagnostics": {{ "dataSupport": true }} }}
-          }},
-          "workspaceFolders": [
-            {{
-              "uri": "{}",
-              "name": "tests"
-            }}
-          ]
-        }},
-        "id": 1
-      }}
-    "#,
-        workspace_folder_uri
-    );
 
     let did_open_diag_txt = format!(
         r#"{{
@@ -228,7 +229,9 @@ async fn test_config_file_e2e() {
     );
 
     let mut server = TestServer::new();
-    let _ = server.request(&initialize).await;
+    let _ = server
+        .request(&initialize(Some(&workspace_folder_uri), None))
+        .await;
 
     // check "fo" is corrected to "of" because of default.extend-words
     similar_asserts::assert_eq!(
@@ -250,39 +253,13 @@ async fn test_config_file_e2e() {
 }
 
 #[test_log::test(tokio::test)]
-async fn test_custom_config_file_e2e() {
+async fn test_custom_config_file() {
     let workspace_folder_uri =
         Url::from_file_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")).unwrap();
 
     let custom_config = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("custom_typos.toml");
-
-    let initialize = format!(
-        r#"{{
-        "jsonrpc": "2.0",
-        "method": "initialize",
-        "params": {{
-          "initializationOptions": {{
-            "diagnosticSeverity": "Warning",
-            "config": "{}"
-          }},
-          "capabilities": {{
-            "textDocument": {{ "publishDiagnostics": {{ "dataSupport": true }} }}
-          }},
-          "workspaceFolders": [
-            {{
-              "uri": "{}",
-              "name": "tests"
-            }}
-          ]
-        }},
-        "id": 1
-      }}
-    "#,
-        custom_config.to_string_lossy().replace("\\", "\\\\"), // escape windows path separators to make valid json
-        workspace_folder_uri,
-    );
 
     let did_open_diag_txt = format!(
         r#"{{
@@ -302,7 +279,12 @@ async fn test_custom_config_file_e2e() {
     );
 
     let mut server = TestServer::new();
-    let _ = server.request(&initialize).await;
+    let _ = server
+        .request(&initialize(
+            Some(&workspace_folder_uri),
+            Some(&custom_config),
+        ))
+        .await;
 
     // check "fo" is corrected to "go" because of default.extend-words
     // in custom_typos.toml which overrides typos.toml
@@ -317,21 +299,6 @@ async fn test_custom_config_file_e2e() {
 
 #[test_log::test(tokio::test)]
 async fn test_unicode_diagnostics() {
-    let initialize = r#"{
-        "jsonrpc": "2.0",
-        "method": "initialize",
-        "params": {
-          "initializationOptions": {
-            "diagnosticSeverity": "Warning"
-          },
-          "capabilities": {
-            "textDocument": { "publishDiagnostics": { "dataSupport": true } }
-          }
-        },
-        "id": 1
-      }
-    "#;
-
     let did_open = r#"{
         "jsonrpc": "2.0",
         "method": "textDocument/didOpen",
@@ -347,7 +314,7 @@ async fn test_unicode_diagnostics() {
     "#;
 
     let mut server = TestServer::new();
-    let _ = server.request(&initialize).await;
+    let _ = server.request(&initialize_default()).await;
 
     // start position should count graphemes with multiple code points as one visible character
     similar_asserts::assert_eq!(

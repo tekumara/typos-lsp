@@ -45,9 +45,9 @@ async fn test_code_action() {
           "textDocument": {
             "uri": "file:///diagnostics.txt"
           },
-          "range": range(1, 5, 7),
+          "range": range(1, 0, 2),
           "context": {
-            "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 5, 7) ],
+            "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 0, 2) ],
             "only": ["quickfix"],
             "triggerKind": 1
           }
@@ -95,13 +95,13 @@ async fn test_code_action() {
             "jsonrpc": "2.0",
             "result": [
               {
-                "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 5, 7) ],
+                "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 0, 2) ],
                 "edit": {
                   "changes": {
                     "file:///diagnostics.txt": [
                       {
                         "newText": "of",
-                        "range": range(1, 5, 7)
+                        "range": range(1, 0, 2)
                       }
                     ]
                   }
@@ -110,13 +110,13 @@ async fn test_code_action() {
                 "title": "of"
               },
               {
-                "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 5, 7) ],
+                "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 0, 2) ],
                 "edit": {
                   "changes": {
                     "file:///diagnostics.txt": [
                       {
                         "newText": "for",
-                        "range": range(1, 5, 7)
+                        "range": range(1, 0, 2)
                       }
                     ]
                   }

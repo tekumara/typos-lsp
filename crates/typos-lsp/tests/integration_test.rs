@@ -1,7 +1,9 @@
+use serde_json::{json, Value};
 use std::path::PathBuf;
-use tower_lsp::lsp_types::Url;
+use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Url};
 mod common;
 use common::TestServer;
+use {once_cell::sync::Lazy, regex::Regex};
 
 fn initialize() -> String {
     initialize_with(None, None)
@@ -68,6 +70,42 @@ fn did_open_with(text: &str, uri: Option<&Url>) -> String {
         uri.unwrap_or(&Url::parse("file:///diagnostics.txt").unwrap()),
         text.replace("\n", "\\n")
     )
+}
+
+fn diag(message: &str, line: u32, start: u32, end: u32) -> Value {
+    static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"`[^`]+` should be (.*)").unwrap());
+
+    let caps = RE.captures(message).unwrap();
+
+    let corrections: Vec<&str> = caps[1].split(", ").map(|s| s.trim_matches('`')).collect();
+
+    json!({
+      "data": { "corrections": corrections },
+      "message": message,
+      "range": {
+        "end": { "character": end, "line": line },
+        "start": { "character": start, "line": line }
+      },
+      "severity": 2,
+      "source": "typos"
+    })
+}
+
+fn publish_diagnostics(diags: &[Value]) -> String {
+    publish_diagnostics_with(diags, None)
+}
+
+fn publish_diagnostics_with(diags: &[Value], uri: Option<&Url>) -> String {
+    json!({
+      "jsonrpc": "2.0",
+      "method": "textDocument/publishDiagnostics",
+      "params": {
+        "diagnostics": diags,
+        "uri": uri.unwrap_or(&Url::parse("file:///diagnostics.txt").unwrap()),
+        "version": 1
+      }
+    })
+    .to_string()
 }
 
 #[test_log::test(tokio::test)]
@@ -186,7 +224,10 @@ async fn test_code_action() {
 
     similar_asserts::assert_eq!(
         server.request(did_open).await,
-        r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":{"corrections":["appropriate"]},"message":"`apropriate` should be `appropriate`","range":{"end":{"character":21,"line":0},"start":{"character":11,"line":0}},"severity":2,"source":"typos"},{"data":{"corrections":["of","for","do","go","to"]},"message":"`fo` should be `of`, `for`, `do`, `go`, `to`","range":{"end":{"character":2,"line":1},"start":{"character":0,"line":1}},"severity":2,"source":"typos"}],"uri":"file:///diagnostics.txt","version":1}}"#,
+        publish_diagnostics(&[
+            diag("`apropriate` should be `appropriate`", 0, 11, 21),
+            diag("`fo` should be `of`, `for`, `do`, `go`, `to`", 1, 0, 2)
+        ])
     );
 
     similar_asserts::assert_eq!(
@@ -223,19 +264,19 @@ async fn test_config_file() {
     // check "fo" is corrected to "of" because of default.extend-words
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
-        format!(
-            r#"{{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{{"diagnostics":[{{"data":{{"corrections":["appropriate"]}},"message":"`apropriate` should be `appropriate`","range":{{"end":{{"character":21,"line":0}},"start":{{"character":11,"line":0}}}},"severity":2,"source":"typos"}},{{"data":{{"corrections":["of"]}},"message":"`fo` should be `of`","range":{{"end":{{"character":2,"line":1}},"start":{{"character":0,"line":1}}}},"severity":2,"source":"typos"}}],"uri":"{}","version":1}}}}"#,
-            diag_txt
-        ),
+        publish_diagnostics_with(
+            &[
+                diag("`apropriate` should be `appropriate`", 0, 11, 21),
+                diag("`fo` should be `of`", 1, 0, 2)
+            ],
+            Some(&diag_txt)
+        )
     );
 
     // check changelog is excluded because of files.extend-exclude
     similar_asserts::assert_eq!(
         server.request(&did_open_changelog_md).await,
-        format!(
-            r#"{{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{{"diagnostics":[],"uri":"{}","version":1}}}}"#,
-            changelog_md
-        ),
+        publish_diagnostics_with(&[], Some(&changelog_md)),
     );
 }
 
@@ -265,10 +306,13 @@ async fn test_custom_config_file() {
     // in custom_typos.toml which overrides typos.toml
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
-        format!(
-            r#"{{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{{"diagnostics":[{{"data":{{"corrections":["appropriate"]}},"message":"`apropriate` should be `appropriate`","range":{{"end":{{"character":21,"line":0}},"start":{{"character":11,"line":0}}}},"severity":2,"source":"typos"}},{{"data":{{"corrections":["go"]}},"message":"`fo` should be `go`","range":{{"end":{{"character":2,"line":1}},"start":{{"character":0,"line":1}}}},"severity":2,"source":"typos"}}],"uri":"{}","version":1}}}}"#,
-            diag_txt
-        ),
+        publish_diagnostics_with(
+            &[
+                diag("`apropriate` should be `appropriate`", 0, 11, 21),
+                diag("`fo` should be `go`", 1, 0, 2)
+            ],
+            Some(&diag_txt)
+        )
     );
 }
 
@@ -282,6 +326,6 @@ async fn test_unicode_diagnostics() {
     // start position should count graphemes with multiple code points as one visible character
     similar_asserts::assert_eq!(
         server.request(&did_open).await,
-        r#"{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"diagnostics":[{"data":{"corrections":["have"]},"message":"`hace` should be `have`","range":{"end":{"character":9,"line":0},"start":{"character":5,"line":0}},"severity":2,"source":"typos"}],"uri":"file:///diagnostics.txt","version":1}}"#,
+        publish_diagnostics(&[diag("`hace` should be `have`", 0, 5, 9)])
     );
 }

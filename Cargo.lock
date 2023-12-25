@@ -1613,6 +1613,8 @@ dependencies = [
  "ignore",
  "itertools 0.10.5",
  "matchit",
+ "once_cell",
+ "regex",
  "serde",
  "serde_json",
  "shellexpand",

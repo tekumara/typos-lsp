@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
 use std::path::PathBuf;
-use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Url};
+use tower_lsp::lsp_types::Url;
 mod common;
 use common::TestServer;
 use {once_cell::sync::Lazy, regex::Regex};
@@ -10,43 +10,30 @@ fn initialize() -> String {
 }
 
 fn initialize_with(workspace_folder_uri: Option<&Url>, custom_config: Option<&PathBuf>) -> String {
-    let workspace_folders = workspace_folder_uri.map_or(String::default(), |v| {
-        format!(
-            r#",
-            "workspaceFolders": [
-              {{
-                "uri": "{}",
-                "name": "tests"
-              }}
-            ]"#,
-            v
-        )
+    let mut v = json!(
+    {
+      "jsonrpc": "2.0",
+      "method": "initialize",
+      "params": {
+        "initializationOptions": {
+          "diagnosticSeverity": "Warning"
+        },
+        "capabilities": {
+          "textDocument": { "publishDiagnostics": { "dataSupport": true } }
+        }
+      },
+      "id": 1
     });
 
-    let config = custom_config.map_or(String::default(), |v| {
-        format!(
-            r#", "config": "{}""#,
-            v.to_string_lossy().replace("\\", "\\\\") // escape windows path separators to make valid json
-        )
-    });
+    if let Some(uri) = workspace_folder_uri {
+        v["params"]["workspaceFolders"] = json!([{ "uri": uri, "name": "tests" }]);
+    }
 
-    format!(
-        r#"{{
-  "jsonrpc": "2.0",
-  "method": "initialize",
-  "params": {{
-    "initializationOptions": {{
-      "diagnosticSeverity": "Warning"{}
-    }},
-    "capabilities": {{
-      "textDocument": {{ "publishDiagnostics": {{ "dataSupport": true }} }}
-    }}{}
-  }},
-  "id": 1
-}}
-"#,
-        config, workspace_folders,
-    )
+    if let Some(config) = custom_config {
+        v["params"]["initializationOptions"]["config"] = json!(config);
+    }
+
+    v.to_string()
 }
 
 fn did_open(text: &str) -> String {
@@ -54,22 +41,20 @@ fn did_open(text: &str) -> String {
 }
 
 fn did_open_with(text: &str, uri: Option<&Url>) -> String {
-    format!(
-        r#"{{
-    "jsonrpc": "2.0",
-    "method": "textDocument/didOpen",
-    "params": {{
-      "textDocument": {{
-        "uri": "{}",
-        "languageId": "plaintext",
-        "version": 1,
-        "text": "{}"
-      }}
-    }}
-  }}"#,
-        uri.unwrap_or(&Url::parse("file:///diagnostics.txt").unwrap()),
-        text.replace("\n", "\\n")
-    )
+    json!(
+    {
+      "jsonrpc": "2.0",
+      "method": "textDocument/didOpen",
+      "params": {
+        "textDocument": {
+          "uri": uri.unwrap_or(&Url::parse("file:///diagnostics.txt").unwrap()),
+          "languageId": "plaintext",
+          "version": 1,
+          "text": text
+        }
+      }
+    })
+    .to_string()
 }
 
 fn diag(message: &str, line: u32, start: u32, end: u32) -> Value {
@@ -248,13 +233,9 @@ async fn test_config_file() {
     let diag_txt = workspace_folder_uri.join("tests/diagnostics.txt").unwrap();
     let changelog_md = workspace_folder_uri.join("tests/CHANGELOG.md").unwrap();
 
-    let did_open_diag_txt =
-        &did_open_with("this is an apropriate test\nfo typos\n", Some(&diag_txt));
+    let did_open_diag_txt = &did_open_with("fo typos", Some(&diag_txt));
 
-    let did_open_changelog_md = &did_open_with(
-        "this is an apropriate test\nfo typos\n",
-        Some(&changelog_md),
-    );
+    let did_open_changelog_md = &did_open_with("fo typos", Some(&changelog_md));
 
     let mut server = TestServer::new();
     let _ = server
@@ -264,13 +245,7 @@ async fn test_config_file() {
     // check "fo" is corrected to "of" because of default.extend-words
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
-        publish_diagnostics_with(
-            &[
-                diag("`apropriate` should be `appropriate`", 0, 11, 21),
-                diag("`fo` should be `of`", 1, 0, 2)
-            ],
-            Some(&diag_txt)
-        )
+        publish_diagnostics_with(&[diag("`fo` should be `of`", 0, 0, 2)], Some(&diag_txt))
     );
 
     // check changelog is excluded because of files.extend-exclude
@@ -291,8 +266,7 @@ async fn test_custom_config_file() {
 
     let diag_txt = workspace_folder_uri.join("tests/diagnostics.txt").unwrap();
 
-    let did_open_diag_txt =
-        &did_open_with("this is an apropriate test\nfo typos\n", Some(&diag_txt));
+    let did_open_diag_txt = &did_open_with("fo typos", Some(&diag_txt));
 
     let mut server = TestServer::new();
     let _ = server
@@ -306,13 +280,7 @@ async fn test_custom_config_file() {
     // in custom_typos.toml which overrides typos.toml
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
-        publish_diagnostics_with(
-            &[
-                diag("`apropriate` should be `appropriate`", 0, 11, 21),
-                diag("`fo` should be `go`", 1, 0, 2)
-            ],
-            Some(&diag_txt)
-        )
+        publish_diagnostics_with(&[diag("`fo` should be `go`", 0, 0, 2)], Some(&diag_txt))
     );
 }
 

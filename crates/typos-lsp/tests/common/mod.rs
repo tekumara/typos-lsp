@@ -24,14 +24,17 @@ impl TestServer {
         }
     }
 
-    pub async fn request(&mut self, msg: &str) -> &str {
+    pub async fn request(&mut self, msg: &str) -> serde_json::Value {
         tracing::debug!("{}", msg);
         let msg = format!("Content-Length: {}\r\n\r\n{}", msg.len(), msg);
 
         self.req_client.write_all(msg.as_bytes()).await.unwrap();
         let n = self.resp_client.read(&mut self.buf).await.unwrap();
 
-        body(&self.buf[..n]).unwrap()
+        let s = body(&self.buf[..n]).unwrap();
+
+        // convert to json value to normalise key order for comparison
+        serde_json::from_str(s).unwrap()
     }
 }
 

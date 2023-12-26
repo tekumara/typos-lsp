@@ -20,6 +20,7 @@ async fn test_initialize_e2e() {
                   "codeActionKinds": ["quickfix"],
                   "workDoneProgress": false
                 },
+                "positionEncoding": "utf-16",
                 "textDocumentSync": 1,
                 "workspace": {
                   "workspaceFolders": { "changeNotifications": true, "supported": true }
@@ -218,16 +219,22 @@ async fn test_custom_config_file() {
 }
 
 #[test_log::test(tokio::test)]
-async fn test_unicode_diagnostics() {
-    let did_open = &did_open("¿Qué hace él?");
-
+async fn test_position_with_unicode_text() {
     let mut server = TestServer::new();
     let _ = server.request(&initialize()).await;
 
-    // start position should count graphemes with multiple code points as one visible character
+    // ¿ and é are two-byte code points in utf-8
+    let unicode_text = &did_open("¿Qué hace él?");
     similar_asserts::assert_eq!(
-        server.request(&did_open).await,
+        server.request(&unicode_text).await,
         publish_diagnostics(&[diag("`hace` should be `have`", 0, 5, 9)])
+    );
+
+    // ẽ has two code points U+0065 U+0303 (latin small letter e, combining tilde)
+    let unicode_text = &did_open("ẽ hace");
+    similar_asserts::assert_eq!(
+        server.request(&unicode_text).await,
+        publish_diagnostics(&[diag("`hace` should be `have`", 0, 3, 7)])
     );
 }
 

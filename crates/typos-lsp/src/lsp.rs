@@ -192,6 +192,8 @@ impl LanguageServer for Backend<'static, 'static> {
 
         Ok(InitializeResult {
             capabilities: ServerCapabilities {
+                // only support UTF-16 positions for now, which is the default when unspecified
+                position_encoding: Some(PositionEncodingKind::UTF16),
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
                     // TODO: should we support incremental?
                     TextDocumentSyncKind::FULL,
@@ -459,9 +461,11 @@ impl AccumulatePosition {
             .unwrap_or(0);
 
         let before_typo = String::from_utf8_lossy(&buffer[line_start..byte_offset]);
-        let line_pos =
-            unicode_segmentation::UnicodeSegmentation::graphemes(before_typo.as_ref(), true)
-                .count();
+
+        // count UTF-16 code units as per
+        // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocuments
+        // UTF-16 is the only position encoding we support for now
+        let line_pos = before_typo.chars().map(char::len_utf16).sum();
 
         self.line_num = line_num;
         self.line_pos = line_pos;

@@ -1626,7 +1626,6 @@ dependencies = [
  "tracing-subscriber",
  "typos",
  "typos-cli",
- "unicode-segmentation",
 ]
 
 [[package]]

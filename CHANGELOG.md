@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.10](https://github.com/tekumara/typos-vscode/compare/v0.1.9...v0.1.10) (2023-12-26)
+
+
+### Bug Fixes
+
+* count positions as utf-16 code units ([de52345](https://github.com/tekumara/typos-vscode/commit/de523457fbc4aced4076f0ef61e5fb9e5f338b60)), closes [#22](https://github.com/tekumara/typos-vscode/issues/22)
+
 ## [0.1.9](https://github.com/tekumara/typos-vscode/compare/v0.1.8...v0.1.9) (2023-12-10)
 
 

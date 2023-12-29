@@ -3,17 +3,15 @@
 [![ci](https://github.com/tekumara/typos-vscode/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/tekumara/typos-vscode/actions/workflows/ci.yml)
 [![release](https://github.com/tekumara/typos-vscode/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/tekumara/typos-vscode/actions/workflows/release.yml)
 
-> **Source code spell checker for Visual Studio Code**
+> **Source code spell checker for Visual Studio Code and LSP clients**
 
-[typos](https://github.com/crate-ci/typos) is a low false-positive source code spell checker. This Visual Studio Code extension provides a fast, low memory, in-editor spell checker by exposing typos via the Language Server Protocol (LSP).
+[typos](https://github.com/crate-ci/typos) is a low false-positive source code spell checker. This project exposes `typos` via a Language Server Protocol (LSP) server and Visual Studio Code extension to provide a fast, low memory, in-editor spell checker.
 
 ## Install
 
-Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
-
-To use the LSP server `typos-lsp` independently of VS Code download it from the [releases page](https://github.com/tekumara/typos-vscode/releases).
-
-For a Neovim LSP config see [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig).
+- Vscode: Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
+- Other clients: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-vscode/releases).
+- Neovim: for a LSP config see [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig).
 
 ## Features
 
@@ -60,3 +58,7 @@ This extension contributes the following settings:
 
 - File names are not spell checked.
 - Server must be restarted after changing the config files (ie: typos.toml).
+
+## Why aren't my misspellings being corrected?
+
+To minimise false-positives `typos` only suggests corrections for known misspellings, rather than unknown words like a traditional spell-checker. For more info see [Why was ... not corrected?](https://github.com/crate-ci/typos?tab=readme-ov-file#why-was--not-corrected).

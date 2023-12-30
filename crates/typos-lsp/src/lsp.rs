@@ -97,14 +97,7 @@ impl<'s> BackendState<'s> {
                 .uri
                 .to_file_path()
                 .map_err(|_| anyhow!("Cannot convert uri {} to file path", folder.uri))?;
-            let path_wildcard = format!(
-                "{}{}",
-                path_to_route(
-                    path.to_str()
-                        .ok_or_else(|| anyhow!("Invalid unicode in path {:?}", path))?
-                ),
-                "/*p"
-            );
+            let path_wildcard = format!("{}{}", url_path_sanitised(&folder.uri), "/*p");
             tracing::debug!("Adding route {}", &path_wildcard);
             let cli = try_new_cli(&path, self.config.as_deref())?;
             self.router.insert(path_wildcard, cli)?;
@@ -113,19 +106,13 @@ impl<'s> BackendState<'s> {
     }
 }
 
-fn path_to_route(path: &str) -> Cow<str> {
-    if path.starts_with('\\') {
-        // unix path
-        path.into()
-    } else {
-        // normalise windows path to make matchit happy:
-        // - strip out : so matchit doesn't use it as a wildcard
-        // - path segments must be forward slashes not backslashes to match
-        // - leading / required on wildcard routes
-        let mut path = path.replace(':', "").replace('\\', "/");
-        path.insert(0, '/');
-        path.into()
-    }
+fn url_path_sanitised(url: &Url) -> String {
+    // windows paths (eg: /C:/Users/..) may not be percent-encoded by some clients
+    // and therefore contain colons, see
+    // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri
+    //
+    // and because matchit treats colons as a wildcard we need to strip them
+    url.path().replace(':', "")
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -360,19 +347,16 @@ impl<'s, 'p> Backend<'s, 'p> {
             PathBuf::default()
         });
 
-        let path_str = path_to_route(path.to_str().unwrap_or_else(|| {
-            tracing::warn!("check_text: Invalid unicode in path {:?}", path);
-            "/"
-        }));
+        let uri_path = url_path_sanitised(uri);
 
         let state = self.state.lock().unwrap();
 
         // find relevant overrides and engine for the workspace folder
-        let (overrides, tokenizer, dict) = match state.router.at(&path_str) {
+        let (overrides, tokenizer, dict) = match state.router.at(&uri_path) {
             Err(_) => {
                 tracing::debug!(
                     "Using default policy because no route found for {}",
-                    path_str
+                    uri_path
                 );
                 (
                     None,

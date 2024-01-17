@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.11](https://github.com/tekumara/typos-vscode/compare/v0.1.10...v0.1.11) (2024-01-17)
+
+
+### Features
+
+* typos 1.17.1 with November/December 2023 dictionary changes ([76fc5cf](https://github.com/tekumara/typos-vscode/commit/76fc5cf2ff13b7f8e51a16276d5a7e7e0ecda470))
+
 ## [0.1.10](https://github.com/tekumara/typos-vscode/compare/v0.1.9...v0.1.10) (2023-12-26)
 
 

@@ -219,6 +219,33 @@ async fn test_custom_config_file() {
 }
 
 #[test_log::test(tokio::test)]
+async fn test_custom_config_no_workspace_folder() {
+    // mimics Neovim opening a file outside the root dir
+    let custom_config = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("custom_typos.toml");
+
+    let workspace_folder_uri =
+        Url::from_file_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")).unwrap();
+
+    let diag_txt = workspace_folder_uri.join("tests/diagnostics.txt").unwrap();
+
+    let did_open_diag_txt = &did_open_with("fo typos", Some(&diag_txt));
+
+    let mut server = TestServer::new();
+    let _ = server
+        .request(&initialize_with(None, Some(&custom_config)))
+        .await;
+
+    // check "fo" is corrected to "go" because of default.extend-words
+    // in custom_typos.toml which overrides typos.toml
+    similar_asserts::assert_eq!(
+        server.request(&did_open_diag_txt).await,
+        publish_diagnostics_with(&[diag("`fo` should be `go`", 0, 0, 2)], Some(&diag_txt))
+    );
+}
+
+#[test_log::test(tokio::test)]
 async fn test_position_with_unicode_text() {
     let mut server = TestServer::new();
     let _ = server.request(&initialize()).await;

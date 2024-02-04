@@ -7,13 +7,13 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use bstr::ByteSlice;
+use ignore::overrides::{Override, OverrideBuilder};
 use serde_json::{json, to_string};
 use tower_lsp::lsp_types::*;
 use tower_lsp::*;
 use tower_lsp::{Client, LanguageServer};
-
-use ignore::overrides::{Override, OverrideBuilder};
 use typos_cli::policy;
+
 pub struct Backend<'s, 'p> {
     client: Client,
     state: Mutex<BackendState<'s>>,
@@ -43,14 +43,14 @@ fn try_new_cli<'s>(
     let storage = Box::leak(Box::new(policy::ConfigStorage::new()));
     let mut engine = typos_cli::policy::ConfigEngine::new(storage);
 
-    // TODO: currently mimicking typos here but do we need to create and the update
+    // TODO: currently mimicking typos here but do we need to create and update
     // a default config?
-    let mut overrides = typos_cli::config::Config::default();
+    let mut c = typos_cli::config::Config::default();
     if let Some(config_path) = config {
         let custom = typos_cli::config::Config::from_file(config_path)?;
         if let Some(custom) = custom {
-            overrides.update(&custom);
-            engine.set_overrides(overrides);
+            c.update(&custom);
+            engine.set_overrides(c);
         }
     }
 
@@ -97,11 +97,57 @@ impl<'s> BackendState<'s> {
                 .uri
                 .to_file_path()
                 .map_err(|_| anyhow!("Cannot convert uri {} to file path", folder.uri))?;
-            let path_wildcard = format!("{}{}", url_path_sanitised(&folder.uri), "/*p");
-            tracing::debug!("Adding route {}", &path_wildcard);
-            let cli = try_new_cli(&path, self.config.as_deref())?;
-            self.router.insert(path_wildcard, cli)?;
+            let route = format!("{}{}", url_path_sanitised(&folder.uri), "/*p");
+            self.router
+                .insert_new_typos_cli(&route, &path, self.config.as_deref())?;
         }
+
+        // add low priority catch all route used for files outside the workspace, or
+        // when there is no workspace folder
+        #[cfg(windows)]
+        for drive in crate::windows::get_drives() {
+            // file:///c%3A/Users/oliver/typos-vscode/src/test/fixture
+            let route = format!("/{}%3A/*p", &drive);
+            self.router.insert_new_typos_cli(
+                &route,
+                &PathBuf::from(format!("{}:\\", &drive)),
+                self.config.as_deref(),
+            )?;
+        }
+
+        #[cfg(not(windows))]
+        {
+            let route = "/*p";
+            self.router
+                .insert_new_typos_cli(route, &PathBuf::from("/"), self.config.as_deref())?;
+        }
+
+        Ok(())
+    }
+}
+
+trait RouterExt {
+    fn insert_new_typos_cli(
+        &mut self,
+        route: &str,
+        path: &Path,
+        config: Option<&Path>,
+    ) -> anyhow::Result<(), anyhow::Error>;
+}
+
+// TODO: extract
+impl RouterExt for Router<TyposCli<'_>> {
+    // convenience method to insert a new TyposCli into the router
+    // implemented as an extension trait to avoid interprocedural conflicts
+    fn insert_new_typos_cli(
+        &mut self,
+        route: &str,
+        path: &Path,
+        config: Option<&Path>,
+    ) -> anyhow::Result<(), anyhow::Error> {
+        tracing::debug!("Adding route {} for path {}", route, path.display());
+        let cli = try_new_cli(path, config)?;
+        self.insert(route, cli)?;
         Ok(())
     }
 }
@@ -112,7 +158,7 @@ fn url_path_sanitised(url: &Url) -> String {
     // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri
     //
     // and because matchit treats colons as a wildcard we need to strip them
-    url.path().replace(':', "")
+    url.path().replace(':', "%3A")
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -354,8 +400,8 @@ impl<'s, 'p> Backend<'s, 'p> {
         // find relevant overrides and engine for the workspace folder
         let (overrides, tokenizer, dict) = match state.router.at(&uri_path) {
             Err(_) => {
-                tracing::debug!(
-                    "Using default policy because no route found for {}",
+                tracing::warn!(
+                    "check_text: Using default policy because no route found for {}",
                     uri_path
                 );
                 (
@@ -365,6 +411,8 @@ impl<'s, 'p> Backend<'s, 'p> {
                 )
             }
             Ok(Match { value, params: _ }) => {
+                // TODO store policy in router
+                tracing::debug!("check_text: path {}", &path.display());
                 let policy = value.engine.policy(&path);
                 (Some(&value.overrides), policy.tokenizer, policy.dict)
             }
@@ -373,7 +421,10 @@ impl<'s, 'p> Backend<'s, 'p> {
         // skip file if matches extend-exclude
         if let Some(overrides) = overrides {
             if overrides.matched(path, false).is_ignore() {
-                tracing::debug!("Ignoring {} because it matches extend-exclude.", uri);
+                tracing::debug!(
+                    "check_text: Ignoring {} because it matches extend-exclude.",
+                    uri
+                );
                 return Vec::default();
             }
         }
@@ -382,7 +433,7 @@ impl<'s, 'p> Backend<'s, 'p> {
 
         typos::check_str(buffer, tokenizer, dict)
             .map(|typo| {
-                tracing::debug!("typo: {:?}", typo);
+                tracing::debug!("check_text: {:?}", typo);
 
                 let (line_num, line_pos) = accum.pos(buffer.as_bytes(), typo.byte_offset);
 

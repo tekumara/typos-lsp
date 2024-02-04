@@ -36,4 +36,5 @@ jobs:
     - run: cargo test
       env:
         RUST_LOG: debug,globset=warn
+        RUST_BACKTRACE: 1
 

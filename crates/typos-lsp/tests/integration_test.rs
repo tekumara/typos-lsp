@@ -44,7 +44,7 @@ async fn test_code_action() {
         "method": "textDocument/codeAction",
         "params": {
           "textDocument": {
-            "uri": "file:///c%3A/diagnostics.txt"
+            "uri": "file:///C%3A/diagnostics.txt"
           },
           "range": range(1, 0, 2),
           "context": {
@@ -64,7 +64,7 @@ async fn test_code_action() {
         "method": "textDocument/codeAction",
         "params": {
           "textDocument": {
-            "uri": "file:///c%3A/diagnostics.txt"
+            "uri": "file:///C%3A/diagnostics.txt"
           },
           "range": range(0, 11, 21),
           "context": {
@@ -99,7 +99,7 @@ async fn test_code_action() {
                 "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 0, 2) ],
                 "edit": {
                   "changes": {
-                    "file:///c%3A/diagnostics.txt": [
+                    "file:///C%3A/diagnostics.txt": [
                       {
                         "newText": "of",
                         "range": range(1, 0, 2)
@@ -114,7 +114,7 @@ async fn test_code_action() {
                 "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 0, 2) ],
                 "edit": {
                   "changes": {
-                    "file:///c%3A/diagnostics.txt": [
+                    "file:///C%3A/diagnostics.txt": [
                       {
                         "newText": "for",
                         "range": range(1, 0, 2)
@@ -141,7 +141,7 @@ async fn test_code_action() {
                 "diagnostics": [ diag("`apropriate` should be `appropriate`", 0, 11, 21) ],
                 "edit": {
                   "changes": {
-                    "file:///c%3A/diagnostics.txt": [
+                    "file:///C%3A/diagnostics.txt": [
                       {
                         "newText": "appropriate",
                         "range": range(0, 11, 21)
@@ -307,7 +307,7 @@ fn did_open_with(text: &str, uri: Option<&Url>) -> String {
       "method": "textDocument/didOpen",
       "params": {
         "textDocument": {
-          "uri": uri.unwrap_or(&Url::parse("file:///c%3A/diagnostics.txt").unwrap()),
+          "uri": uri.unwrap_or(&Url::parse("file:///C%3A/diagnostics.txt").unwrap()),
           "languageId": "plaintext",
           "version": 1,
           "text": text
@@ -349,7 +349,7 @@ fn publish_diagnostics_with(diags: &[Value], uri: Option<&Url>) -> Value {
       "jsonrpc": "2.0",
       "method": "textDocument/publishDiagnostics",
       "params": {
-        "uri": uri.unwrap_or(&Url::parse("file:///c%3A/diagnostics.txt").unwrap()),
+        "uri": uri.unwrap_or(&Url::parse("file:///C%3A/diagnostics.txt").unwrap()),
         "diagnostics": diags,
         "version": 1
       }

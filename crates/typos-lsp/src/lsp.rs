@@ -1,164 +1,22 @@
-use anyhow::anyhow;
-use matchit::{Match, Router};
+use matchit::Match;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Mutex;
 
-use bstr::ByteSlice;
-use ignore::overrides::{Override, OverrideBuilder};
 use serde_json::{json, to_string};
 use tower_lsp::lsp_types::*;
 use tower_lsp::*;
 use tower_lsp::{Client, LanguageServer};
 use typos_cli::policy;
 
+use crate::state::{url_path_sanitised, BackendState};
+use crate::typos::AccumulatePosition;
 pub struct Backend<'s, 'p> {
     client: Client,
-    state: Mutex<BackendState<'s>>,
+    state: Mutex<crate::state::BackendState<'s>>,
     default_policy: policy::Policy<'p, 'p, 'p>,
-}
-
-#[derive(Default)]
-struct BackendState<'s> {
-    severity: Option<DiagnosticSeverity>,
-    config: Option<PathBuf>,
-    workspace_folders: Vec<WorkspaceFolder>,
-    router: Router<TyposCli<'s>>,
-}
-
-struct TyposCli<'s> {
-    overrides: Override,
-    engine: policy::ConfigEngine<'s>,
-}
-
-// initialise an engine and overrides using the config file from path or its parent
-fn try_new_cli<'s>(
-    path: &Path,
-    config: Option<&Path>,
-) -> anyhow::Result<TyposCli<'s>, anyhow::Error> {
-    // leak to get a 'static which is needed to satisfy the 's lifetime
-    // but does mean memory will grow unbounded
-    let storage = Box::leak(Box::new(policy::ConfigStorage::new()));
-    let mut engine = typos_cli::policy::ConfigEngine::new(storage);
-
-    // TODO: currently mimicking typos here but do we need to create and update
-    // a default config?
-    let mut c = typos_cli::config::Config::default();
-    if let Some(config_path) = config {
-        let custom = typos_cli::config::Config::from_file(config_path)?;
-        if let Some(custom) = custom {
-            c.update(&custom);
-            engine.set_overrides(c);
-        }
-    }
-
-    engine.init_dir(path)?;
-    let walk_policy = engine.walk(path);
-
-    // add any explicit excludes
-    let mut overrides = OverrideBuilder::new(path);
-    for pattern in walk_policy.extend_exclude.iter() {
-        overrides.add(&format!("!{}", pattern))?;
-    }
-    let overrides = overrides.build()?;
-
-    Ok(TyposCli { overrides, engine })
-}
-
-impl<'s> BackendState<'s> {
-    fn set_workspace_folders(
-        &mut self,
-        workspace_folders: Vec<WorkspaceFolder>,
-    ) -> anyhow::Result<(), anyhow::Error> {
-        self.workspace_folders = workspace_folders;
-        self.update_router()?;
-        Ok(())
-    }
-
-    fn update_workspace_folders(
-        &mut self,
-        added: Vec<WorkspaceFolder>,
-        removed: Vec<WorkspaceFolder>,
-    ) -> anyhow::Result<(), anyhow::Error> {
-        self.workspace_folders.extend(added);
-        if !removed.is_empty() {
-            self.workspace_folders.retain(|x| !removed.contains(x));
-        }
-        self.update_router()?;
-        Ok(())
-    }
-
-    fn update_router(&mut self) -> anyhow::Result<(), anyhow::Error> {
-        self.router = Router::new();
-        for folder in self.workspace_folders.iter() {
-            let path = folder
-                .uri
-                .to_file_path()
-                .map_err(|_| anyhow!("Cannot convert uri {} to file path", folder.uri))?;
-            let route = format!("{}{}", url_path_sanitised(&folder.uri), "/*p");
-            self.router
-                .insert_new_typos_cli(&route, &path, self.config.as_deref())?;
-        }
-
-        // add low priority catch all route used for files outside the workspace, or
-        // when there is no workspace folder
-        #[cfg(windows)]
-        for drive in crate::windows::get_drives() {
-            // file:///c%3A/Users/oliver/typos-vscode/src/test/fixture
-            let route = format!("/{}%3A/*p", &drive);
-            self.router.insert_new_typos_cli(
-                &route,
-                &PathBuf::from(format!("{}:\\", &drive)),
-                self.config.as_deref(),
-            )?;
-        }
-
-        #[cfg(not(windows))]
-        {
-            let route = "/*p";
-            self.router
-                .insert_new_typos_cli(route, &PathBuf::from("/"), self.config.as_deref())?;
-        }
-
-        Ok(())
-    }
-}
-
-trait RouterExt {
-    fn insert_new_typos_cli(
-        &mut self,
-        route: &str,
-        path: &Path,
-        config: Option<&Path>,
-    ) -> anyhow::Result<(), anyhow::Error>;
-}
-
-// TODO: extract
-impl RouterExt for Router<TyposCli<'_>> {
-    // convenience method to insert a new TyposCli into the router
-    // implemented as an extension trait to avoid interprocedural conflicts
-    fn insert_new_typos_cli(
-        &mut self,
-        route: &str,
-        path: &Path,
-        config: Option<&Path>,
-    ) -> anyhow::Result<(), anyhow::Error> {
-        tracing::debug!("Adding route {} for path {}", route, path.display());
-        let cli = try_new_cli(path, config)?;
-        self.insert(route, cli)?;
-        Ok(())
-    }
-}
-
-fn url_path_sanitised(url: &Url) -> String {
-    // windows paths (eg: /C:/Users/..) may not be percent-encoded by some clients
-    // and therefore contain colons, see
-    // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri
-    //
-    // and because matchit treats colons as a wildcard we need to strip them
-    url.path().replace(':', "%3A")
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -397,8 +255,8 @@ impl<'s, 'p> Backend<'s, 'p> {
 
         let state = self.state.lock().unwrap();
 
-        // find relevant overrides and engine for the workspace folder
-        let (overrides, tokenizer, dict) = match state.router.at(&uri_path) {
+        // find relevant ignores, tokenizer, and dict for the workspace folder
+        let (ignores, tokenizer, dict) = match state.router.at(&uri_path) {
             Err(_) => {
                 tracing::warn!(
                     "check_text: Using default policy because no route found for {}",
@@ -411,16 +269,15 @@ impl<'s, 'p> Backend<'s, 'p> {
                 )
             }
             Ok(Match { value, params: _ }) => {
-                // TODO store policy in router
                 tracing::debug!("check_text: path {}", &path.display());
                 let policy = value.engine.policy(&path);
-                (Some(&value.overrides), policy.tokenizer, policy.dict)
+                (Some(&value.ignores), policy.tokenizer, policy.dict)
             }
         };
 
         // skip file if matches extend-exclude
-        if let Some(overrides) = overrides {
-            if overrides.matched(path, false).is_ignore() {
+        if let Some(ignores) = ignores {
+            if ignores.matched(path, false).is_ignore() {
                 tracing::debug!(
                     "check_text: Ignoring {} because it matches extend-exclude.",
                     uri
@@ -464,48 +321,5 @@ impl<'s, 'p> Backend<'s, 'p> {
                 }
             })
             .collect()
-    }
-}
-
-struct AccumulatePosition {
-    line_num: usize,
-    line_pos: usize,
-    last_offset: usize,
-}
-
-impl AccumulatePosition {
-    fn new() -> Self {
-        Self {
-            // LSP ranges are 0-indexed see https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#range
-            line_num: 0,
-            line_pos: 0,
-            last_offset: 0,
-        }
-    }
-
-    fn pos(&mut self, buffer: &[u8], byte_offset: usize) -> (usize, usize) {
-        assert!(self.last_offset <= byte_offset);
-        let slice = &buffer[self.last_offset..byte_offset];
-        let newlines = slice.find_iter(b"\n").count();
-        let line_num = self.line_num + newlines;
-
-        let line_start = buffer[0..byte_offset]
-            .rfind_byte(b'\n')
-            // Skip the newline
-            .map(|s| s + 1)
-            .unwrap_or(0);
-
-        let before_typo = String::from_utf8_lossy(&buffer[line_start..byte_offset]);
-
-        // count UTF-16 code units as per
-        // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocuments
-        // UTF-16 is the only position encoding we support for now
-        let line_pos = before_typo.chars().map(char::len_utf16).sum();
-
-        self.line_num = line_num;
-        self.line_pos = line_pos;
-        self.last_offset = byte_offset;
-
-        (self.line_num, self.line_pos)
     }
 }

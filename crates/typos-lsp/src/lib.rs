@@ -1,2 +1,4 @@
 pub mod lsp;
-pub mod windows;
+mod state;
+mod typos;
+mod windows;

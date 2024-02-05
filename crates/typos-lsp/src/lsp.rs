@@ -247,6 +247,7 @@ impl<'s, 'p> Backend<'s, 'p> {
     // mimics typos_cli::file::FileChecker::check_file
     fn check_text(&self, buffer: &str, uri: &Url) -> Vec<Diagnostic> {
         let path = uri.to_file_path().unwrap_or_else(|_| {
+            // TODO: return error if cannot convert uri to file path
             tracing::warn!("check_text: Cannot convert uri {} to file path", uri);
             PathBuf::default()
         });
@@ -257,6 +258,7 @@ impl<'s, 'p> Backend<'s, 'p> {
 
         // find relevant ignores, tokenizer, and dict for the workspace folder
         let (ignores, tokenizer, dict) = match state.router.at(&uri_path) {
+            // TODO: return error if no route found
             Err(_) => {
                 tracing::warn!(
                     "check_text: Using default policy because no route found for {}",

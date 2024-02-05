@@ -1,5 +1,5 @@
 #[cfg(windows)]
-extern "C" {
+extern "system" {
     // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getlogicaldrives
     pub fn GetLogicalDrives() -> u32;
 }

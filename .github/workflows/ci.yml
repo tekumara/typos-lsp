@@ -33,7 +33,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: Swatinem/rust-cache@v2
-    - run: cargo test
+    - run: cargo test --target i686-pc-windows-msvc
       env:
         RUST_LOG: debug,globset=warn
         RUST_BACKTRACE: 1

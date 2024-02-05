@@ -1,17 +1,5 @@
 # Changelog
 
-## [0.1.12](https://github.com/tekumara/typos-vscode/compare/v0.1.11...v0.1.12) (2024-02-04)
-
-
-### Features
-
-* typos 1.18.0 with January 2024 dictionary changes ([dfb3e55](https://github.com/tekumara/typos-vscode/commit/dfb3e55b91da6ee67085bfe660249384ffb07bd9))
-
-
-### Bug Fixes
-
-* use config file when workspace folder absent ([79ae446](https://github.com/tekumara/typos-vscode/commit/79ae44600a58d27115793894dadca6dfad006869)), closes [#31](https://github.com/tekumara/typos-vscode/issues/31)
-
 ## [0.1.11](https://github.com/tekumara/typos-vscode/compare/v0.1.10...v0.1.11) (2024-01-17)
 
 

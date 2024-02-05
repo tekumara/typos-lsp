@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.12](https://github.com/tekumara/typos-vscode/compare/v0.1.11...v0.1.12) (2024-02-05)
+
+
+### Features
+
+* typos 1.18.0 with January 2024 dictionary changes ([dfb3e55](https://github.com/tekumara/typos-vscode/commit/dfb3e55b91da6ee67085bfe660249384ffb07bd9))
+
+
+### Bug Fixes
+
+* error LNK2019: unresolved external symbol _GetLogicalDrives ([6ec5abf](https://github.com/tekumara/typos-vscode/commit/6ec5abf032170a64a18131f7923cf30f7644bbfe)), closes [#33](https://github.com/tekumara/typos-vscode/issues/33)
+* use config file when workspace folder absent ([79ae446](https://github.com/tekumara/typos-vscode/commit/79ae44600a58d27115793894dadca6dfad006869)), closes [#31](https://github.com/tekumara/typos-vscode/issues/31)
+
 ## [0.1.11](https://github.com/tekumara/typos-vscode/compare/v0.1.10...v0.1.11) (2024-01-17)
 
 

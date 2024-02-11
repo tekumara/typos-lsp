@@ -7,7 +7,7 @@
   "private": true,
   "icon": "images/typos.png",
   "repository": {
-    "url": "https://github.com/tekumara/typos-vscode.git",
+    "url": "https://github.com/tekumara/typos-lsp.git",
     "type": "git"
   },
   "license": "MIT",

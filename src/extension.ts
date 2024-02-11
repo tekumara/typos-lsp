@@ -150,7 +150,7 @@ async function getServerPath(
       throw new Error(
         "Unfortunately we don't ship binaries for your platform yet. " +
           "Try specifying typos.path in Settings. " +
-          "Or raise an issue [here](https://github.com/tekumara/typos-vscode/issues) " +
+          "Or raise an issue [here](https://github.com/tekumara/typos-lsp/issues) " +
           "to request a binary for your platform."
       );
     }

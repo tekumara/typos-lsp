@@ -1,7 +1,7 @@
 # typos-lsp
 
-[![ci](https://github.com/tekumara/typos-vscode/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/tekumara/typos-vscode/actions/workflows/ci.yml)
-[![release](https://github.com/tekumara/typos-vscode/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/tekumara/typos-vscode/actions/workflows/release.yml)
+[![ci](https://github.com/tekumara/typos-lsp/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/tekumara/typos-lsp/actions/workflows/ci.yml)
+[![release](https://github.com/tekumara/typos-lsp/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/tekumara/typos-lsp/actions/workflows/release.yml)
 
 > **Source code spell checker for Visual Studio Code and LSP clients**
 
@@ -10,7 +10,7 @@
 ## Install
 
 - Vscode: Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
-- Other clients: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-vscode/releases).
+- Other clients: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
 - Neovim: for a LSP config see [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#typos_lsp).
 
 ## Features
@@ -57,7 +57,7 @@ require('lspconfig').typos_lsp.setup({
     init_options = {
         -- Custom config. Used together with any workspace config files, taking precedence for
         -- settings declared in both. Equivalent to the typos `--config` cli argument.
-        config = '~/code/typos-vscode/crates/typos-lsp/tests/typos.toml',
+        config = '~/code/typos-lsp/crates/typos-lsp/tests/typos.toml',
         -- How typos are rendered in the editor, eg: as errors, warnings, information, or hints.
         -- Defaults to error.
         diagnosticSeverity = "Error"

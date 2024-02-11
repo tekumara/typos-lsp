@@ -52,7 +52,6 @@ impl<'s> BackendState<'s> {
         // when there is no workspace folder
         #[cfg(windows)]
         for drive in crate::windows::get_drives() {
-            // file:///c%3A/Users/oliver/typos-vscode/src/test/fixture
             let route = format!("/{}%3A/*p", &drive);
             self.router.insert_instance(
                 &route,

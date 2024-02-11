@@ -1,4 +1,4 @@
-# typos-vscode
+# typos-lsp
 
 [![ci](https://github.com/tekumara/typos-vscode/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/tekumara/typos-vscode/actions/workflows/ci.yml)
 [![release](https://github.com/tekumara/typos-vscode/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/tekumara/typos-vscode/actions/workflows/release.yml)
@@ -11,7 +11,7 @@
 
 - Vscode: Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
 - Other clients: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-vscode/releases).
-- Neovim: for a LSP config see [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig).
+- Neovim: for a LSP config see [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#typos_lsp).
 
 ## Features
 
@@ -25,7 +25,45 @@
 
 Once installed `typos` will automatically execute when you open or edit any file.
 
+## VS Code Settings
+
+This extension contributes the following settings:
+
+- `typos.config`: Custom config. Used together with any workspace config files, taking precedence for settings declared in both. Equivalent to the typos `--config` [cli argument](https://github.com/crate-ci/typos/blob/master/docs/reference.md).
+- `typos.diagnosticSeverity`: How typos are rendered in the editor, eg: as errors, warnings, information, or hints.
+- `typos.logLevel`: Logging level of the language server. Logs appear in the _Output -> Typos_ pane.
+- `typos.path`: Path to the `typos-lsp` binary. If empty the bundled binary will be used.
+- `typos.trace.server`: Traces the communication between VS Code and the language server. Recommended for debugging only.
+
 To disable `typos` per workspace, see [disable this extension](https://code.visualstudio.com/docs/editor/extension-marketplace#_disable-an-extension).
+
+## VS Code Commands
+
+| Command        | Description         |
+| -------------- | ------------------- |
+| Typos: Restart | Restart the server. |
+
+## Neovim Settings
+
+Example config when using [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#typos_lsp):
+
+```lua
+local lspconfig = require('lspconfig')
+require('lspconfig').typos_lsp.setup({
+    config = {
+        -- Logging level of the language server. Logs appear in :LspLog. Defaults to error.
+        cmd_env = { RUST_LOG = "error" }
+    },
+    init_options = {
+        -- Custom config. Used together with any workspace config files, taking precedence for
+        -- settings declared in both. Equivalent to the typos `--config` cli argument.
+        config = '~/code/typos-vscode/crates/typos-lsp/tests/typos.toml',
+        -- How typos are rendered in the editor, eg: as errors, warnings, information, or hints.
+        -- Defaults to error.
+        diagnosticSeverity = "Error"
+    }
+})
+```
 
 ## Config file support
 
@@ -37,22 +75,6 @@ Supports [config fields](https://github.com/crate-ci/typos/blob/master/docs/refe
 - `*.binary` - binary files are always checked.
 
 Config files will be read from the workspace folder or its parents. If there is no workspace folder, then no config file will be read and the typos defaults will be used.
-
-## Settings
-
-This extension contributes the following settings:
-
-- `typos.config`: Custom config. Used together with any workspace config files, taking precedence for settings declared in both. Equivalent to the typos `--config` [cli argument](https://github.com/crate-ci/typos/blob/master/docs/reference.md).
-- `typos.diagnosticSeverity`: How typos are rendered in the editor, eg: as errors, warnings, information, or hints.
-- `typos.logLevel`: Logging level of the language server. Logs appear in the _Output -> Typos_ pane.
-- `typos.path`: Path to the `typos-lsp` binary. If empty the bundled binary will be used.
-- `typos.trace.server`: Traces the communication between VS Code and the language server. Recommended for debugging only.
-
-## Commands
-
-| Command        | Description         |
-| -------------- | ------------------- |
-| Typos: Restart | Restart the server. |
 
 ## Caveats
 

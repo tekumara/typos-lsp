@@ -10,6 +10,7 @@
 ## Install
 
 - Vscode: Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
+- VSCodium: Install [Typos spell checker](https://open-vsx.org/extension/tekumara/typos-vscode) from the Open VSX Registry.
 - Other clients: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
 - Neovim: for a LSP config see [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#typos_lsp).
 

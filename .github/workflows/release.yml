@@ -116,6 +116,10 @@ jobs:
         run: npx vsce publish --packagePath $(npx glob dist/**/*.vsix)
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      - name: ovsx publish
+        run: npx ovsx publish --packagePath $(npx glob dist/**/*.vsix)
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
       - name: Upload to GH release
         uses: softprops/action-gh-release@v1
         with:

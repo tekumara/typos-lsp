@@ -263,6 +263,26 @@ async fn test_non_file_uri() {
         )
     );
 }
+
+#[test_log::test(tokio::test)]
+async fn test_empty_file_uri() {
+    // eg: when using nvim telescope
+    let term = Url::from_str("file:///").unwrap();
+
+    let did_open_diag_txt = &did_open_with("apropriate", Some(&term));
+
+    let mut server = TestServer::new();
+    let _ = server.request(&initialize_with(None, None)).await;
+
+    similar_asserts::assert_eq!(
+        server.request(&did_open_diag_txt).await,
+        publish_diagnostics_with(
+            &[diag("`apropriate` should be `appropriate`", 0, 0, 10)],
+            Some(&term)
+        )
+    );
+}
+
 #[test_log::test(tokio::test)]
 async fn test_position_with_unicode_text() {
     let mut server = TestServer::new();

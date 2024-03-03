@@ -12,8 +12,13 @@
 
 - Vscode: Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
 - VSCodium: Install [Typos spell checker](https://open-vsx.org/extension/tekumara/typos-vscode) from the Open VSX Registry.
+- Neovim: Install `typos-lsp` using [mason](https://mason-registry.dev/registry/list#typos-lsp) or download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
 - Other clients: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
-- Neovim: for a LSP config see [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#typos_lsp).
+
+For configuration see:
+
+- [VS Code Settings](docs/vscode-settings.md)
+- [Neovim LSP config](docs/neovim-lsp-config.md)
 
 ## Features
 
@@ -26,43 +31,6 @@
 ## Usage
 
 Once installed `typos` will automatically execute when you open or edit any file.
-
-## VS Code Settings
-
-This extension contributes the following settings:
-
-- `typos.config`: Custom config. Used together with any workspace config files, taking precedence for settings declared in both. Equivalent to the typos `--config` [cli argument](https://github.com/crate-ci/typos/blob/master/docs/reference.md).
-- `typos.diagnosticSeverity`: How typos are rendered in the editor, eg: as errors, warnings, information, or hints.
-- `typos.logLevel`: Logging level of the language server. Logs appear in the _Output -> Typos_ pane.
-- `typos.path`: Path to the `typos-lsp` binary. If empty the bundled binary will be used.
-- `typos.trace.server`: Traces the communication between VS Code and the language server. Recommended for debugging only.
-
-To disable `typos` per workspace, see [disable this extension](https://code.visualstudio.com/docs/editor/extension-marketplace#_disable-an-extension).
-
-## VS Code Commands
-
-| Command        | Description         |
-| -------------- | ------------------- |
-| Typos: Restart | Restart the server. |
-
-## Neovim Settings
-
-Example config when using [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#typos_lsp):
-
-```lua
-require('lspconfig').typos_lsp.setup({
-    -- Logging level of the language server. Logs appear in :LspLog. Defaults to error.
-    cmd_env = { RUST_LOG = "error" }
-    init_options = {
-        -- Custom config. Used together with any workspace config files, taking precedence for
-        -- settings declared in both. Equivalent to the typos `--config` cli argument.
-        config = '~/code/typos-lsp/crates/typos-lsp/tests/typos.toml',
-        -- How typos are rendered in the editor, eg: as errors, warnings, information, or hints.
-        -- Defaults to error.
-        diagnosticSeverity = "Error"
-    }
-})
-```
 
 ## Config file support
 

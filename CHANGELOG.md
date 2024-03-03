@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.14](https://github.com/tekumara/typos-lsp/compare/v0.1.13...v0.1.14) (2024-03-03)
+
+
+### Features
+
+* typos 1.19.0 Feb 2024 dictionary changes ([250390d](https://github.com/tekumara/typos-lsp/commit/250390d0e94ebe5172458dfdc65d160fb5968a81))
+
+
+### Bug Fixes
+
+* use default policy for non-file uris ([0265ff1](https://github.com/tekumara/typos-lsp/commit/0265ff15e4af4a6274a7f5e77bd849a4299880c4)), closes [#36](https://github.com/tekumara/typos-lsp/issues/36)
+
 ## [0.1.13](https://github.com/tekumara/typos-lsp/compare/v0.1.12...v0.1.13) (2024-02-24)
 
 

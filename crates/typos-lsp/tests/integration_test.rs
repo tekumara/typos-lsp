@@ -1,5 +1,5 @@
 use serde_json::{json, Value};
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 use tower_lsp::lsp_types::Url;
 mod common;
 use common::TestServer;
@@ -245,6 +245,24 @@ async fn test_custom_config_no_workspace_folder() {
     );
 }
 
+#[test_log::test(tokio::test)]
+async fn test_non_file_uri() {
+    // a Neovim toggleterm uri
+    let term = Url::from_str("term://~/code/typos-lsp//59317:/bin/zsh;#toggleterm#1").unwrap();
+
+    let did_open_diag_txt = &did_open_with("apropriate", Some(&term));
+
+    let mut server = TestServer::new();
+    let _ = server.request(&initialize_with(None, None)).await;
+
+    similar_asserts::assert_eq!(
+        server.request(&did_open_diag_txt).await,
+        publish_diagnostics_with(
+            &[diag("`apropriate` should be `appropriate`", 0, 0, 10)],
+            Some(&term)
+        )
+    );
+}
 #[test_log::test(tokio::test)]
 async fn test_position_with_unicode_text() {
     let mut server = TestServer::new();

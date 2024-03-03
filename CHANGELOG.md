@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.15](https://github.com/tekumara/typos-lsp/compare/v0.1.14...v0.1.15) (2024-03-03)
+
+
+### Bug Fixes
+
+* use default policy for empty file uri ([34998d4](https://github.com/tekumara/typos-lsp/commit/34998d48567d0b59c432296142934381f0258c4e)), closes [#39](https://github.com/tekumara/typos-lsp/issues/39)
+
 ## [0.1.14](https://github.com/tekumara/typos-lsp/compare/v0.1.13...v0.1.14) (2024-03-03)
 
 

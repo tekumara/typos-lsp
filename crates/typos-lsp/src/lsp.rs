@@ -261,30 +261,23 @@ impl<'s, 'p> Backend<'s, 'p> {
                 let uri_path = url_path_sanitised(uri);
 
                 // find relevant tokenizer, and dict for the workspace folder
-                let (tokenizer, dict) = match state.router.at(&uri_path) {
-                    Err(_) => {
-                        tracing::debug!(
-                            "check_text: Using default policy because no route found for {}",
-                            uri_path
-                        );
-                        (self.default_policy.tokenizer, self.default_policy.dict)
-                    }
-                    Ok(Match { value, params: _ }) => {
-                        tracing::debug!("check_text: path {}", &path.display());
-                        // skip file if matches extend-exclude
-                        if value.ignores.matched(&path, false).is_ignore() {
-                            tracing::debug!(
-                                "check_text: Ignoring {} because it matches extend-exclude.",
-                                uri
-                            );
-                            return Vec::default();
-                        }
-                        let policy = value.engine.policy(&path);
-                        (policy.tokenizer, policy.dict)
-                    }
-                };
+                // safe to unwrap because the catch-all will match anything
+                let Match {
+                    value: instance,
+                    params: _,
+                } = state.router.at(&uri_path).unwrap();
 
-                (tokenizer, dict)
+                tracing::debug!("check_text: path {}", &path.display());
+                // skip file if matches extend-exclude
+                if instance.ignores.matched(&path, false).is_ignore() {
+                    tracing::debug!(
+                        "check_text: Ignoring {} because it matches extend-exclude.",
+                        uri
+                    );
+                    return Vec::default();
+                }
+                let policy = instance.engine.policy(&path);
+                (policy.tokenizer, policy.dict)
             }
         };
 

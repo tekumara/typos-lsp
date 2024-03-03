@@ -2,6 +2,7 @@
 
 [![ci](https://github.com/tekumara/typos-lsp/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/tekumara/typos-lsp/actions/workflows/ci.yml)
 [![release](https://github.com/tekumara/typos-lsp/actions/workflows/release.yml/badge.svg?event=release)](https://github.com/tekumara/typos-lsp/actions/workflows/release.yml)
+![downloads](https://img.shields.io/github/downloads/tekumara/typos-lsp/total)
 
 > **Source code spell checker for Visual Studio Code and LSP clients**
 
@@ -49,12 +50,9 @@ To disable `typos` per workspace, see [disable this extension](https://code.visu
 Example config when using [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#typos_lsp):
 
 ```lua
-local lspconfig = require('lspconfig')
 require('lspconfig').typos_lsp.setup({
-    config = {
-        -- Logging level of the language server. Logs appear in :LspLog. Defaults to error.
-        cmd_env = { RUST_LOG = "error" }
-    },
+    -- Logging level of the language server. Logs appear in :LspLog. Defaults to error.
+    cmd_env = { RUST_LOG = "error" }
     init_options = {
         -- Custom config. Used together with any workspace config files, taking precedence for
         -- settings declared in both. Equivalent to the typos `--config` cli argument.

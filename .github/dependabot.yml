@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      cargo:
+        applies-to: version-updates
+        patterns:
+         - "*"
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      npm:
+        applies-to: version-updates
+        patterns:
+         - "*"

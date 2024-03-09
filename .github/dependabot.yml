@@ -5,16 +5,24 @@ updates:
     schedule:
       interval: "monthly"
     groups:
-      cargo:
+      lsp:
         applies-to: version-updates
         patterns:
          - "*"
+    commit-message:
+      prefix: "chore(lsp)"
+      include: "scope"
+
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "monthly"
     groups:
-      npm:
+      vscode:
         applies-to: version-updates
         patterns:
          - "*"
+    commit-message:
+      prefix: "chore(vscode)"
+      include: "scope"
+

@@ -11,7 +11,6 @@ updates:
          - "*"
     commit-message:
       prefix: "chore(lsp)"
-      include: "scope"
 
   - package-ecosystem: "npm"
     directory: "/"
@@ -24,5 +23,3 @@ updates:
          - "*"
     commit-message:
       prefix: "chore(vscode)"
-      include: "scope"
-

@@ -60,13 +60,13 @@ function toRange(sLine: number, sChar: number, eLine: number, eChar: number) {
 
 async function testDiagnostics(
   docUri: vscode.Uri,
-  expectedDiagnostics: vscode.Diagnostic[]
+  expectedDiagnostics: vscode.Diagnostic[],
 ) {
   const actualDiagnostics = vscode.languages.getDiagnostics(docUri);
   assert.equal(
     actualDiagnostics.length,
     expectedDiagnostics.length,
-    "Missing diagnostics"
+    "Missing diagnostics",
   );
 
   expectedDiagnostics.forEach((expectedDiagnostic, i) => {

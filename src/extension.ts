@@ -11,7 +11,7 @@ import {
 let client: LanguageClient | undefined;
 
 export async function activate(
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
 ): Promise<void> {
   let name = "Typos";
 
@@ -34,8 +34,8 @@ export async function activate(
         if (restartTriggeredBy) {
           await vscode.commands.executeCommand("typos.restart");
         }
-      }
-    )
+      },
+    ),
   );
 
   context.subscriptions.push(
@@ -49,14 +49,14 @@ export async function activate(
         client = await createClient(context, name, outputChannel);
       } catch (err) {
         vscode.window.showErrorMessage(
-          `${err instanceof Error ? err.message : err}`
+          `${err instanceof Error ? err.message : err}`,
         );
         return;
       }
 
       // Start the client. This will also launch the server
       await client.start();
-    })
+    }),
   );
 
   // use the command as our single entry point for (re)starting
@@ -69,7 +69,7 @@ export async function activate(
 async function createClient(
   context: vscode.ExtensionContext,
   name: string,
-  outputChannel: vscode.OutputChannel
+  outputChannel: vscode.OutputChannel,
 ): Promise<LanguageClient> {
   const env = { ...process.env };
 
@@ -109,13 +109,13 @@ async function createClient(
     name.toLowerCase(),
     name,
     serverOptions,
-    clientOptions
+    clientOptions,
   );
 }
 
 async function getServerPath(
   context: vscode.ExtensionContext,
-  config: vscode.WorkspaceConfiguration
+  config: vscode.WorkspaceConfiguration,
 ): Promise<string> {
   let path = process.env.TYPOS_LSP_PATH ?? config.get<null | string>("path");
 
@@ -129,9 +129,9 @@ async function getServerPath(
       () => pathUri.fsPath,
       () => {
         throw new Error(
-          `${path} does not exist. Please check typos.path in Settings.`
+          `${path} does not exist. Please check typos.path in Settings.`,
         );
-      }
+      },
     );
   }
 
@@ -141,7 +141,7 @@ async function getServerPath(
   const bundled = vscode.Uri.joinPath(
     context.extensionUri,
     "bundled",
-    `typos-lsp${ext}`
+    `typos-lsp${ext}`,
   );
 
   return await vscode.workspace.fs.stat(bundled).then(
@@ -151,9 +151,9 @@ async function getServerPath(
         "Unfortunately we don't ship binaries for your platform yet. " +
           "Try specifying typos.path in Settings. " +
           "Or raise an issue [here](https://github.com/tekumara/typos-lsp/issues) " +
-          "to request a binary for your platform."
+          "to request a binary for your platform.",
       );
-    }
+    },
   );
 }
 

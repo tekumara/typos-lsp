@@ -9,6 +9,9 @@ updates:
         applies-to: version-updates
         patterns:
          - "*"
+        exclude-patterns:
+        # don't bundle typos-cli together with other updates
+         - "typos-cli"
 
   - package-ecosystem: "npm"
     directory: "/"

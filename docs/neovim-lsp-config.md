@@ -5,7 +5,7 @@ Example config when using [neovim/nvim-lspconfig](https://github.com/neovim/nvim
 ```lua
 require('lspconfig').typos_lsp.setup({
     -- Logging level of the language server. Logs appear in :LspLog. Defaults to error.
-    cmd_env = { RUST_LOG = "error" }
+    cmd_env = { RUST_LOG = "error" },
     init_options = {
         -- Custom config. Used together with any workspace config files, taking precedence for
         -- settings declared in both. Equivalent to the typos `--config` cli argument.

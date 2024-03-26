@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for checks to succeed
-        uses: poseidon/wait-for-status-checks@v0.3.0
+        uses: poseidon/wait-for-status-checks@v0.4.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           interval: 5

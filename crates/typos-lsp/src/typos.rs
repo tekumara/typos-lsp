@@ -33,8 +33,13 @@ impl Instance<'_> {
         engine.init_dir(path)?;
         let walk_policy = engine.walk(path);
 
-        // add any explicit excludes
         let mut ignores = OverrideBuilder::new(path);
+        // always ignore the config files like typos cli does
+        for f in typos_cli::config::SUPPORTED_FILE_NAMES {
+            ignores.add(&format!("!{}", f))?;
+        }
+
+        // add any explicit excludes
         for pattern in walk_policy.extend_exclude.iter() {
             ignores.add(&format!("!{}", pattern))?;
         }

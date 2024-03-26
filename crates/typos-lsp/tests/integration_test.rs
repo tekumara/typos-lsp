@@ -303,6 +303,21 @@ async fn test_position_with_unicode_text() {
     );
 }
 
+#[test_log::test(tokio::test)]
+async fn test_ignore_typos_in_config_files() {
+    let term = Url::from_str("file:///C%3A/.typos.toml").unwrap();
+
+    let did_open = &did_open_with("apropriate", Some(&term));
+
+    let mut server = TestServer::new();
+    let _ = server.request(&initialize_with(None, None)).await;
+
+    similar_asserts::assert_eq!(
+        server.request(&did_open).await,
+        publish_diagnostics_with(&[], Some(&term))
+    );
+}
+
 fn initialize() -> String {
     initialize_with(None, None)
 }

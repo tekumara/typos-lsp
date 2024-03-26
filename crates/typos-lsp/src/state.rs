@@ -43,7 +43,7 @@ impl<'s> BackendState<'s> {
                 .uri
                 .to_file_path()
                 .map_err(|_| anyhow!("Cannot convert uri {} to file path", folder.uri))?;
-            let route = format!("{}{}", url_path_sanitised(&folder.uri), "/*p");
+            let route = format!("{}{}", url_path_sanitised(&folder.uri), "/{*p}");
             self.router
                 .insert_instance(&route, &path, self.config.as_deref())?;
         }
@@ -52,7 +52,7 @@ impl<'s> BackendState<'s> {
         // when there is no workspace folder
         #[cfg(windows)]
         for drive in crate::windows::get_drives() {
-            let route = format!("/{}%3A/*p", &drive);
+            let route = format!("/{}%3A/{{*p}}", &drive);
             self.router.insert_instance(
                 &route,
                 &PathBuf::from(format!("{}:\\", &drive)),
@@ -62,7 +62,7 @@ impl<'s> BackendState<'s> {
 
         #[cfg(not(windows))]
         {
-            let route = "/*p";
+            let route = "/{*p}";
             self.router
                 .insert_instance(route, &PathBuf::from("/"), self.config.as_deref())?;
         }

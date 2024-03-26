@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.1.16](https://github.com/tekumara/typos-lsp/compare/v0.1.15...v0.1.16) (2024-03-26)
+
+
+### Features
+
+* drop vscode Windows 32-bit builds ([d7fedba](https://github.com/tekumara/typos-lsp/commit/d7fedba810fa4288f4adc3524b8028f7341bf299))
+* ignore typos in config files ([1841b4c](https://github.com/tekumara/typos-lsp/commit/1841b4ce12b64cc0000fa25765ad59aad1a37ac1)), closes [#47](https://github.com/tekumara/typos-lsp/issues/47)
+
+
+### Bug Fixes
+
+* revert back to @types/vscode ^1.77.0 ([a90a48a](https://github.com/tekumara/typos-lsp/commit/a90a48a603b6768716fb0194de48969037406f8a))
+
+
+### Chores
+
+* **deps:** bump the lsp group with 1 update ([#46](https://github.com/tekumara/typos-lsp/issues/46)) ([8950859](https://github.com/tekumara/typos-lsp/commit/8950859ded9be8fc08dae577527a651a3888fdaa))
+* **deps:** bump the lsp group with 4 updates ([#50](https://github.com/tekumara/typos-lsp/issues/50)) ([d084fc8](https://github.com/tekumara/typos-lsp/commit/d084fc8e7b1f441cd21d1901631db793c2b8c8de))
+* **deps:** bump the vscode group with 14 updates ([#44](https://github.com/tekumara/typos-lsp/issues/44)) ([2b42b7f](https://github.com/tekumara/typos-lsp/commit/2b42b7fc6830737b933fa61245c4c35385d08ca0))
+* **lsp:** bump the lsp group with 3 updates ([#43](https://github.com/tekumara/typos-lsp/issues/43)) ([9430d0b](https://github.com/tekumara/typos-lsp/commit/9430d0b29c8530f76cac4dc19a4b9e9d48add429))
+* **main:** release 0.1.16 ([#45](https://github.com/tekumara/typos-lsp/issues/45)) ([ef24d2d](https://github.com/tekumara/typos-lsp/commit/ef24d2da0b5dc1833d617529558d5aef14773852))
+* **main:** release 0.1.16 ([#49](https://github.com/tekumara/typos-lsp/issues/49)) ([2b6287c](https://github.com/tekumara/typos-lsp/commit/2b6287c59e43ed27f44032a3f12c48486cc0aa48))
+
 ## [0.1.15](https://github.com/tekumara/typos-lsp/compare/v0.1.14...v0.1.15) (2024-03-03)
 
 

@@ -22,3 +22,6 @@ updates:
         applies-to: version-updates
         patterns:
          - "*"
+    ignore:
+      # this needs to match engines.vscode and defines the minimum version of vscode
+      - dependency-name: '@types/vscode'

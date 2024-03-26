@@ -28,6 +28,9 @@ jobs:
     # vscode requires an X Server
     - name: npm test
       run: xvfb-run npm test
+    # ensure package can be built when package.json changes
+    - name: npx vsce package
+      run: npx vsce package
   build-windows:
     runs-on: windows-latest
     steps:

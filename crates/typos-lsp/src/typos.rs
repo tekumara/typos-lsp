@@ -52,7 +52,6 @@ impl Instance<'_> {
     }
 }
 
-
 // copied from https://github.com/crate-ci/typos/blob/c15b28fff9a814f9c12bd24cb1cfc114037e9187/crates/typos-cli/src/file.rs#L741
 #[derive(Clone, Debug)]
 pub(crate) struct Ignores {

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.17](https://github.com/tekumara/typos-lsp/compare/v0.1.16...v0.1.17) (2024-04-08)
+
+
+### Features
+
+* check vscode source control commit messages ([53d3bf5](https://github.com/tekumara/typos-lsp/commit/53d3bf5651015d6f4bd2b7c9088dc5845c1884d3)), closes [#59](https://github.com/tekumara/typos-lsp/issues/59)
+* support extend-ignore-re config field ([1a03b6f](https://github.com/tekumara/typos-lsp/commit/1a03b6ff84d6cb2e85ddb8eb925445446b3bff8a)), closes [#55](https://github.com/tekumara/typos-lsp/issues/55)
+* typos 1.20.4 Mar 2024 dictionary ([4a559ff](https://github.com/tekumara/typos-lsp/commit/4a559fffce361fca5e68aa822764d85ba3f8bebd))
+
+
+### Chores
+
+* **deps-dev:** bump the vscode group with 4 updates ([#57](https://github.com/tekumara/typos-lsp/issues/57)) ([c1b26fe](https://github.com/tekumara/typos-lsp/commit/c1b26fe85067d239cdb80ed864bd1b5a6c154109))
+* **deps:** bump the lsp group with 1 update ([#56](https://github.com/tekumara/typos-lsp/issues/56)) ([40190c6](https://github.com/tekumara/typos-lsp/commit/40190c6db6c9bf2b8d482e141431d3bf7b1e1c2a))
+
 ## [0.1.16](https://github.com/tekumara/typos-lsp/compare/v0.1.15...v0.1.16) (2024-03-26)
 
 

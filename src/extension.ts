@@ -96,6 +96,8 @@ async function createClient(
     documentSelector: [
       { scheme: "untitled" },
       { scheme: "file", pattern: "**" },
+      // source control commit message
+      { scheme: "vscode-scm" },
     ],
     outputChannel: outputChannel,
     traceOutputChannel: outputChannel,

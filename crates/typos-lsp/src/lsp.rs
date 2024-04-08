@@ -228,6 +228,34 @@ impl LanguageServer for Backend<'static, 'static> {
     }
 }
 
+// copied from https://github.com/crate-ci/typos/blob/c15b28fff9a814f9c12bd24cb1cfc114037e9187/crates/typos-cli/src/file.rs#L741
+#[derive(Clone, Debug)]
+struct Ignores {
+    blocks: Vec<std::ops::Range<usize>>,
+}
+
+impl Ignores {
+    fn new(content: &[u8], ignores: &[regex::Regex]) -> Self {
+        let mut blocks = Vec::new();
+        if let Ok(content) = std::str::from_utf8(content) {
+            for ignore in ignores {
+                for mat in ignore.find_iter(content) {
+                    blocks.push(mat.range());
+                }
+            }
+        }
+        Self { blocks }
+    }
+
+    fn is_ignored(&self, span: std::ops::Range<usize>) -> bool {
+        let start = span.start;
+        let end = span.end.saturating_sub(1);
+        self.blocks
+            .iter()
+            .any(|block| block.contains(&start) || block.contains(&end))
+    }
+}
+
 impl<'s, 'p> Backend<'s, 'p> {
     pub fn new(client: Client) -> Self {
         Self {
@@ -248,27 +276,35 @@ impl<'s, 'p> Backend<'s, 'p> {
     fn check_text(&self, buffer: &str, uri: &Url) -> Vec<Diagnostic> {
         let state = self.state.lock().unwrap();
 
-        let (tokenizer, dict) = match uri.to_file_path() {
+        let (tokenizer, dict, ignore) = match uri.to_file_path() {
             Err(_) => {
                 // eg: uris like untitled:* or term://*
                 tracing::debug!(
                     "check_text: Using default policy because cannot convert uri {} to file path",
                     uri
                 );
-                (self.default_policy.tokenizer, self.default_policy.dict)
+                (
+                    self.default_policy.tokenizer,
+                    self.default_policy.dict,
+                    self.default_policy.ignore,
+                )
             }
             Ok(path) => {
                 let uri_path = url_path_sanitised(uri);
 
                 // find relevant tokenizer, and dict for the workspace folder
-                let (tokenizer, dict) = match state.router.at(&uri_path) {
+                let (tokenizer, dict, ignore) = match state.router.at(&uri_path) {
                     Err(_) => {
                         // ie: file:///
                         tracing::debug!(
                             "check_text: Using default policy because no route found for {}",
                             uri_path
                         );
-                        (self.default_policy.tokenizer, self.default_policy.dict)
+                        (
+                            self.default_policy.tokenizer,
+                            self.default_policy.dict,
+                            self.default_policy.ignore,
+                        )
                     }
                     Ok(Match { value, params: _ }) => {
                         tracing::debug!("check_text: path {}", &path.display());
@@ -281,20 +317,31 @@ impl<'s, 'p> Backend<'s, 'p> {
                             return Vec::default();
                         }
                         let policy = value.engine.policy(&path);
-                        (policy.tokenizer, policy.dict)
+                        (policy.tokenizer, policy.dict, policy.ignore)
                     }
                 };
 
-                (tokenizer, dict)
+                (tokenizer, dict, ignore)
             }
         };
 
         let mut accum = AccumulatePosition::new();
 
-        typos::check_str(buffer, tokenizer, dict)
-            .map(|typo| {
-                tracing::debug!("check_text: {:?}", typo);
+        // mimics https://github.com/crate-ci/typos/blob/c15b28fff9a814f9c12bd24cb1cfc114037e9187/crates/typos-cli/src/file.rs#L43
+        // but using check_str instead of check_bytes
 
+        let mut ignores: Option<Ignores> = None;
+
+        typos::check_str(buffer, tokenizer, dict)
+            .filter(|typo| {
+                // skip type if it matches extend-ignore-re
+                let is_ignored = ignores
+                    .get_or_insert_with(|| Ignores::new(buffer.as_bytes(), ignore))
+                    .is_ignored(typo.span());
+                tracing::debug!(typo = ?typo, is_ignored = is_ignored, "check_text");
+                !is_ignored
+            })
+            .map(|typo| {
                 let (line_num, line_pos) = accum.pos(buffer.as_bytes(), typo.byte_offset);
 
                 Diagnostic {

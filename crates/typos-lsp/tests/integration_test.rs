@@ -166,10 +166,11 @@ async fn test_config_file() {
         Url::from_file_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")).unwrap();
     let diag_txt = workspace_folder_uri.join("tests/diagnostics.txt").unwrap();
     let changelog_md = workspace_folder_uri.join("tests/CHANGELOG.md").unwrap();
+    let skip_me = workspace_folder_uri.join("tests/skip_me.txt").unwrap();
 
     let did_open_diag_txt = &did_open_with("fo typos", Some(&diag_txt));
-
     let did_open_changelog_md = &did_open_with("fo typos", Some(&changelog_md));
+    let did_open_skip_me = &did_open_with("fo typos # skip_me", Some(&skip_me));
 
     let mut server = TestServer::new();
     let _ = server
@@ -186,6 +187,12 @@ async fn test_config_file() {
     similar_asserts::assert_eq!(
         server.request(&did_open_changelog_md).await,
         publish_diagnostics_with(&[], Some(&changelog_md)),
+    );
+
+    // check skip_line is excluded because of default.extend-ignore-re
+    similar_asserts::assert_eq!(
+        server.request(&did_open_skip_me).await,
+        publish_diagnostics_with(&[], Some(&skip_me)),
     );
 }
 

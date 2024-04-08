@@ -52,6 +52,35 @@ impl Instance<'_> {
     }
 }
 
+
+// copied from https://github.com/crate-ci/typos/blob/c15b28fff9a814f9c12bd24cb1cfc114037e9187/crates/typos-cli/src/file.rs#L741
+#[derive(Clone, Debug)]
+pub(crate) struct Ignores {
+    blocks: Vec<std::ops::Range<usize>>,
+}
+
+impl Ignores {
+    pub(crate) fn new(content: &[u8], ignores: &[regex::Regex]) -> Self {
+        let mut blocks = Vec::new();
+        if let Ok(content) = std::str::from_utf8(content) {
+            for ignore in ignores {
+                for mat in ignore.find_iter(content) {
+                    blocks.push(mat.range());
+                }
+            }
+        }
+        Self { blocks }
+    }
+
+    pub(crate) fn is_ignored(&self, span: std::ops::Range<usize>) -> bool {
+        let start = span.start;
+        let end = span.end.saturating_sub(1);
+        self.blocks
+            .iter()
+            .any(|block| block.contains(&start) || block.contains(&end))
+    }
+}
+
 pub struct AccumulatePosition {
     line_num: usize,
     line_pos: usize,

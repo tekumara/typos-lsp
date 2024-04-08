@@ -12,7 +12,7 @@ use tower_lsp::{Client, LanguageServer};
 use typos_cli::policy;
 
 use crate::state::{url_path_sanitised, BackendState};
-use crate::typos::AccumulatePosition;
+use crate::typos::{AccumulatePosition, Ignores};
 pub struct Backend<'s, 'p> {
     client: Client,
     state: Mutex<crate::state::BackendState<'s>>,
@@ -228,34 +228,6 @@ impl LanguageServer for Backend<'static, 'static> {
     }
 }
 
-// copied from https://github.com/crate-ci/typos/blob/c15b28fff9a814f9c12bd24cb1cfc114037e9187/crates/typos-cli/src/file.rs#L741
-#[derive(Clone, Debug)]
-struct Ignores {
-    blocks: Vec<std::ops::Range<usize>>,
-}
-
-impl Ignores {
-    fn new(content: &[u8], ignores: &[regex::Regex]) -> Self {
-        let mut blocks = Vec::new();
-        if let Ok(content) = std::str::from_utf8(content) {
-            for ignore in ignores {
-                for mat in ignore.find_iter(content) {
-                    blocks.push(mat.range());
-                }
-            }
-        }
-        Self { blocks }
-    }
-
-    fn is_ignored(&self, span: std::ops::Range<usize>) -> bool {
-        let start = span.start;
-        let end = span.end.saturating_sub(1);
-        self.blocks
-            .iter()
-            .any(|block| block.contains(&start) || block.contains(&end))
-    }
-}
-
 impl<'s, 'p> Backend<'s, 'p> {
     pub fn new(client: Client) -> Self {
         Self {
@@ -273,6 +245,8 @@ impl<'s, 'p> Backend<'s, 'p> {
     }
 
     // mimics typos_cli::file::FileChecker::check_file
+    // see https://github.com/crate-ci/typos/blob/c15b28fff9a814f9c12bd24cb1cfc114037e9187/crates/typos-cli/src/file.rs#L43
+    // but using check_str instead of check_bytes
     fn check_text(&self, buffer: &str, uri: &Url) -> Vec<Diagnostic> {
         let state = self.state.lock().unwrap();
 
@@ -326,9 +300,6 @@ impl<'s, 'p> Backend<'s, 'p> {
         };
 
         let mut accum = AccumulatePosition::new();
-
-        // mimics https://github.com/crate-ci/typos/blob/c15b28fff9a814f9c12bd24cb1cfc114037e9187/crates/typos-cli/src/file.rs#L43
-        // but using check_str instead of check_bytes
 
         let mut ignores: Option<Ignores> = None;
 

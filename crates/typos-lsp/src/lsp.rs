@@ -12,7 +12,6 @@ use tower_lsp::{Client, LanguageServer};
 use typos_cli::policy;
 
 use crate::state::{url_path_sanitised, BackendState};
-use crate::typos::{AccumulatePosition, Ignores};
 pub struct Backend<'s, 'p> {
     client: Client,
     state: Mutex<crate::state::BackendState<'s>>,
@@ -244,9 +243,6 @@ impl<'s, 'p> Backend<'s, 'p> {
             .await;
     }
 
-    // mimics typos_cli::file::FileChecker::check_file
-    // see https://github.com/crate-ci/typos/blob/c15b28fff9a814f9c12bd24cb1cfc114037e9187/crates/typos-cli/src/file.rs#L43
-    // but using check_str instead of check_bytes
     fn check_text(&self, buffer: &str, uri: &Url) -> Vec<Diagnostic> {
         let state = self.state.lock().unwrap();
 
@@ -255,22 +251,8 @@ impl<'s, 'p> Backend<'s, 'p> {
             return Vec::default();
         };
 
-        let mut accum = AccumulatePosition::new();
-
-        let mut ignores: Option<Ignores> = None;
-
-        typos::check_str(buffer, tokenizer, dict)
-            .filter(|typo| {
-                // skip type if it matches extend-ignore-re
-                let is_ignored = ignores
-                    .get_or_insert_with(|| Ignores::new(buffer.as_bytes(), ignore))
-                    .is_ignored(typo.span());
-                tracing::debug!(typo = ?typo, is_ignored = is_ignored, "check_text");
-                !is_ignored
-            })
-            .map(|typo| {
-                let (line_num, line_pos) = accum.pos(buffer.as_bytes(), typo.byte_offset);
-
+        crate::typos::check_str(buffer, tokenizer, dict, ignore)
+            .map(|(typo, line_num, line_pos)| {
                 Diagnostic {
                     range: Range::new(
                         Position::new(line_num as u32, line_pos as u32),

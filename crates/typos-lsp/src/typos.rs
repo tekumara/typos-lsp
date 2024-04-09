@@ -52,6 +52,34 @@ impl Instance<'_> {
     }
 }
 
+// mimics typos_cli::file::FileChecker::check_file
+// see https://github.com/crate-ci/typos/blob/c15b28fff9a814f9c12bd24cb1cfc114037e9187/crates/typos-cli/src/file.rs#L43
+// but using check_str instead of check_bytes
+pub fn check_str<'b, 's: 'b>(
+    buffer: &'b str,
+    tokenizer: &'s typos::tokens::Tokenizer,
+    dictionary: &'s dyn typos::Dictionary,
+    ignore: &'s [regex::Regex],
+) -> impl Iterator<Item = (typos::Typo<'b>, usize, usize)> {
+    let mut accum = AccumulatePosition::new();
+
+    let mut ignores: Option<Ignores> = None;
+
+    typos::check_str(buffer, tokenizer, dictionary)
+        .filter(move |typo| {
+            // skip typo if it matches extend-ignore-re
+            let is_ignored = ignores
+                .get_or_insert_with(|| Ignores::new(buffer.as_bytes(), ignore))
+                .is_ignored(typo.span());
+            tracing::debug!(typo = ?typo, is_ignored = is_ignored, "check_str");
+            !is_ignored
+        })
+        .map(move |typo| {
+            let (line_num, line_pos) = accum.pos(buffer.as_bytes(), typo.byte_offset);
+            (typo, line_num, line_pos)
+        })
+}
+
 // copied from https://github.com/crate-ci/typos/blob/c15b28fff9a814f9c12bd24cb1cfc114037e9187/crates/typos-cli/src/file.rs#L741
 #[derive(Clone, Debug)]
 pub(crate) struct Ignores {

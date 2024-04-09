@@ -250,53 +250,9 @@ impl<'s, 'p> Backend<'s, 'p> {
     fn check_text(&self, buffer: &str, uri: &Url) -> Vec<Diagnostic> {
         let state = self.state.lock().unwrap();
 
-        let (tokenizer, dict, ignore) = match uri.to_file_path() {
-            Err(_) => {
-                // eg: uris like untitled:* or term://*
-                tracing::debug!(
-                    "check_text: Using default policy because cannot convert uri {} to file path",
-                    uri
-                );
-                (
-                    self.default_policy.tokenizer,
-                    self.default_policy.dict,
-                    self.default_policy.ignore,
-                )
-            }
-            Ok(path) => {
-                let uri_path = url_path_sanitised(uri);
-
-                // find relevant tokenizer, and dict for the workspace folder
-                let (tokenizer, dict, ignore) = match state.router.at(&uri_path) {
-                    Err(_) => {
-                        // ie: file:///
-                        tracing::debug!(
-                            "check_text: Using default policy because no route found for {}",
-                            uri_path
-                        );
-                        (
-                            self.default_policy.tokenizer,
-                            self.default_policy.dict,
-                            self.default_policy.ignore,
-                        )
-                    }
-                    Ok(Match { value, params: _ }) => {
-                        tracing::debug!("check_text: path {}", &path.display());
-                        // skip file if matches extend-exclude
-                        if value.ignores.matched(&path, false).is_ignore() {
-                            tracing::debug!(
-                                "check_text: Ignoring {} because it matches extend-exclude.",
-                                uri
-                            );
-                            return Vec::default();
-                        }
-                        let policy = value.engine.policy(&path);
-                        (policy.tokenizer, policy.dict, policy.ignore)
-                    }
-                };
-
-                (tokenizer, dict, ignore)
-            }
+        let (tokenizer, dict, ignore) = match self.workspace_policy(uri, &state) {
+            Ok(value) => value,
+            Err(value) => return value,
         };
 
         let mut accum = AccumulatePosition::new();
@@ -342,5 +298,68 @@ impl<'s, 'p> Backend<'s, 'p> {
                 }
             })
             .collect()
+    }
+
+    fn workspace_policy<'a>(
+        &'a self,
+        uri: &Url,
+        state: &'a std::sync::MutexGuard<'a, BackendState<'s>>,
+    ) -> Result<
+        (
+            &typos::tokens::Tokenizer,
+            &dyn typos::Dictionary,
+            &[regex::Regex],
+        ),
+        Vec<Diagnostic>,
+    > {
+        let (tokenizer, dict, ignore) = match uri.to_file_path() {
+            Err(_) => {
+                // eg: uris like untitled:* or term://*
+                tracing::debug!(
+                    "workspace_policy: Using default policy because cannot convert uri {} to file path",
+                    uri
+                );
+                (
+                    self.default_policy.tokenizer,
+                    self.default_policy.dict,
+                    self.default_policy.ignore,
+                )
+            }
+            Ok(path) => {
+                let uri_path = url_path_sanitised(uri);
+
+                // find relevant tokenizer, and dict for the workspace folder
+                let (tokenizer, dict, ignore) = match state.router.at(&uri_path) {
+                    Err(_) => {
+                        // ie: file:///
+                        tracing::debug!(
+                            "workspace_policy: Using default policy because no route found for {}",
+                            uri_path
+                        );
+                        (
+                            self.default_policy.tokenizer,
+                            self.default_policy.dict,
+                            self.default_policy.ignore,
+                        )
+                    }
+                    Ok(Match { value, params: _ }) => {
+                        tracing::debug!("workspace_policy: path {}", &path.display());
+                        // skip file if matches extend-exclude
+                        if value.ignores.matched(&path, false).is_ignore() {
+                            tracing::debug!(
+                                "workspace_policy: Ignoring {} because it matches extend-exclude.",
+                                uri
+                            );
+                            return Err(Vec::default());
+                        }
+                        let policy = value.engine.policy(&path);
+                        (policy.tokenizer, policy.dict, policy.ignore)
+                    }
+                };
+
+                (tokenizer, dict, ignore)
+            }
+        };
+        Ok((tokenizer, dict, ignore))
     }
 }

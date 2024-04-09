@@ -250,9 +250,9 @@ impl<'s, 'p> Backend<'s, 'p> {
     fn check_text(&self, buffer: &str, uri: &Url) -> Vec<Diagnostic> {
         let state = self.state.lock().unwrap();
 
-        let (tokenizer, dict, ignore) = match self.workspace_policy(uri, &state) {
-            Ok(value) => value,
-            Err(value) => return value,
+        let Some((tokenizer, dict, ignore)) = self.workspace_policy(uri, &state) else {
+            // skip file because it matches extend-exclude
+            return Vec::default();
         };
 
         let mut accum = AccumulatePosition::new();
@@ -304,14 +304,11 @@ impl<'s, 'p> Backend<'s, 'p> {
         &'a self,
         uri: &Url,
         state: &'a std::sync::MutexGuard<'a, BackendState<'s>>,
-    ) -> Result<
-        (
-            &typos::tokens::Tokenizer,
-            &dyn typos::Dictionary,
-            &[regex::Regex],
-        ),
-        Vec<Diagnostic>,
-    > {
+    ) -> Option<(
+        &typos::tokens::Tokenizer,
+        &dyn typos::Dictionary,
+        &[regex::Regex],
+    )> {
         let (tokenizer, dict, ignore) = match uri.to_file_path() {
             Err(_) => {
                 // eg: uris like untitled:* or term://*
@@ -350,7 +347,7 @@ impl<'s, 'p> Backend<'s, 'p> {
                                 "workspace_policy: Ignoring {} because it matches extend-exclude.",
                                 uri
                             );
-                            return Err(Vec::default());
+                            return None;
                         }
                         let policy = value.engine.policy(&path);
                         (policy.tokenizer, policy.dict, policy.ignore)
@@ -360,6 +357,6 @@ impl<'s, 'p> Backend<'s, 'p> {
                 (tokenizer, dict, ignore)
             }
         };
-        Ok((tokenizer, dict, ignore))
+        Some((tokenizer, dict, ignore))
     }
 }

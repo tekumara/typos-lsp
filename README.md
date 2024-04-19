@@ -13,12 +13,14 @@
 - Vscode: Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
 - VSCodium: Install [Typos spell checker](https://open-vsx.org/extension/tekumara/typos-vscode) from the Open VSX Registry.
 - Neovim: Install `typos-lsp` using [mason](https://mason-registry.dev/registry/list#typos-lsp) or download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
+- Helix: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases) and place it on your PATH.
 - Other clients: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
 
 For configuration see:
 
 - [VS Code Settings](docs/vscode-settings.md)
 - [Neovim LSP config](docs/neovim-lsp-config.md)
+- [Helix config](docs/helix-config.md)
 
 ## Features
 

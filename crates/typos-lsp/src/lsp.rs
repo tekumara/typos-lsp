@@ -56,7 +56,7 @@ impl LanguageServer for Backend<'static, 'static> {
                         "warning" => {
                             state.severity = Some(DiagnosticSeverity::WARNING);
                         }
-                        "information" => {
+                        "information" | "info" => {
                             state.severity = Some(DiagnosticSeverity::INFORMATION);
                         }
                         "hint" => {

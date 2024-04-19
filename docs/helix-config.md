@@ -1,6 +1,6 @@
 # Helix config
 
-To enable typos for all files, add the following to your [languages.toml](https://docs.helix-editor.com/languages.html) file:
+In your [languages.toml](https://docs.helix-editor.com/languages.html) file configure the `typos` language server as follows:
 
 ```toml
 [language-server.typos]
@@ -15,10 +15,14 @@ config.config = "~/code/typos-lsp/crates/typos-lsp/tests/typos.toml"
 # How typos are rendered in the editor, can be one of an Error, Warning, Info or Hint.
 # Defaults to Warning.
 config.diagnosticSeverity = "Warning"
-
-[[language]]
-name = "all-files"
-scope = ""
-file-types = [{glob="*"}]
-language-servers = ["typos"]
 ```
+
+Then add `typos` to one or more languages, as the last entry to avoid taking precedence, eg:
+
+```toml
+[[language]]
+name = "rust"
+language-servers = ["rust-analyzer", "typos"]
+```
+
+Currently it doesn't seem possible to add typos to all languages at once, see [this discussion](https://github.com/helix-editor/helix/discussions/8850).

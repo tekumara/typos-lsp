@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.18](https://github.com/tekumara/typos-lsp/compare/v0.1.17...v0.1.18) (2024-05-02)
+
+
+### Features
+
+* support info as a diagnostic severity ([064c188](https://github.com/tekumara/typos-lsp/commit/064c188821043a5057401cc708b07add37a65854))
+* typos 1.21.0 Apr 2024 dictionary ([#65](https://github.com/tekumara/typos-lsp/issues/65)) ([504741b](https://github.com/tekumara/typos-lsp/commit/504741b5bbeb10e47987a7f722d5a8b7adcbf9d9))
+
+
+### Chores
+
+* **deps-dev:** bump the vscode group with 7 updates ([#63](https://github.com/tekumara/typos-lsp/issues/63)) ([481b063](https://github.com/tekumara/typos-lsp/commit/481b063117101e15a5be02d0464d49134f9b33cf))
+* **deps:** bump the lsp group with 6 updates ([#64](https://github.com/tekumara/typos-lsp/issues/64)) ([53a7cc0](https://github.com/tekumara/typos-lsp/commit/53a7cc0484cc5ce8d2db633f010a94919c85b116))
+
 ## [0.1.17](https://github.com/tekumara/typos-lsp/compare/v0.1.16...v0.1.17) (2024-04-08)
 
 

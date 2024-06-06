@@ -21,7 +21,7 @@ jobs:
       env:
         RUST_LOG: debug,globset=warn
     - run: cargo fmt --all -- --check
-    - run: cargo clippy
+    - run: cargo clippy --all-targets
     - run: cargo build
     - run: npm ci
     - run: npm run lint

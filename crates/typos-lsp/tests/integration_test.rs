@@ -179,19 +179,19 @@ async fn test_config_file() {
 
     // check "fo" is corrected to "of" because of default.extend-words
     similar_asserts::assert_eq!(
-        server.request(&did_open_diag_txt).await,
+        server.request(did_open_diag_txt).await,
         publish_diagnostics_with(&[diag("`fo` should be `of`", 0, 0, 2)], Some(&diag_txt))
     );
 
     // check changelog is excluded because of files.extend-exclude
     similar_asserts::assert_eq!(
-        server.request(&did_open_changelog_md).await,
+        server.request(did_open_changelog_md).await,
         publish_diagnostics_with(&[], Some(&changelog_md)),
     );
 
     // check skip_line is excluded because of default.extend-ignore-re
     similar_asserts::assert_eq!(
-        server.request(&did_open_skip_me).await,
+        server.request(did_open_skip_me).await,
         publish_diagnostics_with(&[], Some(&skip_me)),
     );
 }
@@ -220,7 +220,7 @@ async fn test_custom_config_file() {
     // check "fo" is corrected to "go" because of default.extend-words
     // in custom_typos.toml which overrides typos.toml
     similar_asserts::assert_eq!(
-        server.request(&did_open_diag_txt).await,
+        server.request(did_open_diag_txt).await,
         publish_diagnostics_with(&[diag("`fo` should be `go`", 0, 0, 2)], Some(&diag_txt))
     );
 }
@@ -247,7 +247,7 @@ async fn test_custom_config_no_workspace_folder() {
     // check "fo" is corrected to "go" because of default.extend-words
     // in custom_typos.toml which overrides typos.toml
     similar_asserts::assert_eq!(
-        server.request(&did_open_diag_txt).await,
+        server.request(did_open_diag_txt).await,
         publish_diagnostics_with(&[diag("`fo` should be `go`", 0, 0, 2)], Some(&diag_txt))
     );
 }
@@ -263,7 +263,7 @@ async fn test_non_file_uri() {
     let _ = server.request(&initialize_with(None, None)).await;
 
     similar_asserts::assert_eq!(
-        server.request(&did_open_diag_txt).await,
+        server.request(did_open_diag_txt).await,
         publish_diagnostics_with(
             &[diag("`apropriate` should be `appropriate`", 0, 0, 10)],
             Some(&term)
@@ -282,7 +282,7 @@ async fn test_empty_file_uri() {
     let _ = server.request(&initialize_with(None, None)).await;
 
     similar_asserts::assert_eq!(
-        server.request(&did_open_diag_txt).await,
+        server.request(did_open_diag_txt).await,
         publish_diagnostics_with(
             &[diag("`apropriate` should be `appropriate`", 0, 0, 10)],
             Some(&term)
@@ -298,14 +298,14 @@ async fn test_position_with_unicode_text() {
     // ¿ and é are two-byte code points in utf-8
     let unicode_text = &did_open("¿Qué hace él?");
     similar_asserts::assert_eq!(
-        server.request(&unicode_text).await,
+        server.request(unicode_text).await,
         publish_diagnostics(&[diag("`hace` should be `have`", 0, 5, 9)])
     );
 
     // ẽ has two code points U+0065 U+0303 (latin small letter e, combining tilde)
     let unicode_text = &did_open("ẽ hace");
     similar_asserts::assert_eq!(
-        server.request(&unicode_text).await,
+        server.request(unicode_text).await,
         publish_diagnostics(&[diag("`hace` should be `have`", 0, 3, 7)])
     );
 }
@@ -320,7 +320,7 @@ async fn test_ignore_typos_in_config_files() {
     let _ = server.request(&initialize_with(None, None)).await;
 
     similar_asserts::assert_eq!(
-        server.request(&did_open).await,
+        server.request(did_open).await,
         publish_diagnostics_with(&[], Some(&term))
     );
 }

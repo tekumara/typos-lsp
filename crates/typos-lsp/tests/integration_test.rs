@@ -168,9 +168,9 @@ async fn test_config_file() {
     let changelog_md = workspace_folder_uri.join("tests/CHANGELOG.md").unwrap();
     let skip_me = workspace_folder_uri.join("tests/skip_me.txt").unwrap();
 
-    let did_open_diag_txt = &did_open_with("fo typos", Some(&diag_txt));
-    let did_open_changelog_md = &did_open_with("fo typos", Some(&changelog_md));
-    let did_open_skip_me = &did_open_with("fo typos # skip_me", Some(&skip_me));
+    let did_open_diag_txt = did_open_with("fo typos", Some(&diag_txt));
+    let did_open_changelog_md = did_open_with("fo typos", Some(&changelog_md));
+    let did_open_skip_me = did_open_with("fo typos # skip_me", Some(&skip_me));
 
     let mut server = TestServer::new();
     let _ = server
@@ -207,7 +207,7 @@ async fn test_custom_config_file() {
 
     let diag_txt = workspace_folder_uri.join("tests/diagnostics.txt").unwrap();
 
-    let did_open_diag_txt = &did_open_with("fo typos", Some(&diag_txt));
+    let did_open_diag_txt = did_open_with("fo typos", Some(&diag_txt));
 
     let mut server = TestServer::new();
     let _ = server
@@ -237,7 +237,7 @@ async fn test_custom_config_no_workspace_folder() {
 
     let diag_txt = workspace_folder_uri.join("tests/diagnostics.txt").unwrap();
 
-    let did_open_diag_txt = &did_open_with("fo typos", Some(&diag_txt));
+    let did_open_diag_txt = did_open_with("fo typos", Some(&diag_txt));
 
     let mut server = TestServer::new();
     let _ = server
@@ -257,7 +257,7 @@ async fn test_non_file_uri() {
     // a Neovim toggleterm uri
     let term = Url::from_str("term://~/code/typos-lsp//59317:/bin/zsh;#toggleterm#1").unwrap();
 
-    let did_open_diag_txt = &did_open_with("apropriate", Some(&term));
+    let did_open_diag_txt = did_open_with("apropriate", Some(&term));
 
     let mut server = TestServer::new();
     let _ = server.request(&initialize_with(None, None)).await;
@@ -276,7 +276,7 @@ async fn test_empty_file_uri() {
     // eg: when using nvim telescope
     let term = Url::from_str("file:///").unwrap();
 
-    let did_open_diag_txt = &did_open_with("apropriate", Some(&term));
+    let did_open_diag_txt = did_open_with("apropriate", Some(&term));
 
     let mut server = TestServer::new();
     let _ = server.request(&initialize_with(None, None)).await;
@@ -296,14 +296,14 @@ async fn test_position_with_unicode_text() {
     let _ = server.request(&initialize()).await;
 
     // ¿ and é are two-byte code points in utf-8
-    let unicode_text = &did_open("¿Qué hace él?");
+    let unicode_text = did_open("¿Qué hace él?");
     similar_asserts::assert_eq!(
         server.request(&unicode_text).await,
         publish_diagnostics(&[diag("`hace` should be `have`", 0, 5, 9)])
     );
 
     // ẽ has two code points U+0065 U+0303 (latin small letter e, combining tilde)
-    let unicode_text = &did_open("ẽ hace");
+    let unicode_text = did_open("ẽ hace");
     similar_asserts::assert_eq!(
         server.request(&unicode_text).await,
         publish_diagnostics(&[diag("`hace` should be `have`", 0, 3, 7)])
@@ -314,7 +314,7 @@ async fn test_position_with_unicode_text() {
 async fn test_ignore_typos_in_config_files() {
     let term = Url::from_str("file:///C%3A/.typos.toml").unwrap();
 
-    let did_open = &did_open_with("apropriate", Some(&term));
+    let did_open = did_open_with("apropriate", Some(&term));
 
     let mut server = TestServer::new();
     let _ = server.request(&initialize_with(None, None)).await;

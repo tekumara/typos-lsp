@@ -53,3 +53,7 @@ Config files will be read from the workspace folder or its parents. If there is 
 ## Why aren't my misspellings being corrected?
 
 To minimise false-positives `typos` only suggests corrections for known misspellings, rather than unknown words like a traditional spell-checker. For more info see [Why was ... not corrected?](https://github.com/crate-ci/typos?tab=readme-ov-file#why-was--not-corrected).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.

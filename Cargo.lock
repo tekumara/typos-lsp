@@ -1711,6 +1711,7 @@ dependencies = [
  "similar-asserts",
  "test-log",
  "tokio",
+ "toml",
  "tower-lsp",
  "tracing",
  "tracing-subscriber",

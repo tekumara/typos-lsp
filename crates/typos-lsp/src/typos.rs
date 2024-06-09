@@ -1,11 +1,18 @@
-use std::path::Path;
+mod config_file_location;
+mod config_file_suggestions;
+
+use std::path::{Path, PathBuf};
 
 use bstr::ByteSlice;
 use ignore::overrides::{Override, OverrideBuilder};
 use typos_cli::policy;
 pub struct Instance<'s> {
+    /// File path rules to ignore
     pub ignores: Override,
     pub engine: policy::ConfigEngine<'s>,
+
+    /// The path where the LSP server was started
+    pub project_root: PathBuf,
 }
 
 impl Instance<'_> {
@@ -46,9 +53,40 @@ impl Instance<'_> {
         let ignore = ignores.build()?;
 
         Ok(Instance {
+            project_root: path.to_path_buf(),
             ignores: ignore,
             engine,
         })
+    }
+
+    /// Returns the typos_cli configuration files that are relevant for the given path. Note that
+    /// all config files are read by typos_cli, and the settings are applied in precedence order:
+    ///
+    /// <https://github.com/crate-ci/typos/blob/master/docs/reference.md>
+    pub fn config_files_in_project(
+        &self,
+        starting_path: &Path,
+    ) -> config_file_suggestions::ConfigFileSuggestions {
+        // limit the search to the project root, never search above it
+        let project_path = self.project_root.as_path();
+
+        let mut suggestions = config_file_suggestions::ConfigFileSuggestions {
+            project_root: config_file_location::ConfigFileLocation::from_dir_or_default(
+                self.project_root.as_path(),
+            ),
+            config_files: vec![],
+        };
+        starting_path
+            .ancestors()
+            .filter(|path| path.starts_with(project_path))
+            .filter(|path| *path != self.project_root.as_path())
+            .for_each(|path| {
+                let config_location =
+                    config_file_location::ConfigFileLocation::from_dir_or_default(path);
+                suggestions.config_files.push(config_location);
+            });
+
+        suggestions
     }
 }
 

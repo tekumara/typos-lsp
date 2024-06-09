@@ -8,8 +8,13 @@ use crate::typos::Instance;
 #[derive(Default)]
 pub(crate) struct BackendState<'s> {
     pub severity: Option<DiagnosticSeverity>,
+    /// The path to the configuration file given to the LSP server. Settings in this configuration
+    /// file override the typos.toml settings.
     pub config: Option<PathBuf>,
     pub workspace_folders: Vec<WorkspaceFolder>,
+
+    /// Maps routes (file system paths) to TyposCli instances, so that we can quickly find the
+    /// correct instance for a given file path
     pub router: Router<crate::typos::Instance<'s>>,
 }
 

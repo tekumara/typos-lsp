@@ -2,13 +2,14 @@ use matchit::Match;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use serde_json::{json, to_string};
 use tower_lsp::lsp_types::*;
 use tower_lsp::*;
 use tower_lsp::{Client, LanguageServer};
+use typos_cli::config::DictConfig;
 use typos_cli::policy;
 
 use crate::state::{url_path_sanitised, BackendState};
@@ -21,6 +22,16 @@ pub struct Backend<'s, 'p> {
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct DiagnosticData<'c> {
     corrections: Vec<Cow<'c, str>>,
+    typo: Cow<'c, str>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct IgnoreInProjectCommandArguments {
+    typo: String,
+    /// The file that contains the typo to ignore
+    typo_file_path: String,
+    /// The configuration file that should be modified to ignore the typo
+    config_file_path: String,
 }
 
 #[tower_lsp::async_trait]
@@ -97,6 +108,11 @@ impl LanguageServer for Backend<'static, 'static> {
                         resolve_provider: None,
                     },
                 )),
+                execute_command_provider: Some(ExecuteCommandOptions {
+                    // TODO this magic string should be a constant
+                    commands: vec!["ignore-in-project".to_string()],
+                    work_done_progress_options: WorkDoneProgressOptions::default(),
+                }),
                 workspace: Some(WorkspaceServerCapabilities {
                     workspace_folders: Some(WorkspaceFoldersServerCapabilities {
                         supported: Some(true),
@@ -150,6 +166,8 @@ impl LanguageServer for Backend<'static, 'static> {
             .await;
     }
 
+    /// Called by the editor to request displaying a list of code actions and commands for a given
+    /// position in the current file.
     async fn code_action(
         &self,
         params: CodeActionParams,
@@ -163,10 +181,10 @@ impl LanguageServer for Backend<'static, 'static> {
             .filter(|diag| diag.source == Some("typos".to_string()))
             .flat_map(|diag| match &diag.data {
                 Some(data) => {
-                    if let Ok(DiagnosticData { corrections }) =
+                    if let Ok(DiagnosticData { corrections, typo }) =
                         serde_json::from_value::<DiagnosticData>(data.clone())
                     {
-                        corrections
+                        let mut suggestions: Vec<_> = corrections
                             .iter()
                             .map(|c| {
                                 CodeActionOrCommand::CodeAction(CodeAction {
@@ -191,7 +209,44 @@ impl LanguageServer for Backend<'static, 'static> {
                                     ..CodeAction::default()
                                 })
                             })
-                            .collect()
+                            .collect();
+
+                        if let Ok(Match { value, .. }) = self
+                            .state
+                            .lock()
+                            .unwrap()
+                            .router
+                            .at(params.text_document.uri.to_file_path().unwrap().to_str().unwrap())
+                        {
+                            let typo_file: &Url = &params.text_document.uri;
+                            let config_files =
+                                value.config_files_in_project(Path::new(typo_file.as_str()));
+
+                            suggestions.push(CodeActionOrCommand::Command(Command {
+                                title: format!("Ignore `{}` in the project", typo),
+                                command: "ignore-in-project".to_string(),
+                                arguments: Some(
+                                    [serde_json::to_value(IgnoreInProjectCommandArguments {
+                                        typo: typo.to_string(),
+                                        typo_file_path: typo_file.to_string(),
+                                        config_file_path: config_files
+                                            .project_root
+                                            .path
+                                            .to_string_lossy()
+                                            .to_string(),
+                                    })
+                                    .unwrap()]
+                                    .into(),
+                                ),
+                            }));
+                        } else {
+                            tracing::warn!(
+                                "code_action: Cannot create a code action for ignoring a typo in the project. Reason: No route found for file '{}'",
+                                params.text_document.uri
+                            );
+                        }
+
+                        suggestions
                     } else {
                         tracing::error!(
                             "Deserialization failed: received {:?} as diagnostic data",
@@ -208,6 +263,51 @@ impl LanguageServer for Backend<'static, 'static> {
             .collect::<Vec<_>>();
 
         Ok(Some(actions))
+    }
+
+    /// Called by the editor to execute a server side command, such as ignoring a typo.
+    async fn execute_command(
+        &self,
+        raw_params: ExecuteCommandParams,
+    ) -> jsonrpc::Result<Option<serde_json::Value>> {
+        tracing::debug!(
+            "execute_command: {:?}",
+            to_string(&raw_params).unwrap_or_default()
+        );
+
+        // TODO reduce the nesting
+        if raw_params.command == "ignore-in-project" {
+            let argument = raw_params
+                .arguments
+                .into_iter()
+                .next()
+                .expect("no arguments for ignore-in-project command");
+
+            if let Ok(IgnoreInProjectCommandArguments {
+                typo,
+                config_file_path,
+                ..
+            }) = serde_json::from_value::<IgnoreInProjectCommandArguments>(argument)
+            {
+                let mut config = typos_cli::config::Config::from_file(Path::new(&config_file_path))
+                    .ok()
+                    .flatten()
+                    .unwrap_or_default();
+
+                config.default.dict.update(&DictConfig {
+                    extend_words: HashMap::from([(typo.clone().into(), typo.into())]),
+                    ..Default::default()
+                });
+
+                std::fs::write(
+                    &config_file_path,
+                    toml::to_string_pretty(&config).expect("cannot serialize config"),
+                )
+                .unwrap_or_else(|_| panic!("Cannot write to {}", config_file_path));
+            };
+        }
+
+        Ok(None)
     }
 
     async fn did_change_workspace_folders(&self, params: DidChangeWorkspaceFoldersParams) {
@@ -271,9 +371,10 @@ impl<'s, 'p> Backend<'s, 'p> {
                     },
                     // store corrections for retrieval during code_action
                     data: match typo.corrections {
-                        typos::Status::Corrections(corrections) => {
-                            Some(json!(DiagnosticData { corrections }))
-                        }
+                        typos::Status::Corrections(corrections) => Some(json!(DiagnosticData {
+                            corrections,
+                            typo: typo.typo
+                        })),
                         _ => None,
                     },
                     ..Diagnostic::default()

@@ -4,15 +4,27 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    ignore:
+      - dependency-name: "typos*"
     groups:
       lsp:
         applies-to: version-updates
         patterns:
          - "*"
-        exclude-patterns:
-        # don't bundle typos-cli together with other updates
-         - "typos-cli"
-
+  - package-ecosystem: "cargo"
+    directory: "/"
+    # HACK: so we can have two updates for the same ecosystem & dir
+    # see https://github.com/dependabot/dependabot-core/issues/1778#issuecomment-1988140219
+    target-branch: main
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "typos*"
+    groups:
+      typos:
+        applies-to: version-updates
+        patterns:
+         - "*"
   - package-ecosystem: "npm"
     directory: "/"
     schedule:

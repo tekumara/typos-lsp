@@ -429,9 +429,9 @@ checksum = "a357d28ed41a50f9c765dbfe56cbc04a64e53e5fc58ba79fbc34c10ef3df831f"
 
 [[package]]
 name = "encoding_rs"
-version = "0.8.33"
+version = "0.8.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7268b386296a025e474d5140678f75d6de9493ae55a5d709eeb9dd08149945e1"
+checksum = "b45de904aa0b010bce2ab45264d0631681847fa7b6f2eaa7dab7619943bc4f59"
 dependencies = [
  "cfg-if",
 ]
@@ -633,9 +633,9 @@ checksum = "d897f394bad6a705d5f4104762e116a75639e470d80901eed05a860a95cb1904"
 
 [[package]]
 name = "human-panic"
-version = "1.2.3"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4f016c89920bbb30951a8405ecacbb4540db5524313b9445736e7e1855cf370"
+checksum = "a4c5d0e9120f6bca6120d142c7ede1ba376dd6bf276d69dd3dbe6cbeb7824179"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1501,9 +1501,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.21.0"
+version = "1.22.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e6ad9778892089780df68bf170c9f2292790dceb5a93f99a7fb2680d9b0703a"
+checksum = "141b818c1a8943ce054867acac6b0f730fa340d2f78c381963dcd462973e9050"
 dependencies = [
  "ahash",
  "anstream",
@@ -1522,7 +1522,7 @@ dependencies = [
  "globset",
  "human-panic",
  "ignore",
- "itertools 0.12.1",
+ "itertools 0.13.0",
  "kstring",
  "log",
  "maplit",
@@ -1670,9 +1670,9 @@ checksum = "d4c87d22b6e3f4a18d4d40ef354e97c90fcb14dd91d7dc0aa9d8a1172ebf7202"
 
 [[package]]
 name = "unicode-width"
-version = "0.1.11"
+version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e51733f11c9c4f72aa0c160008246859e340b00807569a0da0e7a1079b27ba85"
+checksum = "0336d538f7abc86d282a4189614dfaa90810dfc2c6f6427eaf88e16311dd225d"
 
 [[package]]
 name = "unicode-xid"
@@ -1715,9 +1715,9 @@ checksum = "830b7e5d4d90034032940e4ace0d9a9a057e7a45cd94e6c007832e39edb82f6d"
 
 [[package]]
 name = "varcon-core"
-version = "4.0.7"
+version = "4.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f766607f97ccd61f81e3a523684e2646998046214a5042f3bb480bb9945efc1e"
+checksum = "87fb94e2421908d0efb4d0acd3863a4af7d316430cf62342f63157aac63a0a14"
 dependencies = [
  "enumflags2",
 ]

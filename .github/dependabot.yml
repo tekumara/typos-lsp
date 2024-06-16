@@ -19,12 +19,7 @@ updates:
     schedule:
       interval: "daily"
     allow:
-      - dependency-name: "typos*"
-    groups:
-      typos:
-        applies-to: version-updates
-        patterns:
-         - "*"
+      - dependency-name: "typos-cli"
   - package-ecosystem: "npm"
     directory: "/"
     schedule:

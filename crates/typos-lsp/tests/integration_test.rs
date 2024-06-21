@@ -20,6 +20,11 @@ async fn test_initialize_e2e() {
                   "codeActionKinds": ["quickfix"],
                   "workDoneProgress": false
                 },
+                "executeCommandProvider": {
+                    "commands": [
+                        "ignore-in-project",
+                    ],
+                },
                 "positionEncoding": "utf-16",
                 "textDocumentSync": 1,
                 "workspace": {
@@ -48,7 +53,7 @@ async fn test_code_action() {
           },
           "range": range(1, 0, 2),
           "context": {
-            "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 0, 2) ],
+            "diagnostics": [ diag("`fo` should be `of`, `for`", "fo", 1, 0, 2) ],
             "only": ["quickfix"],
             "triggerKind": 1
           }
@@ -68,7 +73,7 @@ async fn test_code_action() {
           },
           "range": range(0, 11, 21),
           "context": {
-            "diagnostics": [ diag("`apropriate` should be `appropriate`", 0, 11, 21) ],
+            "diagnostics": [ diag("`apropriate` should be `appropriate`", "apropriate", 0, 11, 21) ],
             "only": ["quickfix"],
             "triggerKind": 1
           }
@@ -84,8 +89,20 @@ async fn test_code_action() {
     similar_asserts::assert_eq!(
         server.request(&did_open).await,
         publish_diagnostics(&[
-            diag("`apropriate` should be `appropriate`", 0, 11, 21),
-            diag("`fo` should be `of`, `for`, `do`, `go`, `to`", 1, 0, 2)
+            diag(
+                "`apropriate` should be `appropriate`",
+                "apropriate",
+                0,
+                11,
+                21
+            ),
+            diag(
+                "`fo` should be `of`, `for`, `do`, `go`, `to`",
+                "fo",
+                1,
+                0,
+                2
+            )
         ])
     );
 
@@ -96,7 +113,7 @@ async fn test_code_action() {
             "jsonrpc": "2.0",
             "result": [
               {
-                "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 0, 2) ],
+                "diagnostics": [ diag("`fo` should be `of`, `for`", "fo", 1, 0, 2) ],
                 "edit": {
                   "changes": {
                     "file:///C%3A/diagnostics.txt": [
@@ -111,7 +128,7 @@ async fn test_code_action() {
                 "title": "of"
               },
               {
-                "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 0, 2) ],
+                "diagnostics": [ diag("`fo` should be `of`, `for`", "fo", 1, 0, 2) ],
                 "edit": {
                   "changes": {
                     "file:///C%3A/diagnostics.txt": [
@@ -124,7 +141,17 @@ async fn test_code_action() {
                 },
                 "kind": "quickfix",
                 "title": "for"
-              }
+              },
+              {
+                "arguments": [
+                  {
+                    "config_file_path": "/typos.toml",
+                    "typo": "fo",
+                  },
+                ],
+                "command": "ignore-in-project",
+                "title": "Ignore `fo` in the project",
+              },
             ],
             "id": 2
           }
@@ -138,7 +165,7 @@ async fn test_code_action() {
             "jsonrpc": "2.0",
             "result": [
               {
-                "diagnostics": [ diag("`apropriate` should be `appropriate`", 0, 11, 21) ],
+                "diagnostics": [ diag("`apropriate` should be `appropriate`", "apropriate", 0, 11, 21) ],
                 "edit": {
                   "changes": {
                     "file:///C%3A/diagnostics.txt": [
@@ -152,7 +179,17 @@ async fn test_code_action() {
                 "isPreferred": true,
                 "kind": "quickfix",
                 "title": "appropriate"
-              }
+              },
+              {
+                "arguments": [
+                  {
+                    "config_file_path": "/typos.toml",
+                    "typo": "apropriate",
+                  },
+                ],
+                "command": "ignore-in-project",
+                "title": "Ignore `apropriate` in the project",
+              },
             ],
             "id": 3
           }
@@ -180,7 +217,10 @@ async fn test_config_file() {
     // check "fo" is corrected to "of" because of default.extend-words
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
-        publish_diagnostics_with(&[diag("`fo` should be `of`", 0, 0, 2)], Some(&diag_txt))
+        publish_diagnostics_with(
+            &[diag("`fo` should be `of`", "fo", 0, 0, 2)],
+            Some(&diag_txt)
+        )
     );
 
     // check changelog is excluded because of files.extend-exclude
@@ -221,7 +261,10 @@ async fn test_custom_config_file() {
     // in custom_typos.toml which overrides typos.toml
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
-        publish_diagnostics_with(&[diag("`fo` should be `go`", 0, 0, 2)], Some(&diag_txt))
+        publish_diagnostics_with(
+            &[diag("`fo` should be `go`", "fo", 0, 0, 2)],
+            Some(&diag_txt)
+        )
     );
 }
 
@@ -248,7 +291,10 @@ async fn test_custom_config_no_workspace_folder() {
     // in custom_typos.toml which overrides typos.toml
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
-        publish_diagnostics_with(&[diag("`fo` should be `go`", 0, 0, 2)], Some(&diag_txt))
+        publish_diagnostics_with(
+            &[diag("`fo` should be `go`", "fo", 0, 0, 2)],
+            Some(&diag_txt)
+        )
     );
 }
 
@@ -265,7 +311,13 @@ async fn test_non_file_uri() {
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
         publish_diagnostics_with(
-            &[diag("`apropriate` should be `appropriate`", 0, 0, 10)],
+            &[diag(
+                "`apropriate` should be `appropriate`",
+                "apropriate",
+                0,
+                0,
+                10
+            )],
             Some(&term)
         )
     );
@@ -284,7 +336,13 @@ async fn test_empty_file_uri() {
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
         publish_diagnostics_with(
-            &[diag("`apropriate` should be `appropriate`", 0, 0, 10)],
+            &[diag(
+                "`apropriate` should be `appropriate`",
+                "apropriate",
+                0,
+                0,
+                10
+            )],
             Some(&term)
         )
     );
@@ -299,14 +357,14 @@ async fn test_position_with_unicode_text() {
     let unicode_text = did_open("¿Qué hace él?");
     similar_asserts::assert_eq!(
         server.request(&unicode_text).await,
-        publish_diagnostics(&[diag("`hace` should be `have`", 0, 5, 9)])
+        publish_diagnostics(&[diag("`hace` should be `have`", "hace", 0, 5, 9)])
     );
 
     // ẽ has two code points U+0065 U+0303 (latin small letter e, combining tilde)
     let unicode_text = did_open("ẽ hace");
     similar_asserts::assert_eq!(
         server.request(&unicode_text).await,
-        publish_diagnostics(&[diag("`hace` should be `have`", 0, 3, 7)])
+        publish_diagnostics(&[diag("`hace` should be `have`", "hace", 0, 3, 7)])
     );
 }
 
@@ -377,7 +435,7 @@ fn did_open_with(text: &str, uri: Option<&Url>) -> String {
     .to_string()
 }
 
-fn diag(message: &str, line: u32, start: u32, end: u32) -> Value {
+fn diag(message: &str, typo: &str, line: u32, start: u32, end: u32) -> Value {
     static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"`[^`]+` should be (.*)").unwrap());
 
     let caps = RE.captures(message).unwrap();
@@ -385,7 +443,7 @@ fn diag(message: &str, line: u32, start: u32, end: u32) -> Value {
     let corrections: Vec<&str> = caps[1].split(", ").map(|s| s.trim_matches('`')).collect();
 
     json!({
-      "data": { "corrections": corrections },
+      "data": { "corrections": corrections, "typo": typo },
       "message": message,
       "range": range(line,start,end),
       "severity": 2,

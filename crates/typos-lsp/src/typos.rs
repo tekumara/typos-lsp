@@ -1,9 +1,11 @@
 mod config_file_location;
 mod config_file_suggestions;
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use bstr::ByteSlice;
+use config_file_location::ConfigFileLocation;
+use config_file_suggestions::ConfigFileSuggestions;
 use ignore::overrides::{Override, OverrideBuilder};
 use typos_cli::policy;
 pub struct Instance<'s> {
@@ -12,7 +14,10 @@ pub struct Instance<'s> {
     pub engine: policy::ConfigEngine<'s>,
 
     /// The path where the LSP server was started
-    pub project_root: PathBuf,
+    pub project_root: ConfigFileLocation,
+
+    /// The explicit configuration file that was given to the LSP server at startup
+    pub explicit_config: Option<ConfigFileLocation>,
 }
 
 impl Instance<'_> {
@@ -27,13 +32,17 @@ impl Instance<'_> {
 
         // TODO: currently mimicking typos here but do we need to create and update
         // a default config?
+
         let mut c = typos_cli::config::Config::default();
-        if let Some(config_path) = config {
-            let custom = typos_cli::config::Config::from_file(config_path)?;
-            if let Some(custom) = custom {
-                c.update(&custom);
-                engine.set_overrides(c);
-            }
+        let explicit_config = config.map(ConfigFileLocation::from_file_path_or_default);
+
+        if let Some(ConfigFileLocation {
+            config: Some(ref config),
+            ..
+        }) = explicit_config
+        {
+            c.update(config);
+            engine.set_overrides(c);
         }
 
         // initialise an engine and overrides using the config file from path or its parent
@@ -53,40 +62,21 @@ impl Instance<'_> {
         let ignore = ignores.build()?;
 
         Ok(Instance {
-            project_root: path.to_path_buf(),
+            explicit_config,
+            project_root: ConfigFileLocation::from_dir_or_default(path),
             ignores: ignore,
             engine,
         })
     }
 
-    /// Returns the typos_cli configuration files that are relevant for the given path. Note that
-    /// all config files are read by typos_cli, and the settings are applied in precedence order:
+    /// Returns the typos_cli configuration files that are relevant for the current project.
     ///
     /// <https://github.com/crate-ci/typos/blob/master/docs/reference.md>
-    pub fn config_files_in_project(
-        &self,
-        starting_path: &Path,
-    ) -> config_file_suggestions::ConfigFileSuggestions {
-        // limit the search to the project root, never search above it
-        let project_path = self.project_root.as_path();
-
-        let mut suggestions = config_file_suggestions::ConfigFileSuggestions {
-            project_root: config_file_location::ConfigFileLocation::from_dir_or_default(
-                self.project_root.as_path(),
-            ),
-            config_files: vec![],
-        };
-        starting_path
-            .ancestors()
-            .filter(|path| path.starts_with(project_path))
-            .filter(|path| *path != self.project_root.as_path())
-            .for_each(|path| {
-                let config_location =
-                    config_file_location::ConfigFileLocation::from_dir_or_default(path);
-                suggestions.config_files.push(config_location);
-            });
-
-        suggestions
+    pub fn config_files_in_project(&self) -> ConfigFileSuggestions {
+        ConfigFileSuggestions {
+            explicit: self.explicit_config.as_ref().map(|c| c.path.clone()),
+            project_root: self.project_root.path.to_path_buf(),
+        }
     }
 }
 

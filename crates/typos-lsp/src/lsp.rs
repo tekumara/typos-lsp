@@ -1,15 +1,15 @@
+use ignore_typo_action::IGNORE_IN_PROJECT;
 use matchit::Match;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Mutex;
 
 use serde_json::{json, to_string};
 use tower_lsp::lsp_types::*;
 use tower_lsp::*;
 use tower_lsp::{Client, LanguageServer};
-use typos_cli::config::DictConfig;
 use typos_cli::policy;
 
 use crate::state::{url_path_sanitised, BackendState};
@@ -18,6 +18,8 @@ pub struct Backend<'s, 'p> {
     state: Mutex<crate::state::BackendState<'s>>,
     default_policy: policy::Policy<'p, 'p, 'p>,
 }
+
+mod ignore_typo_action;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct DiagnosticData<'c> {
@@ -28,8 +30,6 @@ struct DiagnosticData<'c> {
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct IgnoreInProjectCommandArguments {
     typo: String,
-    /// The file that contains the typo to ignore
-    typo_file_path: String,
     /// The configuration file that should be modified to ignore the typo
     config_file_path: String,
 }
@@ -109,8 +109,7 @@ impl LanguageServer for Backend<'static, 'static> {
                     },
                 )),
                 execute_command_provider: Some(ExecuteCommandOptions {
-                    // TODO this magic string should be a constant
-                    commands: vec!["ignore-in-project".to_string()],
+                    commands: vec![IGNORE_IN_PROJECT.to_string()],
                     work_done_progress_options: WorkDoneProgressOptions::default(),
                 }),
                 workspace: Some(WorkspaceServerCapabilities {
@@ -218,27 +217,38 @@ impl LanguageServer for Backend<'static, 'static> {
                             .router
                             .at(params.text_document.uri.to_file_path().unwrap().to_str().unwrap())
                         {
-                            let typo_file: &Url = &params.text_document.uri;
-                            let config_files =
-                                value.config_files_in_project(Path::new(typo_file.as_str()));
+                            let config_files = value.config_files_in_project();
 
                             suggestions.push(CodeActionOrCommand::Command(Command {
                                 title: format!("Ignore `{}` in the project", typo),
-                                command: "ignore-in-project".to_string(),
+                                command: IGNORE_IN_PROJECT.to_string(),
                                 arguments: Some(
                                     [serde_json::to_value(IgnoreInProjectCommandArguments {
                                         typo: typo.to_string(),
-                                        typo_file_path: typo_file.to_string(),
                                         config_file_path: config_files
                                             .project_root
-                                            .path
                                             .to_string_lossy()
                                             .to_string(),
                                     })
-                                    .unwrap()]
-                                    .into(),
+                                        .unwrap()]
+                                        .into(),
                                 ),
                             }));
+
+                            if let Some(explicit_config) = &config_files.explicit {
+                                suggestions.push(CodeActionOrCommand::Command(Command {
+                                    title: format!("Ignore `{}` in the configuration file", typo),
+                                    command: IGNORE_IN_PROJECT.to_string(),
+                                    arguments: Some(
+                                        [serde_json::to_value(IgnoreInProjectCommandArguments {
+                                            typo: typo.to_string(),
+                                            config_file_path: explicit_config.to_string_lossy().to_string(),
+                                        })
+                                            .unwrap()]
+                                            .into(),
+                                    ),
+                                }));
+                            }
                         } else {
                             tracing::warn!(
                                 "code_action: Cannot create a code action for ignoring a typo in the project. Reason: No route found for file '{}'",
@@ -275,8 +285,7 @@ impl LanguageServer for Backend<'static, 'static> {
             to_string(&raw_params).unwrap_or_default()
         );
 
-        // TODO reduce the nesting
-        if raw_params.command == "ignore-in-project" {
+        if raw_params.command == IGNORE_IN_PROJECT {
             let argument = raw_params
                 .arguments
                 .into_iter()
@@ -289,21 +298,12 @@ impl LanguageServer for Backend<'static, 'static> {
                 ..
             }) = serde_json::from_value::<IgnoreInProjectCommandArguments>(argument)
             {
-                let mut config = typos_cli::config::Config::from_file(Path::new(&config_file_path))
-                    .ok()
-                    .flatten()
-                    .unwrap_or_default();
-
-                config.default.dict.update(&DictConfig {
-                    extend_words: HashMap::from([(typo.clone().into(), typo.into())]),
-                    ..Default::default()
-                });
-
-                std::fs::write(
-                    &config_file_path,
-                    toml::to_string_pretty(&config).expect("cannot serialize config"),
+                ignore_typo_action::ignore_typo_in_config_file(
+                    PathBuf::from(config_file_path),
+                    typo,
                 )
-                .unwrap_or_else(|_| panic!("Cannot write to {}", config_file_path));
+                .unwrap();
+                self.state.lock().unwrap().update_router().unwrap();
             };
         }
 

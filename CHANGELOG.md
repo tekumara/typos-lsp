@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.20](https://github.com/tekumara/typos-lsp/compare/v0.1.19...v0.1.20) (2024-07-01)
+
+
+### Chores
+
+* **deps-dev:** bump the vscode group with 9 updates ([#85](https://github.com/tekumara/typos-lsp/issues/85)) ([b47092a](https://github.com/tekumara/typos-lsp/commit/b47092a19e632433b134f615b6fd6bada225b3e9))
+* **deps:** bump the lsp group with 3 updates ([#84](https://github.com/tekumara/typos-lsp/issues/84)) ([d69f3c7](https://github.com/tekumara/typos-lsp/commit/d69f3c79d66cdbbab92824be6e1300ec8d7ced14))
+* **deps:** bump typos-cli from 1.22.7 to 1.22.9 ([#83](https://github.com/tekumara/typos-lsp/issues/83)) ([68136cb](https://github.com/tekumara/typos-lsp/commit/68136cb64fb56064520ee46591cb941b12ea769f))
+
 ## [0.1.19](https://github.com/tekumara/typos-lsp/compare/v0.1.18...v0.1.19) (2024-06-16)
 
 

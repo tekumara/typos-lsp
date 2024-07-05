@@ -1639,9 +1639,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.22.9"
+version = "1.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23041356b2b2eaeb85d0d84e5b344654d848a0d4dac0c427a2ee5a157d99ccb2"
+checksum = "d201a8402c5adea5d55a24fe32b51039dc6ee6ee885ba0bd9634a8ee0413b52c"
 dependencies = [
  "ahash",
  "anstream",
@@ -1850,9 +1850,9 @@ checksum = "830b7e5d4d90034032940e4ace0d9a9a057e7a45cd94e6c007832e39edb82f6d"
 
 [[package]]
 name = "varcon-core"
-version = "4.0.8"
+version = "4.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87fb94e2421908d0efb4d0acd3863a4af7d316430cf62342f63157aac63a0a14"
+checksum = "c49727d8ddf898b7976a4f97103dc50755d73d94693b36876ef03186edd60169"
 dependencies = [
  "enumflags2",
 ]

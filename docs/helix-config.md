@@ -9,8 +9,8 @@ command = "typos-lsp"
 # Logging level of the language server. Defaults to error.
 # Run with helix -v to output LSP logs to the editor log (:log-open)
 environment = {"RUST_LOG" = "error"}
-# Custom config. Used together with any workspace config files, taking precedence for
-# settings declared in both. Equivalent to the typos `--config` cli argument.
+# Custom config. Used together with a config file found in the workspace or its parents,
+# taking precedence for settings declared in both. Equivalent to the typos `--config` cli argument.
 config.config = "~/code/typos-lsp/crates/typos-lsp/tests/typos.toml"
 # How typos are rendered in the editor, can be one of an Error, Warning, Info or Hint.
 # Defaults to Warning.

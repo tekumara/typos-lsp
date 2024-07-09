@@ -14,7 +14,6 @@
 * **deps:** bump the lsp group with 3 updates ([#84](https://github.com/tekumara/typos-lsp/issues/84)) ([d69f3c7](https://github.com/tekumara/typos-lsp/commit/d69f3c79d66cdbbab92824be6e1300ec8d7ced14))
 * **deps:** bump typos-cli from 1.22.7 to 1.22.9 ([#83](https://github.com/tekumara/typos-lsp/issues/83)) ([68136cb](https://github.com/tekumara/typos-lsp/commit/68136cb64fb56064520ee46591cb941b12ea769f))
 * **deps:** bump typos-cli from 1.23.0 to 1.23.1 ([#88](https://github.com/tekumara/typos-lsp/issues/88)) ([64c6ec5](https://github.com/tekumara/typos-lsp/commit/64c6ec5f6ade75194212430fdc058d269752990a))
-* **main:** release 0.1.20 ([#86](https://github.com/tekumara/typos-lsp/issues/86)) ([ca37fa9](https://github.com/tekumara/typos-lsp/commit/ca37fa9f9182c0c35c2abe3f5c3ea20c09ff7703))
 
 ## [0.1.19](https://github.com/tekumara/typos-lsp/compare/v0.1.18...v0.1.19) (2024-06-16)
 

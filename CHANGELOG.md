@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.21](https://github.com/tekumara/typos-lsp/compare/v0.1.20...v0.1.21) (2024-07-13)
+
+
+### Bug Fixes
+
+* Error: Cannot find module 'vscode-languageclient/node' ([4838702](https://github.com/tekumara/typos-lsp/commit/4838702dcd8c86c9696c93cdd7157ac053c1fbc6)), closes [#92](https://github.com/tekumara/typos-lsp/issues/92)
+
+
+### Chores
+
+* **deps:** bump typos-cli from 1.23.1 to 1.23.2 ([#91](https://github.com/tekumara/typos-lsp/issues/91)) ([e176dd9](https://github.com/tekumara/typos-lsp/commit/e176dd94e6d75bdf05faec45b3c09c39edce3235))
+
 ## [0.1.20](https://github.com/tekumara/typos-lsp/compare/v0.1.19...v0.1.20) (2024-07-09)
 
 

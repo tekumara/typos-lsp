@@ -1,11 +1,23 @@
+mod config_file_location;
+mod config_file_suggestions;
+
 use std::path::Path;
 
 use bstr::ByteSlice;
+use config_file_location::ConfigFileLocation;
+use config_file_suggestions::ConfigFileSuggestions;
 use ignore::overrides::{Override, OverrideBuilder};
 use typos_cli::policy;
 pub struct Instance<'s> {
+    /// File path rules to ignore
     pub ignores: Override,
     pub engine: policy::ConfigEngine<'s>,
+
+    /// The path where the LSP server was started
+    pub project_root: ConfigFileLocation,
+
+    /// The explicit configuration file that was given to the LSP server at startup
+    pub explicit_config: Option<ConfigFileLocation>,
 }
 
 impl Instance<'_> {
@@ -20,13 +32,17 @@ impl Instance<'_> {
 
         // TODO: currently mimicking typos here but do we need to create and update
         // a default config?
+
         let mut c = typos_cli::config::Config::default();
-        if let Some(config_path) = config {
-            let custom = typos_cli::config::Config::from_file(config_path)?;
-            if let Some(custom) = custom {
-                c.update(&custom);
-                engine.set_overrides(c);
-            }
+        let explicit_config = config.map(ConfigFileLocation::from_file_path_or_default);
+
+        if let Some(ConfigFileLocation {
+            config: Some(ref config),
+            ..
+        }) = explicit_config
+        {
+            c.update(config);
+            engine.set_overrides(c);
         }
 
         // initialise an engine and overrides using the config file from path or its parent
@@ -46,9 +62,21 @@ impl Instance<'_> {
         let ignore = ignores.build()?;
 
         Ok(Instance {
+            explicit_config,
+            project_root: ConfigFileLocation::from_dir_or_default(path),
             ignores: ignore,
             engine,
         })
+    }
+
+    /// Returns the typos_cli configuration files that are relevant for the current project.
+    ///
+    /// <https://github.com/crate-ci/typos/blob/master/docs/reference.md>
+    pub fn config_files_in_project(&self) -> ConfigFileSuggestions {
+        ConfigFileSuggestions {
+            explicit: self.explicit_config.as_ref().map(|c| c.path.clone()),
+            project_root: self.project_root.path.to_path_buf(),
+        }
     }
 }
 

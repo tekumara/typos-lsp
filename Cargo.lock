@@ -277,12 +277,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "convert_case"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6245d59a3e82a7fc217c5828a6692dbc6dfb63a0c8c90495621f7b9d79704a0e"
-
-[[package]]
 name = "crossbeam-deque"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -357,15 +351,23 @@ dependencies = [
 
 [[package]]
 name = "derive_more"
-version = "0.99.18"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f33878137e4dafd7fa914ad4e259e18a4e8e532b9617a2d0150262bf53abfce"
+checksum = "4a9b99b9cbbe49445b21764dc0625032a89b145a2642e67603e1c936f5458d05"
 dependencies = [
- "convert_case",
+ "derive_more-impl",
+]
+
+[[package]]
+name = "derive_more-impl"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb7330aeadfbe296029522e6c40f315320aba36fc43a5b3632f3795348f3bd22"
+dependencies = [
  "proc-macro2",
  "quote",
- "rustc_version",
  "syn",
+ "unicode-xid",
 ]
 
 [[package]]
@@ -1148,15 +1150,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "719b953e2095829ee67db738b3bfa9fa368c94900df327b3f07fe6e794d2fe1f"
 
 [[package]]
-name = "rustc_version"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfa0f585226d2e68097d4f95d113b15b83a82e819ab25717ec0590d9584ef366"
-dependencies = [
- "semver",
-]
-
-[[package]]
 name = "ryu"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1176,12 +1169,6 @@ name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
-
-[[package]]
-name = "semver"
-version = "1.0.23"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
 
 [[package]]
 name = "serde"
@@ -1623,9 +1610,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.23.6"
+version = "1.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d12d55106c3053cdefa9ccee9fb2c85815ca01c31d613c8f24db5f2267242401"
+checksum = "cad49c6036dbcb5aaf8a0b985de3fd3c0bbfce485437746372f2f2b83cf5cc72"
 dependencies = [
  "ahash",
  "anstream",
@@ -1663,7 +1650,7 @@ dependencies = [
  "unicase",
  "unicode-segmentation",
  "unicode-width",
- "varcon-core",
+ "varcon-core 5.0.0",
 ]
 
 [[package]]
@@ -1710,7 +1697,7 @@ checksum = "68179685f9605310f607a95990ca8904b9191e1a552f1bfb78f07ecd200184d5"
 dependencies = [
  "dictgen",
  "unicase",
- "varcon-core",
+ "varcon-core 4.0.10",
 ]
 
 [[package]]
@@ -1840,6 +1827,12 @@ checksum = "928c8df52b8cef6a499f64f25885e5328393dab76e63d5b34186c2acf3f96d3e"
 dependencies = [
  "enumflags2",
 ]
+
+[[package]]
+name = "varcon-core"
+version = "5.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "166607b92c51e04ff4c0a51b78459b712aa222f0649c2b1e0ece2368b42953d0"
 
 [[package]]
 name = "version_check"

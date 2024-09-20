@@ -29,6 +29,6 @@ Additionally, you can configure it in Zed's settings with the following:
 }
 ```
 
-**WARNING**: When modifying your Typos configuration either in `typos.toml` or `Cargo.toml` you will need to reload the workspace to take them into account.
+**WARNING**: When modifying your Typos configuration either in `.typos.toml` or `Cargo.toml` you will need to reload the workspace to take them into account.
 
 You do not need to reload when editing Zed's `settings.json`.

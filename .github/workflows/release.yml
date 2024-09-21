@@ -31,6 +31,9 @@ jobs:
             target: x86_64-unknown-linux-gnu
             code-target: linux-x64
           - os: ubuntu-20.04
+            target: x86_64-unknown-linux-musl
+            code-target: linux-x64
+          - os: ubuntu-20.04
             target: aarch64-unknown-linux-gnu
             code-target: linux-arm64
           - os: ubuntu-20.04
@@ -56,15 +59,12 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
-      - name: Update apt repositories (linux)
-        if: matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'arm-unknown-linux-gnueabihf'
-        run: sudo apt-get update
       - name: Install GCC arm64 (linux)
         if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: sudo apt-get install gcc-aarch64-linux-gnu
+        run: sudo apt-get update && sudo apt-get install gcc-aarch64-linux-gnu
       - name: Install GCC armhf (linux)
         if: matrix.target == 'arm-unknown-linux-gnueabihf'
-        run: sudo apt-get install gcc-arm-linux-gnueabihf
+        run: sudo apt-get update && sudo apt-get install gcc-arm-linux-gnueabihf
       - run: cargo build --target ${{ matrix.target }} --release
       - run: npm ci
       - name: vsce package
@@ -92,6 +92,9 @@ jobs:
         with:
           name: ${{ matrix.target }}
           path: dist
+      - name: Start sshx session on failed manual attempt
+        if: ${{ failure() && (github.event_name == 'workflow_dispatch' || github.run_attempt > 1) }}
+        run: curl -sSf https://sshx.io/get | sh && sshx
 
   publish:
     runs-on: ubuntu-latest
@@ -121,6 +124,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/**/*
-      - name: Setup tmate session
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
+      - name: Start sshx session on failed manual attempt
+        if: ${{ failure() && (github.event_name == 'workflow_dispatch' || github.run_attempt > 1) }}
+        run: curl -sSf https://sshx.io/get | sh && sshx

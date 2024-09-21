@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.24](https://github.com/tekumara/typos-lsp/compare/v0.1.23...v0.1.24) (2024-09-21)
+
+
+### Chores
+
+* **deps:** bump typos-cli from 1.24.4 to 1.24.6 ([#111](https://github.com/tekumara/typos-lsp/issues/111)) ([7235ca1](https://github.com/tekumara/typos-lsp/commit/7235ca196268c2af08dd961c1530720280484952))
+
 ## [0.1.23](https://github.com/tekumara/typos-lsp/compare/v0.1.22...v0.1.23) (2024-09-04)
 
 

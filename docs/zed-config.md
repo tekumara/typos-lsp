@@ -1,4 +1,3 @@
-
 # Zed Settings
 
 The Typos extension can be configured through a `.typos.toml` configuration file, which reference can be found [here](https://github.com/crate-ci/typos/blob/master/docs/reference.md).

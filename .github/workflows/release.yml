@@ -68,6 +68,9 @@ jobs:
       - run: cargo build --target ${{ matrix.target }} --release
       - run: npm ci
       - name: vsce package
+        # don't make a musl vsix package, because we can only publish a single
+        # linux-x64 package
+        if: matrix.target != 'x86_64-unknown-linux-musl'
         # use bash on windows
         shell: bash
         run: |
@@ -78,12 +81,13 @@ jobs:
         shell: bash
         run: |
           ver=${GITHUB_REF/refs\/*\//}
-          archive="typos-lsp-$ver-${{ matrix.target }}"
+          archive="dist/typos-lsp-$ver-${{ matrix.target }}"
+          mkdir -p dist
 
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            7z a "dist/${archive}.zip" target/${{ matrix.target }}/release/typos-lsp.exe
+            7z a "${archive}.zip" target/${{ matrix.target }}/release/typos-lsp.exe
           else
-            tar czf "dist/${archive}.tar.gz" -C target/${{ matrix.target }}/release typos-lsp
+            tar czf "${archive}.tar.gz" -C target/${{ matrix.target }}/release typos-lsp
           fi
 
           ls -al dist/*

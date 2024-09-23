@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.26](https://github.com/tekumara/typos-lsp/compare/v0.1.24...v0.1.25) (2024-09-23)
+
+### Bug Fixes
+
+* fix: broken 0.1.24 and 0.1.25 builds + release musl binary ([d2aafdc](https://github.com/tekumara/typos-lsp/commit/d2aafdc))
+
+
 ## [0.1.25](https://github.com/tekumara/typos-lsp/compare/v0.1.24...v0.1.25) (2024-09-23)
 
 

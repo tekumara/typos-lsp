@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.25](https://github.com/tekumara/typos-lsp/compare/v0.1.24...v0.1.25) (2024-09-23)
+
+
+### Chores
+
+* cargo update ([6d7814f](https://github.com/tekumara/typos-lsp/commit/6d7814f09d4d60c58b6d067a8b0342947f482647))
+
 ## [0.1.24](https://github.com/tekumara/typos-lsp/compare/v0.1.23...v0.1.24) (2024-09-21)
 
 

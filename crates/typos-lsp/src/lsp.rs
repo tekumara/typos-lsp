@@ -1,3 +1,4 @@
+use ignore_typo_action::IGNORE_IN_PROJECT;
 use matchit::Match;
 
 use std::borrow::Cow;
@@ -18,9 +19,19 @@ pub struct Backend<'s, 'p> {
     default_policy: policy::Policy<'p, 'p, 'p>,
 }
 
+mod ignore_typo_action;
+
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct DiagnosticData<'c> {
     corrections: Vec<Cow<'c, str>>,
+    typo: Cow<'c, str>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct IgnoreInProjectCommandArguments {
+    typo: String,
+    /// The configuration file that should be modified to ignore the typo
+    config_file_path: String,
 }
 
 #[tower_lsp::async_trait]
@@ -97,6 +108,10 @@ impl LanguageServer for Backend<'static, 'static> {
                         resolve_provider: None,
                     },
                 )),
+                execute_command_provider: Some(ExecuteCommandOptions {
+                    commands: vec![IGNORE_IN_PROJECT.to_string()],
+                    work_done_progress_options: WorkDoneProgressOptions::default(),
+                }),
                 workspace: Some(WorkspaceServerCapabilities {
                     workspace_folders: Some(WorkspaceFoldersServerCapabilities {
                         supported: Some(true),
@@ -150,6 +165,8 @@ impl LanguageServer for Backend<'static, 'static> {
             .await;
     }
 
+    /// Called by the editor to request displaying a list of code actions and commands for a given
+    /// position in the current file.
     async fn code_action(
         &self,
         params: CodeActionParams,
@@ -163,10 +180,10 @@ impl LanguageServer for Backend<'static, 'static> {
             .filter(|diag| diag.source == Some("typos".to_string()))
             .flat_map(|diag| match &diag.data {
                 Some(data) => {
-                    if let Ok(DiagnosticData { corrections }) =
+                    if let Ok(DiagnosticData { corrections, typo }) =
                         serde_json::from_value::<DiagnosticData>(data.clone())
                     {
-                        corrections
+                        let mut suggestions: Vec<_> = corrections
                             .iter()
                             .map(|c| {
                                 CodeActionOrCommand::CodeAction(CodeAction {
@@ -191,7 +208,55 @@ impl LanguageServer for Backend<'static, 'static> {
                                     ..CodeAction::default()
                                 })
                             })
-                            .collect()
+                            .collect();
+
+                        if let Ok(Match { value, .. }) = self
+                            .state
+                            .lock()
+                            .unwrap()
+                            .router
+                            .at(params.text_document.uri.to_file_path().unwrap().to_str().unwrap())
+                        {
+                            let config_files = value.config_files_in_project();
+
+                            suggestions.push(CodeActionOrCommand::Command(Command {
+                                title: format!("Ignore `{}` in the project", typo),
+                                command: IGNORE_IN_PROJECT.to_string(),
+                                arguments: Some(
+                                    [serde_json::to_value(IgnoreInProjectCommandArguments {
+                                        typo: typo.to_string(),
+                                        config_file_path: config_files
+                                            .project_root
+                                            .to_string_lossy()
+                                            .to_string(),
+                                    })
+                                        .unwrap()]
+                                        .into(),
+                                ),
+                            }));
+
+                            if let Some(explicit_config) = &config_files.explicit {
+                                suggestions.push(CodeActionOrCommand::Command(Command {
+                                    title: format!("Ignore `{}` in the configuration file", typo),
+                                    command: IGNORE_IN_PROJECT.to_string(),
+                                    arguments: Some(
+                                        [serde_json::to_value(IgnoreInProjectCommandArguments {
+                                            typo: typo.to_string(),
+                                            config_file_path: explicit_config.to_string_lossy().to_string(),
+                                        })
+                                            .unwrap()]
+                                            .into(),
+                                    ),
+                                }));
+                            }
+                        } else {
+                            tracing::warn!(
+                                "code_action: Cannot create a code action for ignoring a typo in the project. Reason: No route found for file '{}'",
+                                params.text_document.uri
+                            );
+                        }
+
+                        suggestions
                     } else {
                         tracing::error!(
                             "Deserialization failed: received {:?} as diagnostic data",
@@ -208,6 +273,41 @@ impl LanguageServer for Backend<'static, 'static> {
             .collect::<Vec<_>>();
 
         Ok(Some(actions))
+    }
+
+    /// Called by the editor to execute a server side command, such as ignoring a typo.
+    async fn execute_command(
+        &self,
+        raw_params: ExecuteCommandParams,
+    ) -> jsonrpc::Result<Option<serde_json::Value>> {
+        tracing::debug!(
+            "execute_command: {:?}",
+            to_string(&raw_params).unwrap_or_default()
+        );
+
+        if raw_params.command == IGNORE_IN_PROJECT {
+            let argument = raw_params
+                .arguments
+                .into_iter()
+                .next()
+                .expect("no arguments for ignore-in-project command");
+
+            if let Ok(IgnoreInProjectCommandArguments {
+                typo,
+                config_file_path,
+                ..
+            }) = serde_json::from_value::<IgnoreInProjectCommandArguments>(argument)
+            {
+                ignore_typo_action::ignore_typo_in_config_file(
+                    PathBuf::from(config_file_path),
+                    typo,
+                )
+                .unwrap();
+                self.state.lock().unwrap().update_router().unwrap();
+            };
+        }
+
+        Ok(None)
     }
 
     async fn did_change_workspace_folders(&self, params: DidChangeWorkspaceFoldersParams) {
@@ -271,9 +371,10 @@ impl<'s, 'p> Backend<'s, 'p> {
                     },
                     // store corrections for retrieval during code_action
                     data: match typo.corrections {
-                        typos::Status::Corrections(corrections) => {
-                            Some(json!(DiagnosticData { corrections }))
-                        }
+                        typos::Status::Corrections(corrections) => Some(json!(DiagnosticData {
+                            corrections,
+                            typo: typo.typo
+                        })),
                         _ => None,
                     },
                     ..Diagnostic::default()

@@ -113,23 +113,23 @@
     "test": "cross-env TYPOS_LSP_PATH=$PWD/target/debug/typos-lsp node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@stylistic/eslint-plugin": "^2.7.2",
+    "@stylistic/eslint-plugin": "^2.8.0",
     "@types/glob": "^8.1.0",
-    "@types/mocha": "^10.0.7",
+    "@types/mocha": "^10.0.8",
     "@types/node": "22.x",
     "@types/vscode": "^1.84.0",
-    "@typescript-eslint/eslint-plugin": "^8.3.0",
-    "@typescript-eslint/parser": "^8.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.8.0",
+    "@typescript-eslint/parser": "^8.8.0",
     "@vscode/test-electron": "^2.4.1",
-    "@vscode/vsce": "^3.0.0",
+    "@vscode/vsce": "^3.1.1",
     "cross-env": "^7.0.3",
-    "esbuild": "^0.23.1",
-    "eslint": "^8.56.0",
+    "esbuild": "^0.24.0",
+    "eslint": "^8.57.1",
     "glob": "^11.0.0",
     "mocha": "^10.7.3",
-    "ovsx": "^0.9.2",
+    "ovsx": "^0.9.5",
     "prettier": "^3.3.3",
-    "typescript": "^5.5.4"
+    "typescript": "^5.6.2"
   },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.27](https://github.com/tekumara/typos-lsp/compare/v0.1.26...v0.1.27) (2024-10-03)
+
+
+### Features
+
+* typos 1.25.0 September 2024 dictionary ([#120](https://github.com/tekumara/typos-lsp/issues/120)) ([cfc1c3f](https://github.com/tekumara/typos-lsp/commit/cfc1c3ff613ebc4978455cb79a4e59ef7c72ddc0))
+* **vscode:** publish the x86_64 musl target ([1bde263](https://github.com/tekumara/typos-lsp/commit/1bde263145de2a7f69b9bdd5f840122c06127147)), closes [#112](https://github.com/tekumara/typos-lsp/issues/112)
+
+
+### Chores
+
+* **deps-dev:** bump the vscode group with 10 updates ([#118](https://github.com/tekumara/typos-lsp/issues/118)) ([3b09555](https://github.com/tekumara/typos-lsp/commit/3b0955597b3aafcdd3a11531172a18fbd4f232ea))
+* **deps:** bump the lsp group with 3 updates ([#119](https://github.com/tekumara/typos-lsp/issues/119)) ([949fe96](https://github.com/tekumara/typos-lsp/commit/949fe967360beb3e06823543362fcc2bc7449fe2))
+
 ## [0.1.26](https://github.com/tekumara/typos-lsp/compare/v0.1.24...v0.1.25) (2024-09-23)
 
 

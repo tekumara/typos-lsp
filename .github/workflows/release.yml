@@ -68,9 +68,9 @@ jobs:
       - run: cargo build --target ${{ matrix.target }} --release
       - run: npm ci
       - name: vsce package
-        # don't make a musl vsix package, because we can only publish a single
-        # linux-x64 package
-        if: matrix.target != 'x86_64-unknown-linux-musl'
+        # we can only publish a single linux-x64 package - so we skip the
+        # gnu target and package the musl target
+        if: matrix.target != 'x86_64-unknown-linux-gnu'
         # use bash on windows
         shell: bash
         run: |

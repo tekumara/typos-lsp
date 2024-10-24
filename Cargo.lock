@@ -1444,9 +1444,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.25.0"
+version = "1.26.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0423c35efcae98719c6e865aa51d107df9a445cc55b3783f5362e2ad8ad91f2c"
+checksum = "a107908a3a65f68ade20a06a64216eb008eda5b3ecbd194ba580497bfafcb6a0"
 dependencies = [
  "ahash",
  "anstream",
@@ -1613,9 +1613,9 @@ checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
 
 [[package]]
 name = "unicode-width"
-version = "0.1.14"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dd6e30e90baa6f72411720665d41d89b9a3d039dc45b8faea1ddd07f617f6af"
+checksum = "1fc81956842c57dac11422a97c3b8195a1ff727f06e85c84ed2e8aa277c9a0fd"
 
 [[package]]
 name = "unicode-xid"

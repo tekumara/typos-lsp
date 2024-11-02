@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.28](https://github.com/tekumara/typos-lsp/compare/v0.1.27...v0.1.28) (2024-11-02)
+
+
+### Features
+
+* typos-cli 1.27.0 October 2024 dictionary ([#129](https://github.com/tekumara/typos-lsp/issues/129)) ([10faf25](https://github.com/tekumara/typos-lsp/commit/10faf25be75eb6e7ecd9752675b7bde9aa405bf1))
+
+
+### Chores
+
+* **deps-dev:** bump the vscode group with 9 updates ([#127](https://github.com/tekumara/typos-lsp/issues/127)) ([f798802](https://github.com/tekumara/typos-lsp/commit/f79880289f8cc918d73ec27826d5f897a665ffdf))
+* **deps:** bump the lsp group with 6 updates ([#126](https://github.com/tekumara/typos-lsp/issues/126)) ([f3434b7](https://github.com/tekumara/typos-lsp/commit/f3434b718897d74f3e7bc3209f02ca6d712e6a3c))
+
 ## [0.1.27](https://github.com/tekumara/typos-lsp/compare/v0.1.26...v0.1.27) (2024-10-03)
 
 

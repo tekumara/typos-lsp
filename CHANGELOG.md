@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.29](https://github.com/tekumara/typos-lsp/compare/v0.1.28...v0.1.29) (2024-11-03)
+
+
+### Bug Fixes
+
+* use node v20 to fix broken release workflow ([869e53f](https://github.com/tekumara/typos-lsp/commit/869e53f073dc4d511e805d7fab005e8498022cd7))
+
 ## [0.1.28](https://github.com/tekumara/typos-lsp/compare/v0.1.27...v0.1.28) (2024-11-02)
 
 

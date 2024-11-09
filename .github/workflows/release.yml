@@ -81,8 +81,7 @@ jobs:
         # package the alpine-x64 target with the musl binary
         if: matrix.target == 'x86_64-unknown-linux-musl'
         shell: bash
-        run: |
-          npx vsce package -o dist/ --target alpine-x64
+        run: npx vsce package -o dist/ --target alpine-x64
       - name: Archive
         shell: bash
         run: |
@@ -136,6 +135,9 @@ jobs:
       - name: Upload to GH release
         uses: softprops/action-gh-release@v2
         with:
+          # unset the prerelease flag and make it the latest release
+          prerelease: false
+          make_latest: true
           files: dist/**/*
       - name: Start sshx session on failed manual attempt
         if: ${{ failure() && (github.event_name == 'workflow_dispatch' || github.run_attempt > 1) }}

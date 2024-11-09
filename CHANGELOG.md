@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.30](https://github.com/tekumara/typos-lsp/compare/v0.1.29...v0.1.30) (2024-11-09)
+
+
+### Features
+
+* publish vscode alpine-x64 package ([6088bc1](https://github.com/tekumara/typos-lsp/commit/6088bc16f18e9b42ea3e4d99b8f424a8165a8d12)), closes [#132](https://github.com/tekumara/typos-lsp/issues/132)
+
+
+### Chores
+
+* **deps:** bump typos-cli from 1.27.0 to 1.27.2 ([#131](https://github.com/tekumara/typos-lsp/issues/131)) ([11f549d](https://github.com/tekumara/typos-lsp/commit/11f549d2041dd77fbfe48ea2fd3f935e4bceaebe))
+
 ## [0.1.29](https://github.com/tekumara/typos-lsp/compare/v0.1.28...v0.1.29) (2024-11-03)
 
 

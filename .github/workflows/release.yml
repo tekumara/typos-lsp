@@ -77,6 +77,12 @@ jobs:
           mkdir -p bundled dist
           cp target/${{ matrix.target }}/release/typos-lsp* bundled/
           npx vsce package -o dist/ --target ${{ matrix.code-target }}
+      - name: vsce package for alpine
+        # package the alpine-x64 target with the musl binary
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        shell: bash
+        run: |
+          npx vsce package -o dist/ --target alpine-x64
       - name: Archive
         shell: bash
         run: |

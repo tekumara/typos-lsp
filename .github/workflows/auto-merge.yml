@@ -47,9 +47,8 @@ jobs:
             console.log(title);
 
             // Update the PR title
-            await github.pulls.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+            await github.rest.pulls.update({
+              ...context.repo,
               pull_number: prNumber,
               title: title
             });

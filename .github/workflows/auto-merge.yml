@@ -52,7 +52,7 @@ jobs:
           result-encoding: string
 
       - name: Enable auto-merge for Dependabot PRs
-        run: echo gh pr merge --auto --squash "$PR_URL" --body ""
+        run: gh pr merge --auto --squash "$PR_URL" --body ""
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GH_TOKEN: ${{secrets.GITHUB_TOKEN}}

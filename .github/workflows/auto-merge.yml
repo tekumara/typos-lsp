@@ -2,7 +2,6 @@ name: Dependabot Auto-merge
 on:
   pull_request:
     types: [opened]
-  push:
 
 permissions:
   contents: write
@@ -17,39 +16,44 @@ jobs:
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v2
 
-      - name: Extract merge subject
-        id: merge-subject
+      - name: Set PR title for typos-cli updates
+        if: contains(steps.dependabot-metadata.outputs.dependency-names, 'typos-cli')
         uses: actions/github-script@v7
         env:
-          DEPENDENCY_NAMES: ${{ steps.dependabot-metadata.outputs.dependency-names }}
+          NEW_VERSION: ${{ steps.dependabot-metadata.outputs.new-version }}
         with:
           script: |
             const prBody = context.payload.pull_request.body;
-            const prTitle = context.payload.pull_request.title;
-            const lines = prBody.split('\n');
-            const dependencyNames = process.env.DEPENDENCY_NAMES;
+            const prNumber = context.payload.pull_request.number;
+            const newVersion = process.env.NEW_VERSION;
 
-            let subject;
-            const regex = /(Updated the dictionary.*)/;
-            for (const line of lines) {
-              const match = line.match(regex);
+            // Find line with dictionary update, eg: "Updated the dictionary with the November 2024 changes"
+            let dict_date;
+            const dictionaryRegex = /(Updated the dictionary.*)/;
+            const dateRegex = /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}/;
+
+            for (const line of prBody.split('\n')) {
+              const match = line.match(dictionaryRegex);
               if (match) {
-                subject = `feat: ${match[1]}`;
+                const dateMatch = match[1].match(dateRegex);
+                dict_date = dateMatch ? dateMatch[0] : '';
                 break;
               }
             }
 
-            if (!subject && dependencyNames.includes('typos-cli')) {
-              throw new Error('Expected dictionary update in typos-cli PR but none found');
-            }
+            const title = `feat(typos): version ${newVersion}` + (dict_date ? ` - ${dict_date} dictionary update` : '');
+            console.log(title);
 
-            subject = subject || prTitle;
-            console.log('Merge subject:', subject);
-            return subject;
+            // Update the PR title
+            await github.rest.pulls.update({
+              ...context.repo,
+              pull_number: prNumber,
+              title: title
+            });
           result-encoding: string
 
       - name: Enable auto-merge for Dependabot PRs
-        run: echo gh pr merge --auto --squash "$PR_URL" --body "" --subject "${{ steps.merge-subject.outputs.result }}"
+        run: gh pr merge --auto --squash "$PR_URL" --body ""
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GH_TOKEN: ${{secrets.GITHUB_TOKEN}}

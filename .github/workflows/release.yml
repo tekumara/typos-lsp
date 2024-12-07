@@ -101,7 +101,7 @@ jobs:
         with:
           name: ${{ matrix.target }}
           path: dist
-      - name: Start sshx session on failed manual attempt
+      - name: Start sshx session on failed manual run or retry
         if: ${{ failure() && (github.event_name == 'workflow_dispatch' || github.run_attempt > 1) }}
         run: curl -sSf https://sshx.io/get | sh && sshx
 
@@ -139,6 +139,6 @@ jobs:
           prerelease: false
           make_latest: true
           files: dist/**/*
-      - name: Start sshx session on failed manual attempt
+      - name: Start sshx session on failed manual run or retry
         if: ${{ failure() && (github.event_name == 'workflow_dispatch' || github.run_attempt > 1) }}
         run: curl -sSf https://sshx.io/get | sh && sshx

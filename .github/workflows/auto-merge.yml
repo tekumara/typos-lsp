@@ -20,6 +20,7 @@ jobs:
         uses: actions/github-script@v7
         env:
           DEPENDENCY_NAMES: ${{ steps.dependabot-metadata.outputs.dependency-names }}
+          NEW_VERSION: ${{ steps.dependabot-metadata.outputs.new-version }}
         with:
           script: |
             function stripHtmlTags(str) {
@@ -30,19 +31,27 @@ jobs:
             const prTitle = context.payload.pull_request.title;
             const lines = prBody.split('\n');
             const dependencyNames = process.env.DEPENDENCY_NAMES;
+            const newVersion = process.env.NEW_VERSION;
 
             let subject;
-            const regex = /(Updated the dictionary.*)/;
-            for (const line of lines) {
-              const match = line.match(regex);
-              if (match) {
-                subject = `feat: ${stripHtmlTags(match[1].trim())}`;
-                break;
-              }
-            }
+            if (dependencyNames.includes('typos-cli')) {
+              const dictionaryRegex = /(Updated the dictionary.*)/;
+              const dateRegex = /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}/;
 
-            if (!subject && dependencyNames.includes('typos-cli')) {
-              throw new Error('Expected dictionary update in typos-cli PR but none found');
+              for (const line of lines) {
+                const match = line.match(dictionaryRegex);
+                if (match) {
+                  const strippedLine = stripHtmlTags(match[1]);
+                  const dateMatch = strippedLine.match(dateRegex);
+                  const date = dateMatch ? dateMatch[0] : '';
+                  subject = `feat: typos-cli ${newVersion} - ${date} dictionary update`;
+                  break;
+                }
+              }
+
+              if (!subject) {
+                throw new Error('Expected dictionary update in typos-cli PR but none found');
+              }
             }
 
             subject = subject || prTitle;

@@ -50,7 +50,7 @@ jobs:
             }
 
             subject = subject || prTitle;
-            console.log('Merge subject:', subject);
+            console.log(subject);
             return subject;
           result-encoding: string
 

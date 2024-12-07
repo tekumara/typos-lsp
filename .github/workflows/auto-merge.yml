@@ -1,6 +1,7 @@
 name: Dependabot Auto-merge
 on:
   pull_request:
+    types: [opened]
 
 permissions:
   contents: write
@@ -23,10 +24,7 @@ jobs:
         with:
           script: |
             const prBody = context.payload.pull_request.body;
-            const prTitle = context.payload.pull_request.title;
             const prNumber = context.payload.pull_request.number;
-            const lines = prBody.split('\n');
-            const dependencyNames = process.env.DEPENDENCY_NAMES;
             const newVersion = process.env.NEW_VERSION;
 
             // Find line with dictionary update, eg: "Updated the dictionary with the November 2024 changes"
@@ -34,7 +32,7 @@ jobs:
             const dictionaryRegex = /(Updated the dictionary.*)/;
             const dateRegex = /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}/;
 
-            for (const line of lines) {
+            for (const line of prBody.split('\n')) {
               const match = line.match(dictionaryRegex);
               if (match) {
                 const dateMatch = match[1].match(dateRegex);
@@ -43,20 +41,19 @@ jobs:
               }
             }
 
-            const title = `feat(typos): v${newVersion}` + (dict_date ? ` - ${dict_date}` : '');
+            const title = `feat(typos): version ${newVersion}` + (dict_date ? ` - ${dict_date} dictionary update` : '');
             console.log(title);
 
             // Update the PR title
-            await github.pulls.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+            await github.rest.pulls.update({
+              ...context.repo,
               pull_number: prNumber,
               title: title
             });
           result-encoding: string
 
       - name: Enable auto-merge for Dependabot PRs
-        run: echo gh pr merge --auto --squash "$PR_URL" --body ""
+        run: gh pr merge --auto --squash "$PR_URL" --body ""
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GH_TOKEN: ${{secrets.GITHUB_TOKEN}}

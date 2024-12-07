@@ -23,26 +23,13 @@ jobs:
         with:
           script: |
             const prBody = context.payload.pull_request.body;
-            const prTitle = context.payload.pull_request.title;
             const prNumber = context.payload.pull_request.number;
-            const lines = prBody.split('\n');
-            const dependencyNames = process.env.DEPENDENCY_NAMES;
             const newVersion = process.env.NEW_VERSION;
 
             // Find line with dictionary update, eg: "Updated the dictionary with the November 2024 changes"
             let dict_date;
             const dictionaryRegex = /(Updated the dictionary.*)/;
             const dateRegex = /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}/;
-
-            for (const line of lines) {
-              const match = line.match(dictionaryRegex);
-              if (match) {
-                const dateMatch = match[1].match(dateRegex);
-                dict_date = dateMatch ? dateMatch[0] : '';
-                break;
-              }
-            }
-
             const title = `feat(typos): v${newVersion}` + (dict_date ? ` - ${dict_date}` : '');
             console.log(title);
 

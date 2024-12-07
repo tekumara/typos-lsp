@@ -22,6 +22,10 @@ jobs:
           DEPENDENCY_NAMES: ${{ steps.dependabot-metadata.outputs.dependency-names }}
         with:
           script: |
+            function stripHtmlTags(str) {
+              return str.replace(/<[^>]*>/g, '');
+            }
+
             const prBody = context.payload.pull_request.body;
             const prTitle = context.payload.pull_request.title;
             const lines = prBody.split('\n');
@@ -32,7 +36,7 @@ jobs:
             for (const line of lines) {
               const match = line.match(regex);
               if (match) {
-                subject = `feat: ${match[1]}`;
+                subject = `feat: ${stripHtmlTags(match[1].trim())}`;
                 break;
               }
             }

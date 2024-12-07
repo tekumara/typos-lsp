@@ -30,7 +30,17 @@ jobs:
             let dict_date;
             const dictionaryRegex = /(Updated the dictionary.*)/;
             const dateRegex = /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}/;
-            const title = `feat(typos): v${newVersion}` + (dict_date ? ` - ${dict_date}` : '');
+
+            for (const line of prBody.split('\n')) {
+              const match = line.match(dictionaryRegex);
+              if (match) {
+                const dateMatch = match[1].match(dateRegex);
+                dict_date = dateMatch ? dateMatch[0] : '';
+                break;
+              }
+            }
+
+            const title = `feat(typos): v${newVersion}` + (dict_date ? ` - ${dict_date} dictionary update` : '');
             console.log(title);
 
             // Update the PR title

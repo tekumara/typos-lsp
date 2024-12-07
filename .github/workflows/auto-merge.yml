@@ -25,6 +25,7 @@ jobs:
           script: |
             const prBody = context.payload.pull_request.body;
             const prTitle = context.payload.pull_request.title;
+            const prNumber = context.payload.pull_request.number;
             const lines = prBody.split('\n');
             const dependencyNames = process.env.DEPENDENCY_NAMES;
             const newVersion = process.env.NEW_VERSION;
@@ -49,7 +50,7 @@ jobs:
               }
             }
 
-            subject = subject || prTitle;
+            subject = `${subject || prTitle} (${prNumber})`;
             console.log(subject);
             return subject;
           result-encoding: string

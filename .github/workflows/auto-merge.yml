@@ -40,7 +40,7 @@ jobs:
               }
             }
 
-            const title = `feat(typos): v${newVersion}` + (dict_date ? ` - ${dict_date} dictionary update` : '');
+            const title = `feat(typos): version ${newVersion}` + (dict_date ? ` - ${dict_date} dictionary update` : '');
             console.log(title);
 
             // Update the PR title

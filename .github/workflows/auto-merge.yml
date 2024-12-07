@@ -23,10 +23,6 @@ jobs:
           NEW_VERSION: ${{ steps.dependabot-metadata.outputs.new-version }}
         with:
           script: |
-            function stripHtmlTags(str) {
-              return str.replace(/<[^>]*>/g, '');
-            }
-
             const prBody = context.payload.pull_request.body;
             const prTitle = context.payload.pull_request.title;
             const lines = prBody.split('\n');
@@ -41,8 +37,7 @@ jobs:
               for (const line of lines) {
                 const match = line.match(dictionaryRegex);
                 if (match) {
-                  const strippedLine = stripHtmlTags(match[1]);
-                  const dateMatch = strippedLine.match(dateRegex);
+                  const dateMatch = match[1].match(dateRegex);
                   const date = dateMatch ? dateMatch[0] : '';
                   subject = `feat: typos-cli ${newVersion} - ${date} dictionary update`;
                   break;

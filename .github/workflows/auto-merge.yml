@@ -41,16 +41,15 @@ jobs:
               }
             }
 
+            // Set PR title with dictionary date (if any)
             const title = `feat(typos): version ${newVersion}` + (dict_date ? ` - ${dict_date} dictionary update` : '');
             console.log(title);
 
-            // Update the PR title
             await github.rest.pulls.update({
               ...context.repo,
               pull_number: prNumber,
               title: title
             });
-          result-encoding: string
 
       - name: Enable auto-merge for Dependabot PRs
         run: gh pr merge --auto --squash "$PR_URL" --body ""

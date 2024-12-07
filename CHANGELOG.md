@@ -37,7 +37,7 @@
 
 ### Features
 
-* **typos**: version 1.28.2 - November 2024 dictionary update ([#120](https://github.com/tekumara/typos-lsp/issues/120)) ([cfc1c3f](https://github.com/tekumara/typos-lsp/commit/cfc1c3ff613ebc4978455cb79a4e59ef7c72ddc0))
+* typos 1.25.0 September 2024 dictionary ([#120](https://github.com/tekumara/typos-lsp/issues/120)) ([cfc1c3f](https://github.com/tekumara/typos-lsp/commit/cfc1c3ff613ebc4978455cb79a4e59ef7c72ddc0))
 * **vscode:** publish the x86_64 musl target ([1bde263](https://github.com/tekumara/typos-lsp/commit/1bde263145de2a7f69b9bdd5f840122c06127147)), closes [#112](https://github.com/tekumara/typos-lsp/issues/112)
 
 

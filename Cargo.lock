@@ -184,9 +184,9 @@ dependencies = [
 
 [[package]]
 name = "clap-verbosity-flag"
-version = "2.2.1"
+version = "3.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63d19864d6b68464c59f7162c9914a0b569ddc2926b4a2d71afe62a9738eff53"
+checksum = "54381ae56ad222eea3f529c692879e9c65e07945ae48d3dc4d1cb18dbec8cf44"
 dependencies = [
  "clap",
  "log",
@@ -1435,9 +1435,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.28.2"
+version = "1.28.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "045d4704c942f9c6cc3cb7205a63db6bf08ecd6c8d01d9489695e935e97bcbc8"
+checksum = "e32a1439ff0a0452b15bf43f7dfe0af219ba93ac712149e83c73b2fe367e9f40"
 dependencies = [
  "ahash",
  "anstream",
@@ -1649,9 +1649,9 @@ checksum = "830b7e5d4d90034032940e4ace0d9a9a057e7a45cd94e6c007832e39edb82f6d"
 
 [[package]]
 name = "varcon-core"
-version = "5.0.0"
+version = "5.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "166607b92c51e04ff4c0a51b78459b712aa222f0649c2b1e0ece2368b42953d0"
+checksum = "4b3b47637975a88452543bbc9a3a4d4ae11e1e6dd3f02eaf759278a1f4154906"
 dependencies = [
  "enumflags2",
 ]

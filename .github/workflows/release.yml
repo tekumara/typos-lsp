@@ -36,6 +36,9 @@ jobs:
           - os: ubuntu-20.04
             target: aarch64-unknown-linux-gnu
             code-target: linux-arm64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            code-target: linux-arm64
           - os: ubuntu-20.04
             target: arm-unknown-linux-gnueabihf
             code-target: linux-armhf
@@ -65,6 +68,11 @@ jobs:
       - name: Install GCC armhf (linux)
         if: matrix.target == 'arm-unknown-linux-gnueabihf'
         run: sudo apt-get update && sudo apt-get install gcc-arm-linux-gnueabihf
+      - name: Install cross-compilation tools
+        with:
+          target: ${{ matrix.target }}
+        if: startsWith(matrix.os, 'ubuntu') && contains(matrix.target, '-musl')
+        uses: taiki-e/setup-cross-toolchain-action@v1
       - run: cargo build --target ${{ matrix.target }} --release
       - run: npm ci
       - name: vsce package

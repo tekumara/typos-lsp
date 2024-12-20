@@ -63,11 +63,8 @@ jobs:
           target: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
       - name: Install GCC arm64 (linux)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        if: startsWith(matrix.target, 'aarch64-unknown-linux')
         run: sudo apt-get update && sudo apt-get install gcc-aarch64-linux-gnu
-      - name: Install musl GCC (linux)
-        if: matrix.target == 'aarch64-unknown-linux-musl'
-        run: sudo apt-get update && sudo apt-get install musl-gcc
       - name: Install GCC armhf (linux)
         if: matrix.target == 'arm-unknown-linux-gnueabihf'
         run: sudo apt-get update && sudo apt-get install gcc-arm-linux-gnueabihf

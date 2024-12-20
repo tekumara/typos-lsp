@@ -5,8 +5,8 @@ linker = "aarch64-linux-gnu-gcc"
 ar = "aarch64-linux-gnu-ar"
 
 [target.aarch64-unknown-linux-musl]
-linker = "aarch64-linux-musl-gcc"
-ar = "aarch64-linux-musl-ar"
+linker = "aarch64-linux-gnu-gcc"
+ar = "aarch64-linux-gnu-ar"
 
 [target.arm-unknown-linux-gnueabihf]
 linker = "arm-linux-gnueabihf-gcc"

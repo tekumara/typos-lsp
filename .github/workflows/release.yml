@@ -37,6 +37,9 @@ jobs:
             target: aarch64-unknown-linux-gnu
             code-target: linux-arm64
           - os: ubuntu-20.04
+            target: aarch64-unknown-linux-musl
+            code-target: linux-arm64
+          - os: ubuntu-20.04
             target: arm-unknown-linux-gnueabihf
             code-target: linux-armhf
           - os: macos-latest
@@ -60,7 +63,7 @@ jobs:
           target: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
       - name: Install GCC arm64 (linux)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        if: startsWith(matrix.target, 'aarch64-unknown-linux')
         run: sudo apt-get update && sudo apt-get install gcc-aarch64-linux-gnu
       - name: Install GCC armhf (linux)
         if: matrix.target == 'arm-unknown-linux-gnueabihf'

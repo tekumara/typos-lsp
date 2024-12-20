@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.32](https://github.com/tekumara/typos-lsp/compare/v0.1.31...v0.1.32) (2024-12-20)
+
+
+### Features
+
+* **typos:** version 1.28.3 ([#143](https://github.com/tekumara/typos-lsp/issues/143)) ([084b00d](https://github.com/tekumara/typos-lsp/commit/084b00dd89f52aadebefb8fd94aeb342bfa14ba7))
+* **typos:** version 1.28.4 ([#144](https://github.com/tekumara/typos-lsp/issues/144)) ([4f3c534](https://github.com/tekumara/typos-lsp/commit/4f3c534b2cc91993dd11c317734edfd0c6d7579e))
+
+
+### Builds
+
+* **auto-merge:** simplify ([40b75b7](https://github.com/tekumara/typos-lsp/commit/40b75b7e19b0afce04e68a08a5c18dcfc6d70529))
+* **cargo:** remove deprecated ar field ([7d2cef0](https://github.com/tekumara/typos-lsp/commit/7d2cef0f5fcb35895bcf9d672778e5bbf9b70d24))
+* **release-please:** add ci section ([ec41340](https://github.com/tekumara/typos-lsp/commit/ec4134059f1c745c3e76f6509485a0f84087db1e))
+* **release:** add `aarch64-unknown-linux-musl` ([#146](https://github.com/tekumara/typos-lsp/issues/146)) ([7bf3266](https://github.com/tekumara/typos-lsp/commit/7bf326681d42f7d178bc25a64b90e92175952c1d))
+* **release:** use musl binary in linux-arm64 vsix ([5ccec8f](https://github.com/tekumara/typos-lsp/commit/5ccec8fc852fe0906940e722b8e9c8bfc885e317))
+
 ## [0.1.31](https://github.com/tekumara/typos-lsp/compare/v0.1.30...v0.1.31) (2024-12-07)
 
 

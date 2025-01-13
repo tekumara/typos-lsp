@@ -1,6 +1,6 @@
 # Neovim LSP Config
 
-Example config when using [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig/blob/master/doc/server_configurations.md#typos_lsp):
+Example config when using [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md#typos_lsp):
 
 ```lua
 require('lspconfig').typos_lsp.setup({

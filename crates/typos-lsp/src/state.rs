@@ -36,17 +36,62 @@ impl<'s> BackendState<'s> {
         Ok(())
     }
 
-    pub(crate) fn update_router(&mut self) -> anyhow::Result<(), anyhow::Error> {
-        self.router = Router::new();
+    /// Insert repositories into the router,
+    ///   but do not traverse further.
+    ///
+    /// For now, this only looks for git-repositories.
+    ///
+    /// TODO: Check for other repositories, e.g. mercurial.
+    fn update_repositories(
+        &self,
+        router: &mut Router<crate::typos::Instance<'s>>,
+        root: &Path,
+    ) -> anyhow::Result<()> {
+        if root.join(".git").try_exists()? {
+            // Found a directory or file `.git`:
+            // Insert it into the router and stop.
+            router.insert_instance(
+                &format!("{}/{{*p}}", str_path_sanitised(&root.display().to_string())),
+                root,
+                self.config.as_deref(),
+            )
+        } else {
+            // Otherwise: Traverse directories to find repositories.
+            root.read_dir()?.try_for_each(|dir_entry| {
+                let dir_entry = dir_entry?;
+                match dir_entry.file_type()?.is_dir() {
+                    true => self.update_repositories(router, &dir_entry.path()),
+                    false => Ok(()),
+                }
+            })
+        }
+    }
+
+    pub(crate) fn update_router(&mut self) -> anyhow::Result<()> {
+        let mut router = Router::new();
         for folder in self.workspace_folders.iter() {
             let path = folder
                 .uri
                 .to_file_path()
                 .map_err(|_| anyhow!("Cannot convert uri {} to file path", folder.uri))?;
-            let route = format!("{}{}", url_path_sanitised(&folder.uri), "/{*p}");
-            self.router
-                .insert_instance(&route, &path, self.config.as_deref())?;
+
+            // Look for repositories and insert them as config search paths.
+            // Log but otherwise ignore any error.
+            if let Err(error) = self.update_repositories(&mut router, &path) {
+                tracing::error!(
+                    "An error occurred while updating repositories {}: {error}",
+                    path.display()
+                );
+            }
+
+            // Finally insert the workspace directory as config search path:
+            router.insert_instance(
+                &format!("{}/{{*p}}", url_path_sanitised(&folder.uri)),
+                &path,
+                self.config.as_deref(),
+            )?;
         }
+        self.router = router;
 
         // add low priority catch all route used for files outside the workspace, or
         // when there is no workspace folder
@@ -96,11 +141,15 @@ impl RouterExt for Router<Instance<'_>> {
     }
 }
 
-pub fn url_path_sanitised(url: &Url) -> String {
+pub fn str_path_sanitised(path: &str) -> String {
     // windows paths (eg: /C:/Users/..) may not be percent-encoded by some clients
     // and therefore contain colons, see
     // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri
     //
     // and because matchit treats colons as a wildcard we need to strip them
-    url.path().replace(':', "%3A")
+    path.replace(':', "%3A")
+}
+
+pub fn url_path_sanitised(url: &Url) -> String {
+    str_path_sanitised(url.path())
 }

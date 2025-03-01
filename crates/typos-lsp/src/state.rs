@@ -13,7 +13,7 @@ pub(crate) struct BackendState<'s> {
     pub router: Router<crate::typos::Instance<'s>>,
 }
 
-impl<'s> BackendState<'s> {
+impl BackendState<'_> {
     pub(crate) fn set_workspace_folders(
         &mut self,
         workspace_folders: Vec<WorkspaceFolder>,

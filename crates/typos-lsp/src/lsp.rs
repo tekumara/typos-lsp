@@ -227,7 +227,7 @@ impl LanguageServer for Backend<'static, 'static> {
     }
 }
 
-impl<'s, 'p> Backend<'s, 'p> {
+impl<'s> Backend<'s, '_> {
     pub fn new(client: Client) -> Self {
         Self {
             client,

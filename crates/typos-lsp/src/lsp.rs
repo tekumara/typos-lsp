@@ -287,9 +287,9 @@ impl<'s, 'p> Backend<'s, 'p> {
         uri: &Url,
         state: &'a std::sync::MutexGuard<'a, BackendState<'s>>,
     ) -> Option<(
-        &typos::tokens::Tokenizer,
-        &dyn typos::Dictionary,
-        &[regex::Regex],
+        &'a typos::tokens::Tokenizer,
+        &'a dyn typos::Dictionary,
+        &'a [regex::Regex],
     )> {
         let (tokenizer, dict, ignore) = match uri.to_file_path() {
             Err(_) => {

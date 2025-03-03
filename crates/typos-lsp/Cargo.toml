@@ -14,7 +14,7 @@ bstr = "1.11"
 itertools = "0.14.0"
 env_logger = "0.11.6"
 typos = "0.10"
-typos-cli = "1.29"
+typos-cli = "1.30"
 serde = { version = "1.0", features = ["derive"] }
 ignore = "0.4.20"
 matchit = "0.8.6"

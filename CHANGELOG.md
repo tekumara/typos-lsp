@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.1.35](https://github.com/tekumara/typos-lsp/compare/v0.1.34...v0.1.35) (2025-03-01)
+
+
+### Features
+
+* **typos:** version 1.29.10 ([#163](https://github.com/tekumara/typos-lsp/issues/163)) ([91892ea](https://github.com/tekumara/typos-lsp/commit/91892ea795b6c9cdf086f46e83bef8e8f381b943))
+* **typos:** version 1.29.8 ([#161](https://github.com/tekumara/typos-lsp/issues/161)) ([49c82bc](https://github.com/tekumara/typos-lsp/commit/49c82bc626db9fbdae5f67dd4dc2ccb97b663959))
+* **typos:** version 1.29.9 ([#162](https://github.com/tekumara/typos-lsp/issues/162)) ([3949db9](https://github.com/tekumara/typos-lsp/commit/3949db91da07737acf1664fa3bec85c8986dbc0b))
+
+
+### Chores
+
+* **deps:** bump the lsp group with 5 updates ([#165](https://github.com/tekumara/typos-lsp/issues/165)) ([73a4586](https://github.com/tekumara/typos-lsp/commit/73a4586e7260ddc072ced86f5ac16b3d816ddc17))
+
+
+### Builds
+
+* **clippy:** fix warning: elided lifetime has a name ([9cc3bbd](https://github.com/tekumara/typos-lsp/commit/9cc3bbdbe013c8b94455ace9698d125bc61791e8))
+* **clippy:** fix warning: the following explicit lifetimes could be elided ([fa26ebe](https://github.com/tekumara/typos-lsp/commit/fa26ebeaa6d16d35ad01e7ea35d5de95b8bc74b2))
+
 ## [0.1.34](https://github.com/tekumara/typos-lsp/compare/v0.1.33...v0.1.34) (2025-02-14)
 
 

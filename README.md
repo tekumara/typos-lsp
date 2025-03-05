@@ -14,7 +14,7 @@
 - VSCodium: Install [Typos spell checker](https://open-vsx.org/extension/tekumara/typos-vscode) from the Open VSX Registry.
 - Neovim: Install `typos-lsp` using [mason](https://mason-registry.dev/registry/list#typos-lsp) or download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
 - Helix: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases) and place it on your PATH.
-- Zed: Install [Typos](https://zed.dev/extensions?q=typos) from Zed's extension marketplace.
+- Zed: Install [Typos](https://zed.dev/extensions?query=typos) from Zed's extension marketplace.
 - Other clients: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
 
 For configuration see:

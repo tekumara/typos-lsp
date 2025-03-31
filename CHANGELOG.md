@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.36](https://github.com/tekumara/typos-lsp/compare/v0.1.35...v0.1.36) (2025-03-31)
+
+
+### Features
+
+* **typos:** version 1.30.2 ([#171](https://github.com/tekumara/typos-lsp/issues/171)) ([7e6d11e](https://github.com/tekumara/typos-lsp/commit/7e6d11e5a6c376cf85467e9a0f931392d7954f7e))
+* **typos:** version 1.30.3 ([#172](https://github.com/tekumara/typos-lsp/issues/172)) ([325b214](https://github.com/tekumara/typos-lsp/commit/325b214c71b8c825425125348cf9ad7992b7d377))
+* **typos:** version 1.31.0 - March 2025 dictionary update ([#174](https://github.com/tekumara/typos-lsp/issues/174)) ([f069489](https://github.com/tekumara/typos-lsp/commit/f069489db16dad2ae76da198046e94d69eaa8da0))
+
+
+### Chores
+
+* **deps-dev:** bump eslint 9 ([1843565](https://github.com/tekumara/typos-lsp/commit/18435659b630b818f755a1c52f12c55fd303fb34))
+* **deps-dev:** bump the vscode group across 1 directory with 3 updates ([#176](https://github.com/tekumara/typos-lsp/issues/176)) ([563f2e7](https://github.com/tekumara/typos-lsp/commit/563f2e7fd4071bc4bd8ef46b050ade04d6704c29))
+* **deps:** bump the lsp group with 6 updates ([#177](https://github.com/tekumara/typos-lsp/issues/177)) ([d421b06](https://github.com/tekumara/typos-lsp/commit/d421b062dbd0d793f41a214b4950267bd295fad5))
+
 ## [0.1.35](https://github.com/tekumara/typos-lsp/compare/v0.1.34...v0.1.35) (2025-03-06)
 
 

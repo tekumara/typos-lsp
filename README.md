@@ -32,6 +32,12 @@ For homebrew users:
 brew install typos-lsp
 ```
 
+For [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) users:
+
+```
+cargo binstall --git https://github.com/cargo-bins/cargo-binstall typos-lsp
+```
+
 ### Via releases page
 
 Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).

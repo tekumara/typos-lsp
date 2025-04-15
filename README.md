@@ -35,7 +35,7 @@ brew install typos-lsp
 For [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) users:
 
 ```
-cargo binstall --git https://github.com/cargo-bins/cargo-binstall typos-lsp
+cargo binstall --git https://github.com/tekumara/typos-lsp typos-lsp
 ```
 
 ### Via releases page

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.37](https://github.com/tekumara/typos-lsp/compare/v0.1.36...v0.1.37) (2025-04-17)
+
+
+### Features
+
+* **typos:** version 1.31.1 ([#179](https://github.com/tekumara/typos-lsp/issues/179)) ([ade22c8](https://github.com/tekumara/typos-lsp/commit/ade22c8f2c13a9e33ee5eeb6ae209cebb2e34407))
+
+
+### Chores
+
+* **deps-dev:** bump the vscode group with 3 updates ([#178](https://github.com/tekumara/typos-lsp/issues/178)) ([0015a13](https://github.com/tekumara/typos-lsp/commit/0015a13674b800080543fa04449c08cddfff2618))
+
 ## [0.1.36](https://github.com/tekumara/typos-lsp/compare/v0.1.35...v0.1.36) (2025-03-31)
 
 

@@ -10,21 +10,12 @@
 
 ## Install
 
-- Vscode: Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
+- VS Code: Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
 - VSCodium: Install [Typos spell checker](https://open-vsx.org/extension/tekumara/typos-vscode) from the Open VSX Registry.
 - Neovim: Install `typos-lsp` using [mason](https://mason-registry.dev/registry/list#typos-lsp).
-- Helix: Install `typos-lsp` via [system package manager](#via-system-package-manager) or the [releases page](https://github.com/tekumara/typos-lsp/releases) and place it on your PATH.
 - Zed: Install [Typos](https://zed.dev/extensions?query=typos) from Zed's extension marketplace.
-- Other clients: Install `typos-lsp` via [system package manager](#via-system-package-manager) or the [releases page](https://github.com/tekumara/typos-lsp/releases).
 
-For configuration see:
-
-- [VS Code Settings](docs/vscode-settings.md)
-- [Neovim LSP config](docs/neovim-lsp-config.md)
-- [Helix config](docs/helix-config.md)
-- [Zed config](docs/zed-config.md)
-
-### Via system package manager
+### Other clients
 
 For homebrew users:
 
@@ -38,11 +29,18 @@ For [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) users:
 cargo binstall --git https://github.com/tekumara/typos-lsp typos-lsp
 ```
 
-### Via releases page
+Or manually download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
 
-Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
+## Configuration
 
-## Features
+For configuration see:
+
+- [VS Code Settings](docs/vscode-settings.md)
+- [Neovim LSP config](docs/neovim-lsp-config.md)
+- [Helix config](docs/helix-config.md)
+- [Zed config](docs/zed-config.md)
+
+# Features
 
 <!-- markdownlint-disable-file MD033 -->
 

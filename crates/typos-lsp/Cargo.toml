@@ -2,6 +2,7 @@
 name = "typos-lsp"
 version = "0.1.36"
 edition = "2021"
+repository = "https://github.com/tekumara/typos-lsp"
 
 [dependencies]
 tracing-subscriber = { version = "0.3.19", default-features = false, features = ["env-filter", "fmt", "smallvec", "std"] }

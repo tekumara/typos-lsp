@@ -1,6 +1,6 @@
 [package]
 name = "typos-lsp"
-version = "0.1.36"
+version = "0.1.37"
 edition = "2021"
 repository = "https://github.com/tekumara/typos-lsp"
 

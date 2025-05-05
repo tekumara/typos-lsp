@@ -3,7 +3,7 @@
   "displayName": "Typos spell checker",
   "description": "Low false-positive source code spell checker",
   "publisher": "tekumara",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "private": true,
   "icon": "images/typos.png",
   "repository": {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.38](https://github.com/tekumara/typos-lsp/compare/v0.1.37...v0.1.38) (2025-05-09)
+
+
+### Builds
+
+* fix release workflow by updating to the latest Ubuntu runner ([#189](https://github.com/tekumara/typos-lsp/issues/189)) ([7c0586c](https://github.com/tekumara/typos-lsp/commit/7c0586ccd5e1bfc19389259a3ec6f3024efdcf7c))
+
 ## [0.1.37](https://github.com/tekumara/typos-lsp/compare/v0.1.36...v0.1.37) (2025-05-05)
 
 

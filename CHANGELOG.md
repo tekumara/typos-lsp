@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.38](https://github.com/tekumara/typos-lsp/compare/v0.1.37...v0.1.38) (2025-06-03)
+
+
+### Features
+
+* **typos:** version 1.33.1 - May 2025 dictionary update ([#194](https://github.com/tekumara/typos-lsp/issues/194)) ([1a6d305](https://github.com/tekumara/typos-lsp/commit/1a6d30573d953fa02f3b8c5fb5cdded70e4563c7))
+
+
+### Chores
+
+* add FUNDING.yml ([9378b1f](https://github.com/tekumara/typos-lsp/commit/9378b1f9e0a9ca7f8d3cc3f7872c0811c6b19734))
+* **deps-dev:** bump the vscode group with 7 updates ([#193](https://github.com/tekumara/typos-lsp/issues/193)) ([9f4a2e3](https://github.com/tekumara/typos-lsp/commit/9f4a2e372cc5aad87a52a63993b8d33bcd67630a))
+* **deps:** bump tokio from 1.44.2 to 1.45.1 in the lsp group ([#192](https://github.com/tekumara/typos-lsp/issues/192)) ([bdc3662](https://github.com/tekumara/typos-lsp/commit/bdc3662164c020380feeaf5d02f661bf2abf0c33))
+
 ## [0.1.37](https://github.com/tekumara/typos-lsp/compare/v0.1.36...v0.1.37) (2025-05-05)
 
 

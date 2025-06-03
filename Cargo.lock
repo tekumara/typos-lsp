@@ -1800,9 +1800,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.32.0"
+version = "1.33.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89da6e1795d8744e62160fe2cae95aaaf87982f3b41d6aa585652f36ee92024b"
+checksum = "535d9a006c45efdc20be04b7e045c820ac81e1acf75cd64dcad56d46d00823ab"
 dependencies = [
  "ahash",
  "anstream",

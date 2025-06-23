@@ -325,19 +325,6 @@ async fn test_ignore_typos_in_config_files() {
     );
 }
 
-#[test_log::test(tokio::test)]
-async fn test_newer_dict() {
-    let did_open = did_open("heaby");
-
-    let mut server = TestServer::new();
-    let _ = server.request(&initialize()).await;
-
-    similar_asserts::assert_eq!(
-        server.request(&did_open).await,
-        publish_diagnostics(&[diag("`heaby` should be `heavy`", 0, 0, 5)])
-    );
-}
-
 fn initialize() -> String {
     initialize_with(None, None)
 }

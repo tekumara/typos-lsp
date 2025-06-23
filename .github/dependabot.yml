@@ -20,6 +20,7 @@ updates:
       interval: "daily"
     allow:
       - dependency-name: "typos-cli"
+      - dependency-name: "typos-dict"
   - package-ecosystem: "npm"
     directory: "/"
     schedule:

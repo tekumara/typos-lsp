@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.39](https://github.com/tekumara/typos-lsp/compare/v0.1.38...v0.1.39) (2025-06-23)
+
+
+### Chores
+
+* **deps:** bump to typos-dict 0.12.13 and include typos-dict in future upgrades ([#199](https://github.com/tekumara/typos-lsp/issues/199)) ([d5b4785](https://github.com/tekumara/typos-lsp/commit/d5b478546668ec27b76c42a14cd22b6b111a27c1))
+
 ## [0.1.38](https://github.com/tekumara/typos-lsp/compare/v0.1.37...v0.1.38) (2025-06-03)
 
 

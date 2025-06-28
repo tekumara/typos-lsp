@@ -255,9 +255,9 @@ async fn test_custom_config_no_workspace_folder() {
 #[test_log::test(tokio::test)]
 async fn test_non_file_uri() {
     // a Neovim toggleterm uri
-    let term = Url::from_str("term://~/code/typos-lsp//59317:/bin/zsh;#toggleterm#1").unwrap();
+    let uri = Url::from_str("term://~/code/typos-lsp//59317:/bin/zsh;#toggleterm#1").unwrap();
 
-    let did_open_diag_txt = did_open_with("apropriate", Some(&term));
+    let did_open_diag_txt = did_open_with("apropriate", Some(&uri));
 
     let mut server = TestServer::new();
     let _ = server.request(&initialize_with(None, None)).await;
@@ -266,7 +266,7 @@ async fn test_non_file_uri() {
         server.request(&did_open_diag_txt).await,
         publish_diagnostics_with(
             &[diag("`apropriate` should be `appropriate`", 0, 0, 10)],
-            Some(&term)
+            Some(&uri)
         )
     );
 }
@@ -274,9 +274,9 @@ async fn test_non_file_uri() {
 #[test_log::test(tokio::test)]
 async fn test_empty_file_uri() {
     // eg: when using nvim telescope
-    let term = Url::from_str("file:///").unwrap();
+    let uri = Url::from_str("file:///").unwrap();
 
-    let did_open_diag_txt = did_open_with("apropriate", Some(&term));
+    let did_open_diag_txt = did_open_with("apropriate", Some(&uri));
 
     let mut server = TestServer::new();
     let _ = server.request(&initialize_with(None, None)).await;
@@ -285,7 +285,7 @@ async fn test_empty_file_uri() {
         server.request(&did_open_diag_txt).await,
         publish_diagnostics_with(
             &[diag("`apropriate` should be `appropriate`", 0, 0, 10)],
-            Some(&term)
+            Some(&uri)
         )
     );
 }
@@ -312,16 +312,31 @@ async fn test_position_with_unicode_text() {
 
 #[test_log::test(tokio::test)]
 async fn test_ignore_typos_in_config_files() {
-    let term = Url::from_str("file:///C%3A/.typos.toml").unwrap();
+    let uri = Url::from_str("file:///C%3A/.typos.toml").unwrap();
 
-    let did_open = did_open_with("apropriate", Some(&term));
+    let did_open = did_open_with("apropriate", Some(&uri));
 
     let mut server = TestServer::new();
     let _ = server.request(&initialize_with(None, None)).await;
 
     similar_asserts::assert_eq!(
         server.request(&did_open).await,
-        publish_diagnostics_with(&[], Some(&term))
+        publish_diagnostics_with(&[], Some(&uri))
+    );
+}
+
+#[test_log::test(tokio::test)]
+async fn test_ignore_typos_in_lock_files() {
+    let uri = Url::from_str("file:///workspace/Cargo.lock").unwrap();
+
+    let did_open = did_open_with("apropriate", Some(&uri));
+
+    let mut server = TestServer::new();
+    let _ = server.request(&initialize_with(None, None)).await;
+
+    similar_asserts::assert_eq!(
+        server.request(&did_open).await,
+        publish_diagnostics_with(&[], Some(&uri))
     );
 }
 

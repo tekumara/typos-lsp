@@ -332,6 +332,15 @@ impl<'s> Backend<'s, '_> {
                             return None;
                         }
                         let policy = value.engine.policy(&path);
+                        // skip file types that are not checked
+                        // see https://github.com/crate-ci/typos/blob/fb1f64595962a79113c92d4879e6b3b2e8f524b4/crates/typos-cli/src/file_type_specifics.rs#L7
+                        if !policy.check_files {
+                            tracing::debug!(
+                                "workspace_policy: Ignoring {} because its file type is not checked.",
+                                uri
+                            );
+                            return None;
+                        }
                         (policy.tokenizer, policy.dict, policy.ignore)
                     }
                 };

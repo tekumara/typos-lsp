@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.40](https://github.com/tekumara/typos-lsp/compare/v0.1.39...v0.1.40) (2025-06-28)
+
+
+### Bug Fixes
+
+* do not check lock files ([6c0e472](https://github.com/tekumara/typos-lsp/commit/6c0e472dced1258ed0690970db552fd6b05fd319)), closes [#196](https://github.com/tekumara/typos-lsp/issues/196)
+
+
+### Chores
+
+* **deps-dev:** bump the vscode group with 9 updates ([#201](https://github.com/tekumara/typos-lsp/issues/201)) ([bb7be69](https://github.com/tekumara/typos-lsp/commit/bb7be69e2d83516115c0c265af48fc1b7fb0685f))
+* fix clippy warnings ([29cd868](https://github.com/tekumara/typos-lsp/commit/29cd8687fecf93129e1ba6947433c4340d990b40))
+
+
+### Builds
+
+* fix test_ignore_typos_in_lock_files for Windows ([20d0fd3](https://github.com/tekumara/typos-lsp/commit/20d0fd36f32c2863f584c40d96e772a18c69f30b))
+
 ## [0.1.39](https://github.com/tekumara/typos-lsp/compare/v0.1.38...v0.1.39) (2025-06-23)
 
 

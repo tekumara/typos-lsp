@@ -265,7 +265,7 @@ impl<'s> Backend<'s, '_> {
                         typos::Status::Corrections(corrections) => format!(
                             "`{}` should be {}",
                             typo.typo,
-                            itertools::join(corrections.iter().map(|s| format!("`{}`", s)), ", ")
+                            itertools::join(corrections.iter().map(|s| format!("`{s}`")), ", ")
                         ),
                         typos::Status::Valid => panic!("unexpected typos::Status::Valid"),
                     },

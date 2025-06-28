@@ -327,7 +327,7 @@ async fn test_ignore_typos_in_config_files() {
 
 #[test_log::test(tokio::test)]
 async fn test_ignore_typos_in_lock_files() {
-    let uri = Url::from_str("file:///workspace/Cargo.lock").unwrap();
+    let uri = Url::from_str("file:///C%3A/Cargo.lock").unwrap();
 
     let did_open = did_open_with("apropriate", Some(&uri));
 

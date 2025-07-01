@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.1.40](https://github.com/tekumara/typos-lsp/compare/v0.1.39...v0.1.40) (2025-07-01)
+
+
+### Features
+
+* **typos:** version 1.34.0 - June 2025 dictionary update ([#205](https://github.com/tekumara/typos-lsp/issues/205)) ([b024868](https://github.com/tekumara/typos-lsp/commit/b024868a24d999b2bee6758b0bfa1648da4dfce8))
+
+
+### Bug Fixes
+
+* do not check lock files ([6c0e472](https://github.com/tekumara/typos-lsp/commit/6c0e472dced1258ed0690970db552fd6b05fd319)), closes [#196](https://github.com/tekumara/typos-lsp/issues/196)
+
+
+### Chores
+
+* **deps-dev:** bump the vscode group with 7 updates ([#203](https://github.com/tekumara/typos-lsp/issues/203)) ([2a64057](https://github.com/tekumara/typos-lsp/commit/2a640571b54dbeb01cd76539e6f44f2d76271742))
+* **deps-dev:** bump the vscode group with 9 updates ([#201](https://github.com/tekumara/typos-lsp/issues/201)) ([bb7be69](https://github.com/tekumara/typos-lsp/commit/bb7be69e2d83516115c0c265af48fc1b7fb0685f))
+* **deps:** bump test-log from 0.2.17 to 0.2.18 in the lsp group ([#204](https://github.com/tekumara/typos-lsp/issues/204)) ([6970e34](https://github.com/tekumara/typos-lsp/commit/6970e34f0781ead6d27b65bfb0d0a4dffa428c1d))
+* **deps:** bump typos-dict from 0.12.13 to 0.12.14 ([#206](https://github.com/tekumara/typos-lsp/issues/206)) ([ab0d808](https://github.com/tekumara/typos-lsp/commit/ab0d8087d5a622745b9f7773731a68c299f20ce1))
+* fix clippy warnings ([29cd868](https://github.com/tekumara/typos-lsp/commit/29cd8687fecf93129e1ba6947433c4340d990b40))
+
+
+### Builds
+
+* fix test_ignore_typos_in_lock_files for Windows ([20d0fd3](https://github.com/tekumara/typos-lsp/commit/20d0fd36f32c2863f584c40d96e772a18c69f30b))
+* run auto-merge + ci in merge queue ([fa15cc5](https://github.com/tekumara/typos-lsp/commit/fa15cc5e9bc4cb0ce8056269546640cdc5d66e75))
+
 ## [0.1.39](https://github.com/tekumara/typos-lsp/compare/v0.1.38...v0.1.39) (2025-06-23)
 
 

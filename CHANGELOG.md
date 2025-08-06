@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.41](https://github.com/tekumara/typos-lsp/compare/v0.1.40...v0.1.41) (2025-08-05)
+
+
+### Features
+
+* **typos:** version 1.35.1 - July 2025 dictionary update ([#211](https://github.com/tekumara/typos-lsp/issues/211)) ([b8fedb3](https://github.com/tekumara/typos-lsp/commit/b8fedb3e509f4bd26703987097595e7dfb5cd286))
+
+
+### Chores
+
+* **deps:** bump the lsp group with 2 updates ([#210](https://github.com/tekumara/typos-lsp/issues/210)) ([99e3dcd](https://github.com/tekumara/typos-lsp/commit/99e3dcd546a445805662b159b8328e168e94ec8f))
+* **deps:** bump typos-dict from 0.12.14 to 0.12.16 ([#212](https://github.com/tekumara/typos-lsp/issues/212)) ([e0351d8](https://github.com/tekumara/typos-lsp/commit/e0351d8b8b6f28c13e843bb483750cdc9e564177))
+
 ## [0.1.40](https://github.com/tekumara/typos-lsp/compare/v0.1.39...v0.1.40) (2025-07-01)
 
 

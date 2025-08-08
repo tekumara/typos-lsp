@@ -378,23 +378,12 @@ dependencies = [
 
 [[package]]
 name = "dictgen"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "403c7a03ab0f344e8134306bf5cfc923c0a19befee14c4bac531cabbbb18ae48"
-dependencies = [
- "phf 0.11.3",
- "phf_shared 0.11.3",
- "unicase",
-]
-
-[[package]]
-name = "dictgen"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fd41585424ce72151333d5bdd9a9fa80d54f1a9603501557f236730606df13d"
 dependencies = [
- "phf 0.12.1",
- "phf_shared 0.12.1",
+ "phf",
+ "phf_shared",
  "unicase",
 ]
 
@@ -1060,33 +1049,13 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
 name = "phf"
-version = "0.11.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fd6780a80ae0c52cc120a26a1a42c1ae51b247a253e4e06113d23d2c2edd078"
-dependencies = [
- "phf_macros 0.11.3",
- "phf_shared 0.11.3",
-]
-
-[[package]]
-name = "phf"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "913273894cec178f401a31ec4b656318d95473527be05c0752cc41cdc32be8b7"
 dependencies = [
- "phf_macros 0.12.1",
- "phf_shared 0.12.1",
+ "phf_macros",
+ "phf_shared",
  "serde",
-]
-
-[[package]]
-name = "phf_generator"
-version = "0.11.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c80231409c20246a13fddb31776fb942c38553c51e871f8cbd687a4cfb5843d"
-dependencies = [
- "phf_shared 0.11.3",
- "rand",
 ]
 
 [[package]]
@@ -1096,21 +1065,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2cbb1126afed61dd6368748dae63b1ee7dc480191c6262a3b4ff1e29d86a6c5b"
 dependencies = [
  "fastrand",
- "phf_shared 0.12.1",
-]
-
-[[package]]
-name = "phf_macros"
-version = "0.11.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f84ac04429c13a7ff43785d75ad27569f2951ce0ffd30a3321230db2fc727216"
-dependencies = [
- "phf_generator 0.11.3",
- "phf_shared 0.11.3",
- "proc-macro2",
- "quote",
- "syn 2.0.96",
- "unicase",
+ "phf_shared",
 ]
 
 [[package]]
@@ -1119,21 +1074,11 @@ version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d713258393a82f091ead52047ca779d37e5766226d009de21696c4e667044368"
 dependencies = [
- "phf_generator 0.12.1",
- "phf_shared 0.12.1",
+ "phf_generator",
+ "phf_shared",
  "proc-macro2",
  "quote",
  "syn 2.0.96",
- "unicase",
-]
-
-[[package]]
-name = "phf_shared"
-version = "0.11.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67eabc2ef2a60eb7faa00097bd1ffdb5bd28e62bf39990626a582201b7a754e5"
-dependencies = [
- "siphasher",
  "unicase",
 ]
 
@@ -1212,21 +1157,6 @@ checksum = "0e4dccaaaf89514f546c693ddc140f729f958c247918a13380cccc6078391acc"
 dependencies = [
  "proc-macro2",
 ]
-
-[[package]]
-name = "rand"
-version = "0.8.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404"
-dependencies = [
- "rand_core",
-]
-
-[[package]]
-name = "rand_core"
-version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 
 [[package]]
 name = "redox_syscall"
@@ -1927,7 +1857,7 @@ dependencies = [
  "toml",
  "typed-arena",
  "typos",
- "typos-dict 0.13.0",
+ "typos-dict",
  "typos-vars",
  "unic-emoji-char",
  "unicase",
@@ -1938,22 +1868,12 @@ dependencies = [
 
 [[package]]
 name = "typos-dict"
-version = "0.12.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fb74780bd464b9484334ee8e4b92d5905105575ae1efcb15e401d1045ab7172"
-dependencies = [
- "dictgen 0.3.1",
- "phf 0.11.3",
-]
-
-[[package]]
-name = "typos-dict"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af4923ffaac09fc2178edd1ccb2c33c6e4a1d2fd9c8ab95cd73002f114e521d0"
 dependencies = [
- "dictgen 0.4.0",
- "phf 0.12.1",
+ "dictgen",
+ "phf",
 ]
 
 [[package]]
@@ -1980,7 +1900,7 @@ dependencies = [
  "tracing-subscriber",
  "typos",
  "typos-cli",
- "typos-dict 0.12.16",
+ "typos-dict",
 ]
 
 [[package]]
@@ -1989,7 +1909,7 @@ version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e935f7f04212070163da0ae59f52cf8f808a0cb0be6d76578c1ace5f038f3950"
 dependencies = [
- "dictgen 0.4.0",
+ "dictgen",
  "varcon-core",
 ]
 

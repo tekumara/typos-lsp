@@ -29,6 +29,12 @@ For [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) users:
 cargo binstall --git https://github.com/tekumara/typos-lsp typos-lsp
 ```
 
+For Linux users (via Cargo):
+
+```sh
+cargo install --git https://github.com/tekumara/typos-lsp typos-lsp
+```
+
 Or manually download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
 
 ## Configuration

@@ -512,7 +512,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "778e2ac28f6c47af28e4907f13ffd1e1ddbd400980a9abd7c8df189bf578a5ad"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -1242,7 +1242,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.59.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -1856,9 +1856,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.36.1"
+version = "1.36.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9f3efc80ac2b3bab53c5937d145039869e4e542974acb7b3a115346945ba838"
+checksum = "f3d065695339954bb7d01e2ff944f644e796c529b319bfae939dc48f14110d53"
 dependencies = [
  "ahash",
  "annotate-snippets",

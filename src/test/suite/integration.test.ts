@@ -14,13 +14,13 @@ suite("VS Code Integration Tests", async () => {
       {
         message: "`apropriate` should be `appropriate`",
         range: toRange(0, 11, 0, 21),
-        severity: vscode.DiagnosticSeverity.Warning,
+        severity: vscode.DiagnosticSeverity.Information,
         source: "ex",
       },
       {
         message: "`fo` should be `of`, `for`, `do`, `go`, `to`",
         range: toRange(1, 0, 1, 2),
-        severity: vscode.DiagnosticSeverity.Warning,
+        severity: vscode.DiagnosticSeverity.Information,
         source: "ex",
       },
     ]);

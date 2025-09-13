@@ -67,9 +67,6 @@ impl LanguageServer for Backend<'static, 'static> {
                         }
                     }
                 }
-                if state.severity.is_none() {
-                    state.severity = Some(DiagnosticSeverity::INFORMATION);
-                }
                 if let Some(value) = values.get("config").cloned() {
                     if let Some(value) = value.as_str() {
                         let expanded_path = PathBuf::from(shellexpand::tilde(value).to_string());
@@ -77,6 +74,10 @@ impl LanguageServer for Backend<'static, 'static> {
                     }
                 }
             }
+        }
+
+        if state.severity.is_none() {
+            state.severity = Some(DiagnosticSeverity::INFORMATION);
         }
 
         if let Err(e) = state.set_workspace_folders(params.workspace_folders.unwrap_or_default()) {

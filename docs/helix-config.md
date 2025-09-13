@@ -5,7 +5,6 @@ In your [languages.toml](https://docs.helix-editor.com/languages.html) file conf
 ```toml
 [language-server.typos]
 # typos-lsp must be on your PATH, or otherwise change this to an absolute path to typos-lsp
-# If empty the bundled binary will be used.
 command = "typos-lsp"
 # Logging level of the language server. Defaults to error.
 # Run with helix -v to output LSP logs to the editor log (:log-open)

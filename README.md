@@ -10,9 +10,10 @@
 
 ## Install
 
+- Neovim: Install using [mason](https://mason-registry.dev/registry/list#typos-lsp).
+- Vim: See [Vim - Install](docs/vim-lsp-settings.md#install) to install using [vim-lsp-settings](https://github.com/mattn/vim-lsp-settings)
 - VS Code: Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
 - VSCodium: Install [Typos spell checker](https://open-vsx.org/extension/tekumara/typos-vscode) from the Open VSX Registry.
-- Neovim: Install `typos-lsp` using [mason](https://mason-registry.dev/registry/list#typos-lsp).
 - Zed: Install [Typos](https://zed.dev/extensions?query=typos) from Zed's extension marketplace.
 
 ### Other clients
@@ -41,9 +42,10 @@ Or manually download `typos-lsp` from the [releases page](https://github.com/tek
 
 For configuration see:
 
-- [VS Code Settings](docs/vscode-settings.md)
-- [Neovim LSP config](docs/neovim-lsp-config.md)
 - [Helix config](docs/helix-config.md)
+- [Neovim LSP config](docs/neovim-lsp-config.md)
+- [VS Code Settings](docs/vscode-settings.md)
+- [Vim LSP settings](docs/vim-lsp-settings.md)
 - [Zed config](docs/zed-config.md)
 
 ## Features

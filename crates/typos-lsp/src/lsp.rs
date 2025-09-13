@@ -84,6 +84,10 @@ impl LanguageServer for Backend<'static, 'static> {
             tracing::warn!("Falling back to default config: {}", e);
         }
 
+        if state.workspace_folders.is_empty() {
+            tracing::warn!("Initialised without workspaces folders");
+        }
+
         Ok(InitializeResult {
             capabilities: ServerCapabilities {
                 // only support UTF-16 positions for now, which is the default when unspecified

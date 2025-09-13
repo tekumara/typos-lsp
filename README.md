@@ -46,7 +46,7 @@ For configuration see:
 - [Helix config](docs/helix-config.md)
 - [Zed config](docs/zed-config.md)
 
-# Features
+## Features
 
 <!-- markdownlint-disable-file MD033 -->
 
@@ -69,10 +69,11 @@ Supports [config fields](https://github.com/crate-ci/typos/blob/master/docs/refe
 
 Config files will be read from the workspace folder or its parents. If there is no workspace folder, then no config file will be read and the typos defaults will be used.
 
+Restart the server after changing the config file for the new changes to take affect.
+
 ## Caveats
 
 - File names are not spell checked.
-- Server must be restarted after changing the config files (ie: typos.toml).
 
 ## Why aren't my misspellings being corrected?
 

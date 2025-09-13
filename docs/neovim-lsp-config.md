@@ -12,8 +12,8 @@ require('lspconfig').typos_lsp.setup({
         -- Equivalent to the typos `--config` cli argument.
         config = '~/code/typos-lsp/crates/typos-lsp/tests/typos.toml',
         -- How typos are rendered in the editor, can be one of an Error, Warning, Info or Hint.
-        -- Defaults to error.
-        diagnosticSeverity = "Error"
+        -- Defaults to Info.
+        diagnosticSeverity = "Info"
     }
 })
 

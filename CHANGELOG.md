@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.44](https://github.com/tekumara/typos-lsp/compare/v0.1.43...v0.1.44) (2025-09-13)
+
+
+### Features
+
+* set default diagnositic severity to Info ([4f9606b](https://github.com/tekumara/typos-lsp/commit/4f9606b70df74a6c9a3f580eff2487c656c0f349)), closes [#234](https://github.com/tekumara/typos-lsp/issues/234)
+
+
+### Bug Fixes
+
+* set default severity when provided no init params ([a05072f](https://github.com/tekumara/typos-lsp/commit/a05072fd36aadf2f4ab3fef5852bdd657f3248b1))
+
 ## [0.1.43](https://github.com/tekumara/typos-lsp/compare/v0.1.42...v0.1.43) (2025-09-05)
 
 

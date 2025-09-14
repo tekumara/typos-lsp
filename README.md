@@ -75,7 +75,8 @@ Restart the server after changing the config file for the new changes to take af
 
 ## Caveats
 
-Unlike `typos` file names are not spell checked.
+1. Unlike `typos` file names are not spell checked.
+1. Doesn't spell check toggleterm.nvim terminals see [toggleterm.nvim#653](https://github.com/akinsho/toggleterm.nvim/issues/653)
 
 ## Why aren't my misspellings being corrected?
 

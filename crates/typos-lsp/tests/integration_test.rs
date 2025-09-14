@@ -174,7 +174,7 @@ async fn test_config_file() {
 
     let mut server = TestServer::new();
     let _ = server
-        .request(&initialize_with(Some(&workspace_folder_uri), None))
+        .request(&initialize_with(Some(&workspace_folder_uri), None, None))
         .await;
 
     // check "fo" is corrected to "of" because of default.extend-words
@@ -214,6 +214,7 @@ async fn test_custom_config_file() {
         .request(&initialize_with(
             Some(&workspace_folder_uri),
             Some(&custom_config),
+            None,
         ))
         .await;
 
@@ -241,7 +242,7 @@ async fn test_custom_config_no_workspace_folder() {
 
     let mut server = TestServer::new();
     let _ = server
-        .request(&initialize_with(None, Some(&custom_config)))
+        .request(&initialize_with(None, Some(&custom_config), None))
         .await;
 
     // check "fo" is corrected to "go" because of default.extend-words
@@ -260,7 +261,7 @@ async fn test_non_file_uri() {
     let did_open_diag_txt = did_open_with("apropriate", Some(&uri));
 
     let mut server = TestServer::new();
-    let _ = server.request(&initialize_with(None, None)).await;
+    let _ = server.request(&initialize()).await;
 
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
@@ -279,7 +280,7 @@ async fn test_empty_file_uri() {
     let did_open_diag_txt = did_open_with("apropriate", Some(&uri));
 
     let mut server = TestServer::new();
-    let _ = server.request(&initialize_with(None, None)).await;
+    let _ = server.request(&initialize()).await;
 
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
@@ -317,7 +318,7 @@ async fn test_ignore_typos_in_config_files() {
     let did_open = did_open_with("apropriate", Some(&uri));
 
     let mut server = TestServer::new();
-    let _ = server.request(&initialize_with(None, None)).await;
+    let _ = server.request(&initialize()).await;
 
     similar_asserts::assert_eq!(
         server.request(&did_open).await,
@@ -332,7 +333,7 @@ async fn test_ignore_typos_in_lock_files() {
     let did_open = did_open_with("apropriate", Some(&uri));
 
     let mut server = TestServer::new();
-    let _ = server.request(&initialize_with(None, None)).await;
+    let _ = server.request(&initialize()).await;
 
     similar_asserts::assert_eq!(
         server.request(&did_open).await,
@@ -340,19 +341,42 @@ async fn test_ignore_typos_in_lock_files() {
     );
 }
 
-fn initialize() -> String {
-    initialize_with(None, None)
+#[test_log::test(tokio::test)]
+async fn test_custom_severity() {
+    let did_open = did_open("this is an apropriate test");
+
+    let mut server = TestServer::new();
+    let _ = server
+        .request(&initialize_with(None, None, Some("Warning")))
+        .await;
+
+    similar_asserts::assert_eq!(
+        server.request(&did_open).await,
+        publish_diagnostics(&[diag_with_severity(
+            "`apropriate` should be `appropriate`",
+            0,
+            11,
+            21,
+            2
+        )])
+    );
 }
 
-fn initialize_with(workspace_folder_uri: Option<&Url>, custom_config: Option<&PathBuf>) -> String {
+fn initialize() -> String {
+    initialize_with(None, None, None)
+}
+
+fn initialize_with(
+    workspace_folder_uri: Option<&Url>,
+    custom_config: Option<&PathBuf>,
+    severity: Option<&str>,
+) -> String {
     let mut v = json!(
     {
       "jsonrpc": "2.0",
       "method": "initialize",
       "params": {
-        "initializationOptions": {
-          "diagnosticSeverity": "Warning"
-        },
+        "initializationOptions": {},
         "capabilities": {
           "textDocument": { "publishDiagnostics": { "dataSupport": true } }
         }
@@ -366,6 +390,10 @@ fn initialize_with(workspace_folder_uri: Option<&Url>, custom_config: Option<&Pa
 
     if let Some(config) = custom_config {
         v["params"]["initializationOptions"]["config"] = json!(config);
+    }
+
+    if let Some(severity) = severity {
+        v["params"]["initializationOptions"]["diagnosticSeverity"] = json!(severity);
     }
 
     v.to_string()
@@ -393,6 +421,10 @@ fn did_open_with(text: &str, uri: Option<&Url>) -> String {
 }
 
 fn diag(message: &str, line: u32, start: u32, end: u32) -> Value {
+    diag_with_severity(message, line, start, end, 3)
+}
+
+fn diag_with_severity(message: &str, line: u32, start: u32, end: u32, severity: u32) -> Value {
     static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"`[^`]+` should be (.*)").unwrap());
 
     let caps = RE.captures(message).unwrap();
@@ -403,7 +435,7 @@ fn diag(message: &str, line: u32, start: u32, end: u32) -> Value {
       "data": { "corrections": corrections },
       "message": message,
       "range": range(line,start,end),
-      "severity": 2,
+      "severity": severity,
       "source": "typos"
     })
 }

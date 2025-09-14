@@ -253,7 +253,9 @@ async fn test_custom_config_no_workspace_folder() {
     );
 }
 
+// TODO: disabled because of https://github.com/akinsho/toggleterm.nvim/issues/653
 #[test_log::test(tokio::test)]
+#[ignore]
 async fn test_non_file_uri() {
     // a Neovim toggleterm uri
     let uri = Uri::from_str("term://~/code/typos-lsp//59317:/bin/zsh;#toggleterm#1").unwrap();

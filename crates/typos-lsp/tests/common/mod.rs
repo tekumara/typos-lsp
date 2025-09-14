@@ -1,5 +1,5 @@
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tower_lsp::{LspService, Server};
+use tower_lsp_server::{LspService, Server};
 
 pub struct TestServer {
     req_client: tokio::io::DuplexStream,

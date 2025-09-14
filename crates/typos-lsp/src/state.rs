@@ -1,7 +1,8 @@
 use anyhow::anyhow;
 use matchit::Router;
 use std::path::{Path, PathBuf};
-use tower_lsp::lsp_types::{DiagnosticSeverity, Url, WorkspaceFolder};
+use tower_lsp_server::lsp_types::{DiagnosticSeverity, Uri, WorkspaceFolder};
+use tower_lsp_server::UriExt;
 
 use crate::typos::Instance;
 
@@ -42,8 +43,8 @@ impl BackendState<'_> {
             let path = folder
                 .uri
                 .to_file_path()
-                .map_err(|_| anyhow!("Cannot convert uri {} to file path", folder.uri))?;
-            let route = format!("{}{}", url_path_sanitised(&folder.uri), "/{*p}");
+                .ok_or_else(|| anyhow!("Cannot convert uri {:?} to file path", folder.uri))?;
+            let route = format!("{}{}", uri_path_sanitised(&folder.uri), "/{*p}");
             self.router
                 .insert_instance(&route, &path, self.config.as_deref())?;
         }
@@ -96,11 +97,11 @@ impl RouterExt for Router<Instance<'_>> {
     }
 }
 
-pub fn url_path_sanitised(url: &Url) -> String {
+pub fn uri_path_sanitised(uri: &Uri) -> String {
     // windows paths (eg: /C:/Users/..) may not be percent-encoded by some clients
     // and therefore contain colons, see
     // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri
     //
     // and because matchit treats colons as a wildcard we need to strip them
-    url.path().replace(':', "%3A")
+    uri.path().to_string().replace(':', "%3A")
 }

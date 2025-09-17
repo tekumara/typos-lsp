@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.1.44](https://github.com/tekumara/typos-lsp/compare/v0.1.43...v0.1.44) (2025-09-17)
+
+
+### Features
+
+* **regression:** toggleterm.nvim terminals no longer spell checked ([cef06f5](https://github.com/tekumara/typos-lsp/commit/cef06f54395fc393a31da26a0f8fd801fe73e479))
+* set default diagnositic severity to Info ([4f9606b](https://github.com/tekumara/typos-lsp/commit/4f9606b70df74a6c9a3f580eff2487c656c0f349)), closes [#234](https://github.com/tekumara/typos-lsp/issues/234)
+
+
+### Bug Fixes
+
+* set default severity when provided no init params ([a05072f](https://github.com/tekumara/typos-lsp/commit/a05072fd36aadf2f4ab3fef5852bdd657f3248b1))
+* support stopping and starting the server (tower-lsp-server) ([16614e2](https://github.com/tekumara/typos-lsp/commit/16614e2f190bc4e5954b02b2effcc65691db1746)), closes [#110](https://github.com/tekumara/typos-lsp/issues/110)
+
+
+### Builds
+
+* disable test_non_file_uri ([80d930f](https://github.com/tekumara/typos-lsp/commit/80d930fcc5ad28959e9b79260f173a9d7e225ec8))
+* test default severity is Info ([eba2ac3](https://github.com/tekumara/typos-lsp/commit/eba2ac346d04ae2c51a1e6af595dbb61564717c1))
+
 ## [0.1.43](https://github.com/tekumara/typos-lsp/compare/v0.1.42...v0.1.43) (2025-09-05)
 
 

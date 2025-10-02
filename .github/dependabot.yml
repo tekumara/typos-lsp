@@ -18,9 +18,11 @@ updates:
     target-branch: main
     schedule:
       interval: "daily"
-    allow:
-      - dependency-name: "typos-cli"
-      - dependency-name: "typos-dict"
+    groups:
+      typos:
+        applies-to: version-updates
+        patterns:
+          - "typos*"
   - package-ecosystem: "npm"
     directory: "/"
     schedule:

@@ -1681,9 +1681,9 @@ dependencies = [
 
 [[package]]
 name = "typos-dict"
-version = "0.13.5"
+version = "0.13.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e321d7d4b6e56b510a7ea1e12352fbb83b24ae48fd566501742f8aaeca43710e"
+checksum = "b92e6c247984d47aab8e11d4c0c617ecd38f099fc5e42624f718f1158acac50d"
 dependencies = [
  "dictgen",
  "phf",

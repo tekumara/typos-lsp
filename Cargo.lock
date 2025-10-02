@@ -1622,9 +1622,9 @@ dependencies = [
 
 [[package]]
 name = "typos"
-version = "0.10.34"
+version = "0.10.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33e1be61ba1e018e35e01816bbacb83aea32bae416467501ff64fdeaf47f41ab"
+checksum = "68a9d9616d93bdd67a46d0971e051cd331aa9d695f7df3c388d2d4272107eb50"
 dependencies = [
  "bstr",
  "itertools",

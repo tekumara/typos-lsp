@@ -19,13 +19,38 @@ jobs:
       - name: Set PR title with feat prefix for typos-cli updates
         if: contains(steps.dependabot-metadata.outputs.dependency-names, 'typos-cli')
         uses: actions/github-script@v7
-        env:
-          NEW_VERSION: ${{ steps.dependabot-metadata.outputs.new-version }}
         with:
           script: |
+            // copied from https://github.com/dependabot/fetch-metadata/pull/632/files#diff-3d2b59189eeedc2d428ddd632e97658fe310f587f7cb63b01f9b98ffc11c0197R10284
+            // eg: returns Map(4) {
+            //   'typos' => { prevVersion: '0.10.23', newVersion: '0.10.24' },
+            //   'typos-cli' => { prevVersion: '1.21.0', newVersion: '1.22.7' },
+            //   'typos-dict' => { prevVersion: '0.11.13', newVersion: '0.11.21' },
+            //   'typos-vars' => { prevVersion: '0.8.16', newVersion: '0.8.18' }
+            //  }
+
+            function parseMetadataLinks(commitMessage) {
+              const updates = new Map();
+              const updatesExpr = /^Updates `(?<dependencyName>\S+)` (from (?<from>\S+) )?to (?<to>\S+)$/gm;
+              let match;
+              while ((match = updatesExpr.exec(commitMessage)) !== null) {
+                  const groups = match.groups;
+                  if (groups) {
+                      const dependencyName = groups.dependencyName;
+                      updates.set(dependencyName, {
+                          prevVersion: groups.from ?? '',
+                          newVersion: groups.to
+                      });
+                  }
+              }
+              return updates;
+            }
+
             const prBody = context.payload.pull_request.body;
             const prNumber = context.payload.pull_request.number;
-            const newVersion = process.env.NEW_VERSION;
+            const updates = parseMetadataLinks(prBody);
+            // can never be undefined because of this step's "if" condition above
+            const newVersion = updates.get('typos-cli').newVersion;
 
             // Find dictionary date from line like "Updated the dictionary with the November 2024 changes"
             let dict_date;

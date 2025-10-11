@@ -26,6 +26,8 @@
 
 ### Other clients
 
+<a href="https://repology.org/project/typos-lsp/versions"><img align="right" src="https://repology.org/badge/vertical-allrepos/typos-lsp.svg?exclude_unsupported=1" alt="Packaging status"></a>
+
 For homebrew users:
 
 ```

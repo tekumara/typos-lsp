@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.1.46](https://github.com/tekumara/typos-lsp/compare/v0.1.45...v0.1.46) (2025-10-15)
+
+
+### Features
+
+* **typos:** version  ([#247](https://github.com/tekumara/typos-lsp/issues/247)) ([a7c3330](https://github.com/tekumara/typos-lsp/commit/a7c333035bf89451945a44ca669d224e39a85b4d))
+* **typos:** version  ([#248](https://github.com/tekumara/typos-lsp/issues/248)) ([12d3322](https://github.com/tekumara/typos-lsp/commit/12d3322a902fa49a5308e5b06f0c6d4152f76cf4))
+* **typos:** version  ([#250](https://github.com/tekumara/typos-lsp/issues/250)) ([8b1bc05](https://github.com/tekumara/typos-lsp/commit/8b1bc0530eb36012a03462127ef9eb35b39f47ba))
+
+
+### Chores
+
+* **deps:** bump env_logger from 0.11.6 to 0.11.8 ([#249](https://github.com/tekumara/typos-lsp/issues/249)) ([01bcb72](https://github.com/tekumara/typos-lsp/commit/01bcb722ea14c9e3a284924315e16be93252f812))
+* **deps:** bump regex from 1.11.3 to 1.12.1 ([#252](https://github.com/tekumara/typos-lsp/issues/252)) ([c68dbe2](https://github.com/tekumara/typos-lsp/commit/c68dbe219c2e8d1a57ea1758d616cfd2ba073ac1))
+* **deps:** bump regex from 1.12.1 to 1.12.2 ([#253](https://github.com/tekumara/typos-lsp/issues/253)) ([eddab32](https://github.com/tekumara/typos-lsp/commit/eddab32ef12d0a9b84d009de36ee297a40c9428a))
+* **deps:** bump tokio from 1.47.1 to 1.48.0 ([#254](https://github.com/tekumara/typos-lsp/issues/254)) ([501ebc8](https://github.com/tekumara/typos-lsp/commit/501ebc87fef0f6566c1faa6d1f01acbe89fe6861))
+
+
+### Builds
+
+* **auto-merge:** fix missing version in PR title ([81fdb70](https://github.com/tekumara/typos-lsp/commit/81fdb708e4ce030b849055bd1c09afff468a96d5))
+* **dependabot:** don't check non typos deps daily ([8e31f78](https://github.com/tekumara/typos-lsp/commit/8e31f78012c63b6ef278f6f8b2cd39fd71a720dd))
+
 ## [0.1.45](https://github.com/tekumara/typos-lsp/compare/v0.1.44...v0.1.45) (2025-10-02)
 
 

@@ -41,3 +41,5 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    commit-message:
+      prefix: "ci(deps)"

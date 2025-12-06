@@ -23,7 +23,7 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets
       - run: cargo build
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: package.json
       - run: npm ci

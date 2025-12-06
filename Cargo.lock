@@ -182,6 +182,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap-cargo"
+version = "0.18.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "936551935c8258754bb8216aec040957d261f977303754b9bf1a213518388006"
+dependencies = [
+ "anstyle",
+ "clap",
+]
+
+[[package]]
 name = "clap-verbosity-flag"
 version = "3.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -363,15 +373,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.106",
-]
-
-[[package]]
-name = "dictgen"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1fd41585424ce72151333d5bdd9a9fa80d54f1a9603501557f236730606df13d"
-dependencies = [
- "unicase",
 ]
 
 [[package]]
@@ -1629,9 +1630,9 @@ dependencies = [
 
 [[package]]
 name = "typos"
-version = "0.10.37"
+version = "0.10.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "621b5b095fd6a49592282b0b8a18103c652b49b234e2e049e4382248e06418d1"
+checksum = "1278bd7c884fdee500dd919cdac4cb97a4730ccab0e18441dec4fb2147d90206"
 dependencies = [
  "bstr",
  "itertools",
@@ -1643,9 +1644,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.38.1"
+version = "1.40.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ab237b455454d45e646d9782ff46b97be122f36e4aebe6e3bea72e2f1a78669"
+checksum = "1a4aa076ce073ba20fa3f58237ecf455ce3198786bb9f5c43a12cb19dd81f973"
 dependencies = [
  "ahash",
  "annotate-snippets",
@@ -1654,6 +1655,7 @@ dependencies = [
  "anyhow",
  "bstr",
  "clap",
+ "clap-cargo",
  "clap-verbosity-flag",
  "colorchoice-clap",
  "content_inspector",
@@ -1688,11 +1690,11 @@ dependencies = [
 
 [[package]]
 name = "typos-dict"
-version = "0.13.9"
+version = "0.13.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c84816c84d6498c987f6f5c1a2897ecd89b21b97058f3f66a8e945c8357a3069"
+checksum = "680e5cf439f58c9ffe84deb07c06b8ef5fc059bef054d6c59189c3d63e10cbb9"
 dependencies = [
- "dictgen 0.5.0",
+ "dictgen",
  "phf",
 ]
 
@@ -1725,11 +1727,11 @@ dependencies = [
 
 [[package]]
 name = "typos-vars"
-version = "0.10.0"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e935f7f04212070163da0ae59f52cf8f808a0cb0be6d76578c1ace5f038f3950"
+checksum = "4968cc8399498a84145d4c79e6123c96ed9a35244b4b387883b74824efebf61e"
 dependencies = [
- "dictgen 0.4.0",
+ "dictgen",
  "varcon-core",
 ]
 

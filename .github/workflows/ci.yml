@@ -2,9 +2,9 @@ name: ci
 
 on:
   push:
-    branches: [ "main", "wip" ]
+    branches: ["main", "wip"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 env:
@@ -15,32 +15,31 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: Swatinem/rust-cache@v2
-    - run: cargo test
-      env:
-        RUST_LOG: debug,globset=warn
-    - run: cargo fmt --all -- --check
-    - run: cargo clippy --all-targets
-    - run: cargo build
-    - uses: actions/setup-node@v4
-      with:
-        node-version-file: package.json
-    - run: npm ci
-    - run: npm run lint
-    # vscode requires an X Server
-    - name: npm test
-      run: xvfb-run npm test
-    # ensure package can be built when package.json changes
-    - name: npx vsce package
-      run: npx vsce package
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test
+        env:
+          RUST_LOG: debug,globset=warn
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets
+      - run: cargo build
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+      - run: npm ci
+      - run: npm run lint
+      # vscode requires an X Server
+      - name: npm test
+        run: xvfb-run npm test
+      # ensure package can be built when package.json changes
+      - name: npx vsce package
+        run: npx vsce package
   build-windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: Swatinem/rust-cache@v2
-    - run: cargo test
-      env:
-        RUST_LOG: debug,globset=warn
-        RUST_BACKTRACE: 1
-
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test
+        env:
+          RUST_LOG: debug,globset=warn
+          RUST_BACKTRACE: 1

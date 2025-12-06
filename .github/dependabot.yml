@@ -10,7 +10,7 @@ updates:
       lsp:
         applies-to: version-updates
         patterns:
-         - "*"
+          - "*"
   - package-ecosystem: "cargo"
     directory: "/"
     # HACK: so we can have two updates for the same ecosystem & dir
@@ -33,7 +33,11 @@ updates:
       vscode:
         applies-to: version-updates
         patterns:
-         - "*"
+          - "*"
     ignore:
       # this needs to match engines.vscode and defines the minimum version of vscode
-      - dependency-name: '@types/vscode'
+      - dependency-name: "@types/vscode"
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: "monthly"

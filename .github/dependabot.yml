@@ -18,8 +18,8 @@ updates:
     target-branch: main
     schedule:
       interval: "daily"
-    ignore:
-      - dependency-name: "*"
+    allow:
+      - dependency-name: "typos*"
     groups:
       typos:
         applies-to: version-updates

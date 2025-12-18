@@ -54,7 +54,7 @@ jobs:
     needs: wait
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       # needed for arm targets
       - name: Install Rust
         uses: dtolnay/rust-toolchain@v1
@@ -100,7 +100,7 @@ jobs:
 
           ls -al dist/*
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.target }}
           path: dist
@@ -114,12 +114,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version-file: package.json
       # download each artifact into its own self-named directory
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           path: dist
       - run: npm ci

@@ -13,8 +13,8 @@ environment = {"RUST_LOG" = "error"}
 # taking precedence for settings declared in both. Equivalent to the typos `--config` cli argument.
 config.config = "~/code/typos-lsp/crates/typos-lsp/tests/typos.toml"
 # How typos are rendered in the editor, can be one of an Error, Warning, Info or Hint.
-# Defaults to Warning.
-config.diagnosticSeverity = "Warning"
+# Defaults to Info.
+config.diagnosticSeverity = "Info"
 ```
 
 Then add `typos` to one or more languages, as the last entry to avoid taking precedence, eg:

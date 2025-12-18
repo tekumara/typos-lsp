@@ -9,10 +9,16 @@ use std::path::PathBuf;
 /// chosen in a given order. Shows the name of the config file that is used ("typos.toml",
 /// "_typos.toml", ".typos.toml", "pyproject.toml"). This information is useful when we want to
 /// modify the config file later on.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub struct ConfigFileLocation {
     pub path: PathBuf,
     pub config: Option<typos_cli::config::Config>,
+}
+
+impl PartialEq for ConfigFileLocation {
+    fn eq(&self, other: &Self) -> bool {
+        self.path == other.path && format!("{:?}", self.config) == format!("{:?}", other.config)
+    }
 }
 
 impl ConfigFileLocation {

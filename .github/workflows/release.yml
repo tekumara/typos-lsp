@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Wait for checks to succeed
-        uses: poseidon/wait-for-status-checks@v0.4.1
+        uses: poseidon/wait-for-status-checks@v0.6.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           interval: 5
@@ -27,13 +27,19 @@ jobs:
           - os: windows-latest
             target: aarch64-pc-windows-msvc
             code-target: win32-arm64
-          - os: ubuntu-20.04
+          - os: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
             code-target: linux-x64
-          - os: ubuntu-20.04
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
+            code-target: linux-x64
+          - os: ubuntu-24.04
             target: aarch64-unknown-linux-gnu
             code-target: linux-arm64
-          - os: ubuntu-20.04
+          - os: ubuntu-24.04
+            target: aarch64-unknown-linux-musl
+            code-target: linux-arm64
+          - os: ubuntu-24.04
             target: arm-unknown-linux-gnueabihf
             code-target: linux-armhf
           - os: macos-latest
@@ -56,34 +62,40 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
-      - name: Update apt repositories (linux)
-        if: matrix.target == 'aarch64-unknown-linux-gnu' || matrix.target == 'arm-unknown-linux-gnueabihf'
-        run: sudo apt-get update
       - name: Install GCC arm64 (linux)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: sudo apt-get install gcc-aarch64-linux-gnu
+        if: startsWith(matrix.target, 'aarch64-unknown-linux')
+        run: sudo apt-get update && sudo apt-get install gcc-aarch64-linux-gnu
       - name: Install GCC armhf (linux)
         if: matrix.target == 'arm-unknown-linux-gnueabihf'
-        run: sudo apt-get install gcc-arm-linux-gnueabihf
+        run: sudo apt-get update && sudo apt-get install gcc-arm-linux-gnueabihf
       - run: cargo build --target ${{ matrix.target }} --release
       - run: npm ci
       - name: vsce package
+        # we can only publish a single linux-x64 and linux-arm64 package
+        # so we skip the gnu target and package the musl target
+        if: matrix.target != 'x86_64-unknown-linux-gnu' && matrix.target != 'aarch64-unknown-linux-gnu'
         # use bash on windows
         shell: bash
         run: |
           mkdir -p bundled dist
           cp target/${{ matrix.target }}/release/typos-lsp* bundled/
           npx vsce package -o dist/ --target ${{ matrix.code-target }}
+      - name: vsce package for alpine
+        # package the alpine-x64 target with the musl binary
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        shell: bash
+        run: npx vsce package -o dist/ --target alpine-x64
       - name: Archive
         shell: bash
         run: |
           ver=${GITHUB_REF/refs\/*\//}
-          archive="typos-lsp-$ver-${{ matrix.target }}"
+          archive="dist/typos-lsp-$ver-${{ matrix.target }}"
+          mkdir -p dist
 
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            7z a "dist/${archive}.zip" target/${{ matrix.target }}/release/typos-lsp.exe
+            7z a "${archive}.zip" target/${{ matrix.target }}/release/typos-lsp.exe
           else
-            tar czf "dist/${archive}.tar.gz" -C target/${{ matrix.target }}/release typos-lsp
+            tar czf "${archive}.tar.gz" -C target/${{ matrix.target }}/release typos-lsp
           fi
 
           ls -al dist/*
@@ -92,6 +104,9 @@ jobs:
         with:
           name: ${{ matrix.target }}
           path: dist
+      - name: Start sshx session on failed manual run or retry
+        if: ${{ failure() && (github.event_name == 'workflow_dispatch' || github.run_attempt > 1) }}
+        run: curl -sSf https://sshx.io/get | sh && sshx
 
   publish:
     runs-on: ubuntu-latest
@@ -100,27 +115,33 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
       # download each artifact into its own self-named directory
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           path: dist
       - run: npm ci
       - name: Inspect dist
         run: |
           ls -al dist/*
-          npx glob dist/**/*.vsix
+          ls -1 dist/**/*.vsix
       - name: vsce publish
-        run: npx vsce publish --packagePath $(npx glob dist/**/*.vsix)
+        run: npx vsce publish --packagePath $(ls -1 dist/**/*.vsix)
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
       - name: ovsx publish
-        run: npx ovsx publish --packagePath $(npx glob dist/**/*.vsix)
+        run: npx ovsx publish --packagePath $(ls -1 dist/**/*.vsix)
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
       - name: Upload to GH release
         uses: softprops/action-gh-release@v2
         with:
+          # unset the prerelease flag and make it the latest release
+          prerelease: false
+          make_latest: true
           files: dist/**/*
-      - name: Setup tmate session
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
+      - name: Start sshx session on failed manual run or retry
+        if: ${{ failure() && (github.event_name == 'workflow_dispatch' || github.run_attempt > 1) }}
+        run: curl -sSf https://sshx.io/get | sh && sshx

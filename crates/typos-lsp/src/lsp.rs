@@ -7,12 +7,12 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use serde_json::{json, to_string};
-use tower_lsp::lsp_types::*;
-use tower_lsp::*;
-use tower_lsp::{Client, LanguageServer};
+use tower_lsp_server::lsp_types::*;
+use tower_lsp_server::*;
+use tower_lsp_server::{Client, LanguageServer, UriExt};
 use typos_cli::policy;
 
-use crate::state::{url_path_sanitised, BackendState};
+use crate::state::{uri_path_sanitised, BackendState};
 pub struct Backend<'s, 'p> {
     client: Client,
     state: Mutex<crate::state::BackendState<'s>>,
@@ -34,7 +34,6 @@ struct IgnoreInProjectCommandArguments {
     config_file_path: String,
 }
 
-#[tower_lsp::async_trait]
 impl LanguageServer for Backend<'static, 'static> {
     async fn initialize(&self, params: InitializeParams) -> jsonrpc::Result<InitializeResult> {
         tracing::debug!("initialize: {}", to_string(&params).unwrap_or_default());
@@ -87,8 +86,16 @@ impl LanguageServer for Backend<'static, 'static> {
             }
         }
 
+        if state.severity.is_none() {
+            state.severity = Some(DiagnosticSeverity::INFORMATION);
+        }
+
         if let Err(e) = state.set_workspace_folders(params.workspace_folders.unwrap_or_default()) {
             tracing::warn!("Falling back to default config: {}", e);
+        }
+
+        if state.workspace_folders.is_empty() {
+            tracing::warn!("Initialised without workspaces folders");
         }
 
         Ok(InitializeResult {
@@ -251,7 +258,7 @@ impl LanguageServer for Backend<'static, 'static> {
                             }
                         } else {
                             tracing::warn!(
-                                "code_action: Cannot create a code action for ignoring a typo in the project. Reason: No route found for file '{}'",
+                                "code_action: Cannot create a code action for ignoring a typo in the project. Reason: No route found for file '{:?}'",
                                 params.text_document.uri
                             );
                         }
@@ -327,7 +334,7 @@ impl LanguageServer for Backend<'static, 'static> {
     }
 }
 
-impl<'s, 'p> Backend<'s, 'p> {
+impl<'s> Backend<'s, '_> {
     pub fn new(client: Client) -> Self {
         Self {
             client,
@@ -343,7 +350,7 @@ impl<'s, 'p> Backend<'s, 'p> {
             .await;
     }
 
-    fn check_text(&self, buffer: &str, uri: &Url) -> Vec<Diagnostic> {
+    fn check_text(&self, buffer: &str, uri: &Uri) -> Vec<Diagnostic> {
         let state = self.state.lock().unwrap();
 
         let Some((tokenizer, dict, ignore)) = self.workspace_policy(uri, &state) else {
@@ -365,7 +372,7 @@ impl<'s, 'p> Backend<'s, 'p> {
                         typos::Status::Corrections(corrections) => format!(
                             "`{}` should be {}",
                             typo.typo,
-                            itertools::join(corrections.iter().map(|s| format!("`{}`", s)), ", ")
+                            itertools::join(corrections.iter().map(|s| format!("`{s}`")), ", ")
                         ),
                         typos::Status::Valid => panic!("unexpected typos::Status::Valid"),
                     },
@@ -385,18 +392,18 @@ impl<'s, 'p> Backend<'s, 'p> {
 
     fn workspace_policy<'a>(
         &'a self,
-        uri: &Url,
+        uri: &Uri,
         state: &'a std::sync::MutexGuard<'a, BackendState<'s>>,
     ) -> Option<(
-        &typos::tokens::Tokenizer,
-        &dyn typos::Dictionary,
-        &[regex::Regex],
+        &'a typos::tokens::Tokenizer,
+        &'a dyn typos::Dictionary,
+        &'a [regex::Regex],
     )> {
         let (tokenizer, dict, ignore) = match uri.to_file_path() {
-            Err(_) => {
+            None => {
                 // eg: uris like untitled:* or term://*
                 tracing::debug!(
-                    "workspace_policy: Using default policy because cannot convert uri {} to file path",
+                    "workspace_policy: Using default policy because cannot convert uri {:?} to file path",
                     uri
                 );
                 (
@@ -405,15 +412,15 @@ impl<'s, 'p> Backend<'s, 'p> {
                     self.default_policy.ignore,
                 )
             }
-            Ok(path) => {
-                let uri_path = url_path_sanitised(uri);
+            Some(path) => {
+                let uri_path = uri_path_sanitised(uri);
 
                 // find relevant tokenizer, and dict for the workspace folder
                 let (tokenizer, dict, ignore) = match state.router.at(&uri_path) {
                     Err(_) => {
                         // ie: file:///
                         tracing::debug!(
-                            "workspace_policy: Using default policy because no route found for {}",
+                            "workspace_policy: Using default policy because no route found for {:?}",
                             uri_path
                         );
                         (
@@ -427,12 +434,21 @@ impl<'s, 'p> Backend<'s, 'p> {
                         // skip file if matches extend-exclude
                         if value.ignores.matched(&path, false).is_ignore() {
                             tracing::debug!(
-                                "workspace_policy: Ignoring {} because it matches extend-exclude.",
+                                "workspace_policy: Ignoring {:?} because it matches extend-exclude.",
                                 uri
                             );
                             return None;
                         }
                         let policy = value.engine.policy(&path);
+                        // skip file types that are not checked
+                        // see https://github.com/crate-ci/typos/blob/fb1f64595962a79113c92d4879e6b3b2e8f524b4/crates/typos-cli/src/file_type_specifics.rs#L7
+                        if !policy.check_files {
+                            tracing::debug!(
+                                "workspace_policy: Ignoring {:?} because its file type is not checked.",
+                                uri
+                            );
+                            return None;
+                        }
                         (policy.tokenizer, policy.dict, policy.ignore)
                     }
                 };

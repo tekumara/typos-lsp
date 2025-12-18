@@ -8,20 +8,6 @@
 
 [typos](https://github.com/crate-ci/typos) is a low false-positive source code spell checker. This project exposes `typos` via a Language Server Protocol (LSP) server and Visual Studio Code extension to provide a fast, low memory, in-editor spell checker.
 
-## Install
-
-- Vscode: Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
-- VSCodium: Install [Typos spell checker](https://open-vsx.org/extension/tekumara/typos-vscode) from the Open VSX Registry.
-- Neovim: Install `typos-lsp` using [mason](https://mason-registry.dev/registry/list#typos-lsp) or download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
-- Helix: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases) and place it on your PATH.
-- Other clients: Download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
-
-For configuration see:
-
-- [VS Code Settings](docs/vscode-settings.md)
-- [Neovim LSP config](docs/neovim-lsp-config.md)
-- [Helix config](docs/helix-config.md)
-
 ## Features
 
 <!-- markdownlint-disable-file MD033 -->
@@ -30,9 +16,49 @@ For configuration see:
 
     <img width="373" alt="Diagnostics example with Quick Fix" src="https://user-images.githubusercontent.com/125105/232224205-eb9c6123-0d38-4d60-ac93-0990016453e0.png">
 
+## Install
+
+- Neovim: Install using [mason](https://mason-registry.dev/registry/list#typos-lsp).
+- Vim: See [Vim - Install](docs/vim-lsp-settings.md#install) to install using [vim-lsp-settings](https://github.com/mattn/vim-lsp-settings).
+- VS Code: Install [Typos spell checker](https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode) from the VSCode Marketplace.
+- VSCodium: Install [Typos spell checker](https://open-vsx.org/extension/tekumara/typos-vscode) from the Open VSX Registry.
+- Zed: Install [Typos](https://zed.dev/extensions?query=typos) from Zed's extension marketplace.
+
+### Other clients
+
+For homebrew users:
+
+```
+brew install typos-lsp
+```
+
+For [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) users:
+
+```
+cargo binstall --git https://github.com/tekumara/typos-lsp typos-lsp
+```
+
+For Linux users (via Cargo):
+
+```sh
+cargo install --git https://github.com/tekumara/typos-lsp typos-lsp
+```
+
+See [typos-lsp versions on repology](https://repology.org/project/typos-lsp/versions) for other package managers. Or manually download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
+
 ## Usage
 
 Once installed `typos` will automatically execute when you open or edit any file.
+
+## Configuration
+
+For configuration see:
+
+- [Helix config](docs/helix-config.md)
+- [Neovim LSP config](docs/neovim-lsp-config.md)
+- [VS Code Settings](docs/vscode-settings.md)
+- [Vim LSP settings](docs/vim-lsp-settings.md)
+- [Zed config](docs/zed-config.md)
 
 ## Config file support
 
@@ -45,10 +71,12 @@ Supports [config fields](https://github.com/crate-ci/typos/blob/master/docs/refe
 
 Config files will be read from the workspace folder or its parents. If there is no workspace folder, then no config file will be read and the typos defaults will be used.
 
+Restart the server after changing the config file for the new changes to take affect.
+
 ## Caveats
 
-- File names are not spell checked.
-- Server must be restarted after changing the config files (ie: typos.toml).
+1. Unlike `typos` file names are not spell checked.
+1. Doesn't spell check toggleterm.nvim terminals see [toggleterm.nvim#653](https://github.com/akinsho/toggleterm.nvim/issues/653)
 
 ## Why aren't my misspellings being corrected?
 

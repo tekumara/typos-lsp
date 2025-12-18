@@ -1,0 +1,81 @@
+name: Dependabot Auto-merge
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    steps:
+      - name: Dependabot metadata
+        id: dependabot-metadata
+        uses: dependabot/fetch-metadata@v2
+
+      - name: Set PR title with feat prefix for typos-cli updates
+        if: contains(steps.dependabot-metadata.outputs.dependency-names, 'typos-cli')
+        uses: actions/github-script@v8
+        with:
+          script: |
+            // copied from https://github.com/dependabot/fetch-metadata/pull/632/files#diff-3d2b59189eeedc2d428ddd632e97658fe310f587f7cb63b01f9b98ffc11c0197R10284
+            // eg: returns Map(4) {
+            //   'typos' => { prevVersion: '0.10.23', newVersion: '0.10.24' },
+            //   'typos-cli' => { prevVersion: '1.21.0', newVersion: '1.22.7' },
+            //   'typos-dict' => { prevVersion: '0.11.13', newVersion: '0.11.21' },
+            //   'typos-vars' => { prevVersion: '0.8.16', newVersion: '0.8.18' }
+            //  }
+
+            function parseMetadataLinks(commitMessage) {
+              const updates = new Map();
+              const updatesExpr = /^Updates `(?<dependencyName>\S+)` (from (?<from>\S+) )?to (?<to>\S+)$/gm;
+              let match;
+              while ((match = updatesExpr.exec(commitMessage)) !== null) {
+                  const groups = match.groups;
+                  if (groups) {
+                      const dependencyName = groups.dependencyName;
+                      updates.set(dependencyName, {
+                          prevVersion: groups.from ?? '',
+                          newVersion: groups.to
+                      });
+                  }
+              }
+              return updates;
+            }
+
+            const prBody = context.payload.pull_request.body;
+            const prNumber = context.payload.pull_request.number;
+            const updates = parseMetadataLinks(prBody);
+            // can never be undefined because of this step's "if" condition above
+            const newVersion = updates.get('typos-cli').newVersion;
+
+            // Find dictionary date from line like "Updated the dictionary with the November 2024 changes"
+            let dict_date;
+            const regex = /Updated the dictionary.*?((?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})/;
+
+            for (const line of prBody.split('\n')) {
+              const match = line.match(regex);
+              if (match) {
+                dict_date = match[1];
+                break;
+              }
+            }
+
+            // Set PR title with feat prefix and dictionary date (if any)
+            const title = `feat(typos): version ${newVersion}` + (dict_date ? ` - ${dict_date} dictionary update` : '');
+            console.log(title);
+
+            await github.rest.pulls.update({
+              ...context.repo,
+              pull_number: prNumber,
+              title: title
+            });
+
+      - name: Enable auto-merge for Dependabot PRs
+        run: gh pr merge --auto --squash "$PR_URL" --body ""
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}

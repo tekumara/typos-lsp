@@ -214,7 +214,7 @@ async fn test_code_action() {
 }
 
 #[test_log::test(tokio::test)]
-async fn test_execute_command_ignore_in_project() {
+async fn test_execute_command_ignore_in_project_updates_config_file() {
     let temp_dir = tempfile::tempdir().unwrap();
     let config_path = temp_dir.path().join("typos.toml");
 
@@ -245,9 +245,95 @@ async fn test_execute_command_ignore_in_project() {
         content.contains(
             r#"[default.extend-words]
 foobar = "foobar""#
-        ) || content.contains("foobar = \"foobar\""),
+        ),
         "Content was: {}",
         content
+    );
+}
+
+#[test_log::test(tokio::test)]
+async fn test_execute_command_ignore_in_project_clears_diagnostics() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let config_path = temp_dir.path().join("typos.toml");
+
+    let workspace_folder_uri = Uri::from_file_path(temp_dir.path()).unwrap();
+    let config_uri_str = config_path.to_string_lossy();
+    let diag_txt = Uri::from_file_path(temp_dir.path().join("diagnostics.txt")).unwrap();
+
+    let did_open_diag_txt = did_open_with("apropriate fo", Some(&diag_txt));
+
+    let mut server = TestServer::new();
+    let _ = server
+        .request(&initialize_with(Some(&workspace_folder_uri), None, None))
+        .await;
+
+    // 1. has typos
+    similar_asserts::assert_eq!(
+        server.request(&did_open_diag_txt).await,
+        publish_diagnostics_with(
+            &[
+                diag(
+                    "`apropriate` should be `appropriate`",
+                    "apropriate",
+                    0,
+                    0,
+                    10
+                ),
+                diag(
+                    "`fo` should be `of`, `for`, `do`, `go`, `to`",
+                    "fo",
+                    0,
+                    11,
+                    13
+                )
+            ],
+            Some(&diag_txt)
+        )
+    );
+
+    // 2. sends the ignore-in-project command to ignore "apropriate"
+    let execute_command = json!({
+        "jsonrpc": "2.0",
+        "method": "workspace/executeCommand",
+        "params": {
+            "command": "ignore-in-project",
+            "arguments": [{
+                "typo": "apropriate",
+                "config_file_path": config_uri_str
+            }]
+        },
+        "id": 2
+    })
+    .to_string();
+
+    let res = server.request(&execute_command).await;
+
+    let notification =
+        if res.get("method").and_then(|m| m.as_str()) == Some("textDocument/publishDiagnostics") {
+            // publishDiagnostics notification received first,
+            // return it and ignore the executeCommand response.
+            // happens when running this test alone
+            res
+        } else {
+            // executeCommand response received first,
+            // read again for the publishDiagnostics notification.
+            // happens when running all tests
+            server.read_message().await
+        };
+
+    // 3. verifies that new diagnostics are published but without the ignored "apropriate" typo
+    similar_asserts::assert_eq!(
+        notification,
+        publish_diagnostics_with(
+            &[diag(
+                "`fo` should be `of`, `for`, `do`, `go`, `to`",
+                "fo",
+                0,
+                11,
+                13
+            )],
+            Some(&diag_txt)
+        )
     );
 }
 

@@ -1,7 +1,11 @@
 use anyhow::anyhow;
 use matchit::Router;
+use std::collections::hash_map::Entry;
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use tower_lsp_server::ls_types::{DiagnosticSeverity, Uri, WorkspaceFolder};
+use tower_lsp_server::ls_types::{
+    DiagnosticSeverity, TextDocumentContentChangeEvent, Uri, WorkspaceFolder,
+};
 
 use crate::typos::Instance;
 
@@ -16,6 +20,29 @@ pub(crate) struct BackendState<'s> {
     /// Maps routes (file system paths) to TyposCli instances, so that we can quickly find the
     /// correct instance for a given file path
     pub router: Router<crate::typos::Instance<'s>>,
+    pub documents: HashMap<Uri, Document>,
+}
+
+pub(crate) struct Document {
+    pub version: i32,
+    pub text: String,
+}
+
+impl Document {
+    pub fn new(version: i32, text: String) -> Self {
+        Self { version, text }
+    }
+
+    pub fn update(&mut self, version: i32, changes: Vec<TextDocumentContentChangeEvent>) {
+        for change in changes {
+            if change.range.is_some() {
+                tracing::warn!("Incremental document updates are not supported");
+                return;
+            }
+            self.text = change.text;
+        }
+        self.version = version;
+    }
 }
 
 impl BackendState<'_> {
@@ -74,6 +101,25 @@ impl BackendState<'_> {
 
         Ok(())
     }
+
+    pub(crate) fn update_document(
+        &mut self,
+        uri: &Uri,
+        version: i32,
+        changes: Vec<TextDocumentContentChangeEvent>,
+    ) -> Option<String> {
+        match self.documents.entry(uri.clone()) {
+            Entry::Occupied(mut entry) => {
+                let doc = entry.get_mut();
+                doc.update(version, changes);
+                Some(doc.text.clone())
+            }
+            Entry::Vacant(_entry) => {
+                tracing::warn!("Received update for unknown document: {:?}", uri);
+                None
+            }
+        }
+    }
 }
 
 trait RouterExt {
@@ -108,4 +154,34 @@ pub fn uri_path_sanitised(uri: &Uri) -> String {
     //
     // and because matchit treats colons as a wildcard we need to strip them
     uri.path().to_string().replace(':', "%3A")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tower_lsp_server::lsp_types::Uri;
+
+    #[test]
+    fn test_update_document_full() {
+        let mut state = BackendState::default();
+        let uri = Uri::from_file_path("/tmp/test.txt").unwrap();
+        let version = 1;
+        let text = "hello world";
+
+        // Initial state
+        state
+            .documents
+            .insert(uri.clone(), Document::new(0, "".to_string()));
+
+        let changes = vec![TextDocumentContentChangeEvent {
+            range: None,
+            range_length: None,
+            text: text.to_string(),
+        }];
+
+        state.update_document(&uri, version, changes);
+
+        let doc = state.documents.get(&uri).unwrap();
+        assert_eq!(doc.text, "hello world");
+    }
 }

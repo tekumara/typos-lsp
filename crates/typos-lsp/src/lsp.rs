@@ -2,7 +2,7 @@ use matchit::Match;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use serde_json::{json, to_string};
@@ -11,7 +11,7 @@ use tower_lsp_server::*;
 use tower_lsp_server::{Client, LanguageServer};
 use typos_cli::policy;
 
-use crate::state::{uri_path_sanitised, BackendState};
+use crate::state::{uri_path_sanitised, BackendState, Document};
 
 const IGNORE_IN_PROJECT: &str = "ignore-in-project";
 
@@ -143,18 +143,35 @@ impl LanguageServer for Backend<'static, 'static> {
 
     async fn did_open(&self, params: DidOpenTextDocumentParams) {
         tracing::debug!("did_open: {:?}", to_string(&params).unwrap_or_default());
-        self.report_diagnostics(params.text_document).await;
+        let TextDocumentItem {
+            uri, text, version, ..
+        } = params.text_document;
+        {
+            let mut state = self.state.lock().unwrap();
+            state
+                .documents
+                .insert(uri.clone(), Document::new(version, text.clone()));
+        }
+        self.report_diagnostics(uri, version, &text).await;
     }
 
-    async fn did_change(&self, mut params: DidChangeTextDocumentParams) {
+    async fn did_change(&self, params: DidChangeTextDocumentParams) {
         tracing::debug!("did_change: {:?}", to_string(&params).unwrap_or_default());
-        self.report_diagnostics(TextDocumentItem {
-            language_id: "FOOBAR".to_string(),
-            uri: params.text_document.uri,
-            text: std::mem::take(&mut params.content_changes[0].text),
-            version: params.text_document.version,
-        })
-        .await;
+
+        let doc = self.state.lock().unwrap().update_document(
+            &params.text_document.uri,
+            params.text_document.version,
+            params.content_changes,
+        );
+
+        if let Some(text) = doc {
+            self.report_diagnostics(
+                params.text_document.uri,
+                params.text_document.version,
+                &text,
+            )
+            .await;
+        }
     }
 
     async fn did_save(&self, params: DidSaveTextDocumentParams) {
@@ -164,6 +181,11 @@ impl LanguageServer for Backend<'static, 'static> {
 
     async fn did_close(&self, params: DidCloseTextDocumentParams) {
         tracing::debug!("did_close: {:?}", to_string(&params).unwrap_or_default());
+        self.state
+            .lock()
+            .unwrap()
+            .documents
+            .remove(&params.text_document.uri);
         // clear diagnostics to avoid a stale diagnostics flash on open
         // if the file has typos fixed outside of vscode
         // see https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_publishDiagnostics
@@ -306,33 +328,34 @@ impl LanguageServer for Backend<'static, 'static> {
     /// Called by the editor to execute a server side command, such as ignoring a typo.
     async fn execute_command(
         &self,
-        raw_params: ExecuteCommandParams,
+        params: ExecuteCommandParams,
     ) -> jsonrpc::Result<Option<serde_json::Value>> {
         tracing::debug!(
             "execute_command: {:?}",
-            to_string(&raw_params).unwrap_or_default()
+            to_string(&params).unwrap_or_default()
         );
 
-        if raw_params.command == IGNORE_IN_PROJECT {
-            let argument = raw_params
-                .arguments
-                .into_iter()
-                .next()
-                .expect("no arguments for ignore-in-project command");
-
-            if let Ok(IgnoreInProjectCommandArguments {
-                typo,
-                config_file_path,
-                ..
-            }) = serde_json::from_value::<IgnoreInProjectCommandArguments>(argument)
-            {
-                crate::config::add_ignore(&config_file_path, &typo).unwrap();
-                // reload the instance so new ignore takes effect
-                self.state.lock().unwrap().update_router().unwrap();
-            };
+        match params.command.as_str() {
+            IGNORE_IN_PROJECT => {
+                match params
+                    .arguments
+                    .into_iter()
+                    .next()
+                    .map(serde_json::from_value)
+                {
+                    Some(Ok(args)) => self.handle_ignore_in_project(args).await,
+                    Some(Err(e)) => {
+                        tracing::warn!("failed to parse ignore-in-project arguments: {}", e)
+                    }
+                    None => tracing::warn!("no arguments for ignore-in-project command"),
+                }
+                Ok(None)
+            }
+            _ => {
+                tracing::warn!("Unknown command: {}", params.command);
+                Ok(None)
+            }
         }
-
-        Ok(None)
     }
 
     async fn did_change_workspace_folders(&self, params: DidChangeWorkspaceFoldersParams) {
@@ -361,10 +384,37 @@ impl<'s> Backend<'s, '_> {
         }
     }
 
-    async fn report_diagnostics(&self, params: TextDocumentItem) {
-        let diagnostics = self.check_text(&params.text, &params.uri);
+    async fn handle_ignore_in_project(&self, args: IgnoreInProjectCommandArguments) {
+        if let Err(e) = crate::config::add_ignore(Path::new(&args.config_file_path), &args.typo) {
+            tracing::warn!("Failed to add ignore: {}", e);
+            return;
+        }
+
+        let docs = {
+            let mut state = self.state.lock().unwrap();
+            // reload the instance so new ignore takes effect
+            // TODO: reloading does introduce a noticeable delay, perhaps we should apply ignores in place?
+            if let Err(e) = state.update_router() {
+                tracing::warn!("Failed to update router: {}", e);
+                return;
+            }
+            state
+                .documents
+                .iter()
+                .map(|(uri, doc)| (uri.clone(), doc.version, doc.text.clone()))
+                .collect::<Vec<_>>()
+        };
+
+        // report diagnostics for all documents, in case the new ignore affects them
+        for (uri, version, text) in docs {
+            self.report_diagnostics(uri, version, &text).await;
+        }
+    }
+
+    async fn report_diagnostics(&self, uri: Uri, version: i32, text: &str) {
+        let diagnostics = self.check_text(text, &uri);
         self.client
-            .publish_diagnostics(params.uri, diagnostics, Some(params.version))
+            .publish_diagnostics(uri, diagnostics, Some(version))
             .await;
     }
 

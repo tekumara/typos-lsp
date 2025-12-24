@@ -310,6 +310,7 @@ impl LanguageServer for Backend<'static, 'static> {
                     typo,
                 )
                 .unwrap();
+                // reload the instance so new ignore takes effect
                 self.state.lock().unwrap().update_router().unwrap();
             };
         }

@@ -1,4 +1,3 @@
-use ignore_typo_action::IGNORE_IN_PROJECT;
 use matchit::Match;
 
 use std::borrow::Cow;
@@ -13,13 +12,14 @@ use tower_lsp_server::{Client, LanguageServer, UriExt};
 use typos_cli::policy;
 
 use crate::state::{uri_path_sanitised, BackendState};
+
+const IGNORE_IN_PROJECT: &str = "ignore-in-project";
+
 pub struct Backend<'s, 'p> {
     client: Client,
     state: Mutex<crate::state::BackendState<'s>>,
     default_policy: policy::Policy<'p, 'p, 'p>,
 }
-
-mod ignore_typo_action;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct DiagnosticData<'c> {
@@ -224,16 +224,15 @@ impl LanguageServer for Backend<'static, 'static> {
                             .router
                             .at(params.text_document.uri.to_file_path().unwrap().to_str().unwrap())
                         {
-                            let config_files = value.config_files_in_project();
-
                             suggestions.push(CodeActionOrCommand::Command(Command {
                                 title: format!("Ignore `{}` in the project", typo),
                                 command: IGNORE_IN_PROJECT.to_string(),
                                 arguments: Some(
                                     [serde_json::to_value(IgnoreInProjectCommandArguments {
                                         typo: typo.to_string(),
-                                        config_file_path: config_files
+                                        config_file_path: value
                                             .project_root
+                                            .path
                                             .to_string_lossy()
                                             .to_string(),
                                     })
@@ -242,14 +241,14 @@ impl LanguageServer for Backend<'static, 'static> {
                                 ),
                             }));
 
-                            if let Some(explicit_config) = &config_files.explicit {
+                            if let Some(explicit_config) = &value.explicit_config {
                                 suggestions.push(CodeActionOrCommand::Command(Command {
                                     title: format!("Ignore `{}` in the configuration file", typo),
                                     command: IGNORE_IN_PROJECT.to_string(),
                                     arguments: Some(
                                         [serde_json::to_value(IgnoreInProjectCommandArguments {
                                             typo: typo.to_string(),
-                                            config_file_path: explicit_config.to_string_lossy().to_string(),
+                                            config_file_path: explicit_config.path.to_string_lossy().to_string(),
                                         })
                                             .unwrap()]
                                             .into(),
@@ -305,11 +304,8 @@ impl LanguageServer for Backend<'static, 'static> {
                 ..
             }) = serde_json::from_value::<IgnoreInProjectCommandArguments>(argument)
             {
-                ignore_typo_action::ignore_typo_in_config_file(
-                    PathBuf::from(config_file_path),
-                    typo,
-                )
-                .unwrap();
+                crate::config::add_ignore(PathBuf::from(config_file_path).as_path(), &typo)
+                    .unwrap();
                 // reload the instance so new ignore takes effect
                 self.state.lock().unwrap().update_router().unwrap();
             };

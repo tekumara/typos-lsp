@@ -1,23 +1,20 @@
-mod config_file_location;
-mod config_file_suggestions;
-
 use std::path::Path;
 
 use bstr::ByteSlice;
-use config_file_location::ConfigFileLocation;
-use config_file_suggestions::ConfigFileSuggestions;
+use crate::config::ConfigPath;
 use ignore::overrides::{Override, OverrideBuilder};
 use typos_cli::policy;
+
 pub struct Instance<'s> {
     /// File path rules to ignore
     pub ignores: Override,
     pub engine: policy::ConfigEngine<'s>,
 
     /// The path where the LSP server was started
-    pub project_root: ConfigFileLocation,
+    pub project_root: ConfigPath,
 
     /// The explicit configuration file that was given to the LSP server at startup
-    pub explicit_config: Option<ConfigFileLocation>,
+    pub explicit_config: Option<ConfigPath>,
 }
 
 impl Instance<'_> {
@@ -34,9 +31,9 @@ impl Instance<'_> {
         // a default config?
 
         let mut c = typos_cli::config::Config::default();
-        let explicit_config = config.map(ConfigFileLocation::from_file_path_or_default);
+        let explicit_config = config.map(ConfigPath::from_file_path_or_default);
 
-        if let Some(ConfigFileLocation {
+        if let Some(ConfigPath {
             config: Some(ref config),
             ..
         }) = explicit_config
@@ -63,20 +60,10 @@ impl Instance<'_> {
 
         Ok(Instance {
             explicit_config,
-            project_root: ConfigFileLocation::from_dir_or_default(path),
+            project_root: ConfigPath::from_dir_or_default(path),
             ignores: ignore,
             engine,
         })
-    }
-
-    /// Returns the typos_cli configuration files that are relevant for the current project.
-    ///
-    /// <https://github.com/crate-ci/typos/blob/master/docs/reference.md>
-    pub fn config_files_in_project(&self) -> ConfigFileSuggestions {
-        ConfigFileSuggestions {
-            explicit: self.explicit_config.as_ref().map(|c| c.path.clone()),
-            project_root: self.project_root.path.to_path_buf(),
-        }
     }
 }
 

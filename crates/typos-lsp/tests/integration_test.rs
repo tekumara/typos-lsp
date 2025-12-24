@@ -149,13 +149,18 @@ async fn test_code_action() {
                 "title": "for"
               },
               {
-                "arguments": [
-                  {
-                    "config_file_path": expected_config_path,
-                    "typo": "fo",
-                  },
-                ],
-                "command": "ignore-in-project",
+                "kind": "quickfix",
+                "diagnostics": [ diag("`fo` should be `of`, `for`", "fo", 1, 0, 2) ],
+                "command": {
+                  "command": "ignore-in-project",
+                  "arguments": [
+                    {
+                      "config_file_path": expected_config_path,
+                      "typo": "fo",
+                    },
+                  ],
+                  "title": "Ignore `fo` in the project",
+                },
                 "title": "Ignore `fo` in the project",
               },
             ],
@@ -187,13 +192,18 @@ async fn test_code_action() {
                 "title": "appropriate"
               },
               {
-                "arguments": [
-                  {
-                    "config_file_path": expected_config_path,
-                    "typo": "apropriate",
-                  },
-                ],
-                "command": "ignore-in-project",
+                "kind": "quickfix",
+                "diagnostics": [ diag("`apropriate` should be `appropriate`", "apropriate", 0, 11, 21) ],
+                "command": {
+                  "command": "ignore-in-project",
+                  "arguments": [
+                    {
+                      "config_file_path": expected_config_path,
+                      "typo": "apropriate",
+                    },
+                  ],
+                  "title": "Ignore `apropriate` in the project",
+                },
                 "title": "Ignore `apropriate` in the project",
               },
             ],

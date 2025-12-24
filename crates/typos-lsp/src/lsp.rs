@@ -229,15 +229,24 @@ impl LanguageServer for Backend<'static, 'static> {
                                 typo: typo.to_string(),
                                 config_file_path: instance.config_file.clone(),
                             }) {
-                                Ok(args) => {
-                                    suggestions.push(CodeActionOrCommand::Command(Command {
+                                Ok(arg) => {
+                                    suggestions.push(CodeActionOrCommand::CodeAction(CodeAction {
                                         title: format!("Ignore `{}` in the project", typo),
-                                        command: IGNORE_IN_PROJECT.to_string(),
-                                        arguments: Some(vec![args]),
+                                        kind: Some(CodeActionKind::QUICKFIX),
+                                        diagnostics: Some(vec![diag.clone()]),
+                                        command: Some(Command {
+                                            title: format!("Ignore `{}` in the project", typo),
+                                            command: IGNORE_IN_PROJECT.to_string(),
+                                            arguments: Some(vec![arg]),
+                                        }),
+                                        ..Default::default()
                                     }));
                                 }
                                 Err(e) => {
-                                    tracing::error!("Failed to serialize arguments: {}", e);
+                                    tracing::error!(
+                                        "Failed to serialize ignore-in-project arguments. Error: {}",
+                                        e
+                                    );
                                 }
                             }
 
@@ -246,15 +255,24 @@ impl LanguageServer for Backend<'static, 'static> {
                                     typo: typo.to_string(),
                                     config_file_path: explicit_config.clone(),
                                 }) {
-                                    Ok(args) => {
-                                        suggestions.push(CodeActionOrCommand::Command(Command {
+                                    Ok(arg) => {
+                                        suggestions.push(CodeActionOrCommand::CodeAction(CodeAction {
                                             title: format!("Ignore `{}` in the configuration file", typo),
-                                            command: IGNORE_IN_PROJECT.to_string(),
-                                            arguments: Some(vec![args]),
+                                            kind: Some(CodeActionKind::QUICKFIX),
+                                            diagnostics: Some(vec![diag.clone()]),
+                                            command: Some(Command {
+                                                title: format!("Ignore `{}` in the configuration file", typo),
+                                                command: IGNORE_IN_PROJECT.to_string(),
+                                                arguments: Some(vec![arg]),
+                                            }),
+                                            ..Default::default()
                                         }));
                                     }
                                     Err(e) => {
-                                        tracing::error!("Failed to serialize arguments: {}", e);
+                                        tracing::error!(
+                                            "Failed to serialize ignore-in-config arguments. Error: {}",
+                                            e
+                                        );
                                     }
                                 }
                             }

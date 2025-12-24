@@ -9,8 +9,8 @@ pub struct TestServer {
 
 impl TestServer {
     pub fn new() -> Self {
-        let (req_client, req_server) = tokio::io::duplex(1024);
-        let (resp_server, resp_client) = tokio::io::duplex(1024);
+        let (req_client, req_server) = tokio::io::duplex(4096);
+        let (resp_server, resp_client) = tokio::io::duplex(4096);
 
         let (service, socket) = LspService::new(typos_lsp::lsp::Backend::new);
 
@@ -20,7 +20,7 @@ impl TestServer {
         Self {
             req_client,
             resp_client,
-            buf: vec![0; 1024],
+            buf: vec![0; 4096],
         }
     }
 

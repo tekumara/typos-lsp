@@ -26,7 +26,7 @@ async fn test_initialize_e2e() {
                     ],
                 },
                 "positionEncoding": "utf-16",
-                "textDocumentSync": 1,
+                "textDocumentSync": 2,
                 "workspace": {
                   "workspaceFolders": { "changeNotifications": true, "supported": true }
                 }

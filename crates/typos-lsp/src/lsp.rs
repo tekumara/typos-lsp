@@ -103,8 +103,7 @@ impl LanguageServer for Backend<'static, 'static> {
                 // only support UTF-16 positions for now, which is the default when unspecified
                 position_encoding: Some(PositionEncodingKind::UTF16),
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
-                    // TODO: should we support incremental?
-                    TextDocumentSyncKind::FULL,
+                    TextDocumentSyncKind::INCREMENTAL,
                 )),
                 code_action_provider: Some(CodeActionProviderCapability::Options(
                     CodeActionOptions {

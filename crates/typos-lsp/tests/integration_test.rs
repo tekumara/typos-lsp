@@ -199,6 +199,46 @@ async fn test_code_action() {
 }
 
 #[test_log::test(tokio::test)]
+async fn test_execute_command_ignore_in_project() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let config_path = temp_dir.path().join("typos.toml");
+
+    let workspace_folder_uri = Uri::from_file_path(temp_dir.path()).unwrap();
+    let config_uri_str = config_path.to_string_lossy();
+
+    let mut server = TestServer::new();
+    let _ = server
+        .request(&initialize_with(Some(&workspace_folder_uri), None, None))
+        .await;
+
+    let execute_command = json!({
+        "jsonrpc": "2.0",
+        "method": "workspace/executeCommand",
+        "params": {
+            "command": "ignore-in-project",
+            "arguments": [{
+                "typo": "foobar",
+                "config_file_path": config_uri_str
+            }]
+        },
+        "id": 2
+    })
+    .to_string();
+
+    server.request(&execute_command).await;
+
+    let content = std::fs::read_to_string(&config_path).unwrap();
+    assert!(
+        content.contains(
+            r#"[default.extend-words]
+foobar = "foobar""#
+        ) || content.contains("foobar = \"foobar\""),
+        "Content was: {}",
+        content
+    );
+}
+
+#[test_log::test(tokio::test)]
 async fn test_config_file() {
     let workspace_folder_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests");
     let workspace_folder_uri = Uri::from_file_path(&workspace_folder_path).unwrap();

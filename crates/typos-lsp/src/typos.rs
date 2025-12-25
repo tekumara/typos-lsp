@@ -1,20 +1,21 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use bstr::ByteSlice;
-use crate::config::ConfigPath;
 use ignore::overrides::{Override, OverrideBuilder};
 use typos_cli::policy;
+
+use crate::config;
 
 pub struct Instance<'s> {
     /// File path rules to ignore
     pub ignores: Override,
     pub engine: policy::ConfigEngine<'s>,
 
-    /// The path where the LSP server was started
-    pub project_root: ConfigPath,
+    /// The path to the configuration file for the files in this instance
+    pub config_file: PathBuf,
 
     /// The explicit configuration file that was given to the LSP server at startup
-    pub explicit_config: Option<ConfigPath>,
+    pub custom_config: Option<PathBuf>,
 }
 
 impl Instance<'_> {
@@ -31,38 +32,35 @@ impl Instance<'_> {
         // a default config?
 
         let mut c = typos_cli::config::Config::default();
-        let explicit_config = config.map(ConfigPath::from_file_path_or_default);
-
-        if let Some(ConfigPath {
-            config: Some(ref config),
-            ..
-        }) = explicit_config
-        {
-            c.update(config);
-            engine.set_overrides(c);
+        if let Some(config_path) = config {
+            let custom = typos_cli::config::Config::from_file(config_path)?;
+            if let Some(custom) = custom {
+                c.update(&custom);
+                engine.set_overrides(c);
+            }
         }
 
         // initialise an engine and overrides using the config file from path or its parent
         engine.init_dir(path)?;
         let walk_policy = engine.walk(path);
 
-        let mut ignores = OverrideBuilder::new(path);
+        let mut ob = OverrideBuilder::new(path);
         // always ignore the config files like typos cli does
         for f in typos_cli::config::SUPPORTED_FILE_NAMES {
-            ignores.add(&format!("!{f}"))?;
+            ob.add(&format!("!{f}"))?;
         }
 
         // add any explicit excludes
         for pattern in walk_policy.extend_exclude.iter() {
-            ignores.add(&format!("!{pattern}"))?;
+            ob.add(&format!("!{pattern}"))?;
         }
-        let ignore = ignores.build()?;
+        let ignores = ob.build()?;
 
         Ok(Instance {
-            explicit_config,
-            project_root: ConfigPath::from_dir_or_default(path),
-            ignores: ignore,
+            ignores,
             engine,
+            config_file: config::find_config_file_or_default(path),
+            custom_config: config.map(|p| p.to_path_buf()),
         })
     }
 }

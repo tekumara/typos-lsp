@@ -231,8 +231,7 @@ impl LanguageServer for Backend<'static, 'static> {
                                     [serde_json::to_value(IgnoreInProjectCommandArguments {
                                         typo: typo.to_string(),
                                         config_file_path: value
-                                            .project_root
-                                            .path
+                                            .config_file
                                             .to_string_lossy()
                                             .to_string(),
                                     })
@@ -241,14 +240,14 @@ impl LanguageServer for Backend<'static, 'static> {
                                 ),
                             }));
 
-                            if let Some(explicit_config) = &value.explicit_config {
+                            if let Some(explicit_config) = &value.custom_config {
                                 suggestions.push(CodeActionOrCommand::Command(Command {
                                     title: format!("Ignore `{}` in the configuration file", typo),
                                     command: IGNORE_IN_PROJECT.to_string(),
                                     arguments: Some(
                                         [serde_json::to_value(IgnoreInProjectCommandArguments {
                                             typo: typo.to_string(),
-                                            config_file_path: explicit_config.path.to_string_lossy().to_string(),
+                                            config_file_path: explicit_config.to_string_lossy().to_string(),
                                         })
                                             .unwrap()]
                                             .into(),

@@ -42,6 +42,12 @@ async fn test_initialize_e2e() {
 
 #[test_log::test(tokio::test)]
 async fn test_code_action() {
+    let expected_config_path = if cfg!(windows) {
+        "C:\\typos.toml"
+    } else {
+        "/typos.toml"
+    };
+
     let did_open = did_open("this is an apropriate test\nfo typos\n");
 
     let code_action = json!(
@@ -146,7 +152,7 @@ async fn test_code_action() {
               {
                 "arguments": [
                   {
-                    "config_file_path": "/typos.toml",
+                    "config_file_path": expected_config_path,
                     "typo": "fo",
                   },
                 ],
@@ -184,7 +190,7 @@ async fn test_code_action() {
               {
                 "arguments": [
                   {
-                    "config_file_path": "/typos.toml",
+                    "config_file_path": expected_config_path,
                     "typo": "apropriate",
                   },
                 ],

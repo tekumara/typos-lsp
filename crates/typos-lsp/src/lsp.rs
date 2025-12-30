@@ -217,12 +217,13 @@ impl LanguageServer for Backend<'static, 'static> {
                             })
                             .collect();
 
-                        if let Ok(Match { value, .. }) = self
+                        let uri_path = uri_path_sanitised(&params.text_document.uri);
+                        if let Ok(Match { value: instance, .. }) = self
                             .state
                             .lock()
                             .unwrap()
                             .router
-                            .at(params.text_document.uri.to_file_path().unwrap().to_str().unwrap())
+                            .at(&uri_path)
                         {
                             suggestions.push(CodeActionOrCommand::Command(Command {
                                 title: format!("Ignore `{}` in the project", typo),
@@ -230,7 +231,7 @@ impl LanguageServer for Backend<'static, 'static> {
                                 arguments: Some(
                                     [serde_json::to_value(IgnoreInProjectCommandArguments {
                                         typo: typo.to_string(),
-                                        config_file_path: value
+                                        config_file_path: instance
                                             .config_file
                                             .to_string_lossy()
                                             .to_string(),
@@ -240,7 +241,7 @@ impl LanguageServer for Backend<'static, 'static> {
                                 ),
                             }));
 
-                            if let Some(explicit_config) = &value.custom_config {
+                            if let Some(explicit_config) = &instance.custom_config {
                                 suggestions.push(CodeActionOrCommand::Command(Command {
                                     title: format!("Ignore `{}` in the configuration file", typo),
                                     command: IGNORE_IN_PROJECT.to_string(),
@@ -269,6 +270,7 @@ impl LanguageServer for Backend<'static, 'static> {
                         );
                         vec![]
                     }
+
                 }
                 None => {
                     tracing::warn!("Client doesn't support diagnostic data");

@@ -12,6 +12,9 @@ use tower_lsp_server::{Client, LanguageServer, UriExt};
 use typos_cli::policy;
 
 use crate::state::{uri_path_sanitised, BackendState};
+
+const IGNORE_IN_PROJECT: &str = "ignore-in-project";
+
 pub struct Backend<'s, 'p> {
     client: Client,
     state: Mutex<crate::state::BackendState<'s>>,
@@ -21,6 +24,14 @@ pub struct Backend<'s, 'p> {
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct DiagnosticData<'c> {
     corrections: Vec<Cow<'c, str>>,
+    typo: Cow<'c, str>,
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct IgnoreInProjectCommandArguments {
+    typo: String,
+    /// The configuration file that should be modified to ignore the typo
+    config_file_path: PathBuf,
 }
 
 impl LanguageServer for Backend<'static, 'static> {
@@ -104,6 +115,10 @@ impl LanguageServer for Backend<'static, 'static> {
                         resolve_provider: None,
                     },
                 )),
+                execute_command_provider: Some(ExecuteCommandOptions {
+                    commands: vec![IGNORE_IN_PROJECT.to_string()],
+                    work_done_progress_options: WorkDoneProgressOptions::default(),
+                }),
                 workspace: Some(WorkspaceServerCapabilities {
                     workspace_folders: Some(WorkspaceFoldersServerCapabilities {
                         supported: Some(true),
@@ -157,6 +172,8 @@ impl LanguageServer for Backend<'static, 'static> {
             .await;
     }
 
+    /// Called by the editor to request displaying a list of code actions and commands for a given
+    /// position in the current file.
     async fn code_action(
         &self,
         params: CodeActionParams,
@@ -170,10 +187,10 @@ impl LanguageServer for Backend<'static, 'static> {
             .filter(|diag| diag.source == Some("typos".to_string()))
             .flat_map(|diag| match &diag.data {
                 Some(data) => {
-                    if let Ok(DiagnosticData { corrections }) =
+                    if let Ok(DiagnosticData { corrections, typo }) =
                         serde_json::from_value::<DiagnosticData>(data.clone())
                     {
-                        corrections
+                        let mut suggestions: Vec<_> = corrections
                             .iter()
                             .map(|c| {
                                 CodeActionOrCommand::CodeAction(CodeAction {
@@ -198,7 +215,57 @@ impl LanguageServer for Backend<'static, 'static> {
                                     ..CodeAction::default()
                                 })
                             })
-                            .collect()
+                            .collect();
+
+                        let uri_path = uri_path_sanitised(&params.text_document.uri);
+                        if let Ok(Match { value: instance, .. }) = self
+                            .state
+                            .lock()
+                            .unwrap()
+                            .router
+                            .at(&uri_path)
+                        {
+                            match serde_json::to_value(IgnoreInProjectCommandArguments {
+                                typo: typo.to_string(),
+                                config_file_path: instance.config_file.clone(),
+                            }) {
+                                Ok(args) => {
+                                    suggestions.push(CodeActionOrCommand::Command(Command {
+                                        title: format!("Ignore `{}` in the project", typo),
+                                        command: IGNORE_IN_PROJECT.to_string(),
+                                        arguments: Some(vec![args]),
+                                    }));
+                                }
+                                Err(e) => {
+                                    tracing::error!("Failed to serialize arguments: {}", e);
+                                }
+                            }
+
+                            if let Some(explicit_config) = &instance.custom_config {
+                                match serde_json::to_value(IgnoreInProjectCommandArguments {
+                                    typo: typo.to_string(),
+                                    config_file_path: explicit_config.clone(),
+                                }) {
+                                    Ok(args) => {
+                                        suggestions.push(CodeActionOrCommand::Command(Command {
+                                            title: format!("Ignore `{}` in the configuration file", typo),
+                                            command: IGNORE_IN_PROJECT.to_string(),
+                                            arguments: Some(vec![args]),
+                                        }));
+                                    }
+                                    Err(e) => {
+                                        tracing::error!("Failed to serialize arguments: {}", e);
+                                    }
+                                }
+                            }
+                        } else {
+                            tracing::warn!(
+                                "code_action: Cannot create a code action for ignoring a typo in the project. Reason: No route found for file '{:?}'",
+                                params.text_document.uri
+                            );
+                        }
+
+                        suggestions
                     } else {
                         tracing::error!(
                             "Deserialization failed: received {:?} as diagnostic data",
@@ -206,6 +273,7 @@ impl LanguageServer for Backend<'static, 'static> {
                         );
                         vec![]
                     }
+
                 }
                 None => {
                     tracing::warn!("Client doesn't support diagnostic data");
@@ -215,6 +283,38 @@ impl LanguageServer for Backend<'static, 'static> {
             .collect::<Vec<_>>();
 
         Ok(Some(actions))
+    }
+
+    /// Called by the editor to execute a server side command, such as ignoring a typo.
+    async fn execute_command(
+        &self,
+        raw_params: ExecuteCommandParams,
+    ) -> jsonrpc::Result<Option<serde_json::Value>> {
+        tracing::debug!(
+            "execute_command: {:?}",
+            to_string(&raw_params).unwrap_or_default()
+        );
+
+        if raw_params.command == IGNORE_IN_PROJECT {
+            let argument = raw_params
+                .arguments
+                .into_iter()
+                .next()
+                .expect("no arguments for ignore-in-project command");
+
+            if let Ok(IgnoreInProjectCommandArguments {
+                typo,
+                config_file_path,
+                ..
+            }) = serde_json::from_value::<IgnoreInProjectCommandArguments>(argument)
+            {
+                crate::config::add_ignore(&config_file_path, &typo).unwrap();
+                // reload the instance so new ignore takes effect
+                self.state.lock().unwrap().update_router().unwrap();
+            };
+        }
+
+        Ok(None)
     }
 
     async fn did_change_workspace_folders(&self, params: DidChangeWorkspaceFoldersParams) {
@@ -278,9 +378,10 @@ impl<'s> Backend<'s, '_> {
                     },
                     // store corrections for retrieval during code_action
                     data: match typo.corrections {
-                        typos::Status::Corrections(corrections) => {
-                            Some(json!(DiagnosticData { corrections }))
-                        }
+                        typos::Status::Corrections(corrections) => Some(json!(DiagnosticData {
+                            corrections,
+                            typo: typo.typo
+                        })),
                         _ => None,
                     },
                     ..Diagnostic::default()

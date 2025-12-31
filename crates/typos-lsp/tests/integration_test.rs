@@ -21,6 +21,11 @@ async fn test_initialize_e2e() {
                   "codeActionKinds": ["quickfix"],
                   "workDoneProgress": false
                 },
+                "executeCommandProvider": {
+                    "commands": [
+                        "ignore-in-project",
+                    ],
+                },
                 "positionEncoding": "utf-16",
                 "textDocumentSync": 1,
                 "workspace": {
@@ -37,6 +42,12 @@ async fn test_initialize_e2e() {
 
 #[test_log::test(tokio::test)]
 async fn test_code_action() {
+    let expected_config_path = if cfg!(windows) {
+        "C:\\typos.toml"
+    } else {
+        "/typos.toml"
+    };
+
     let did_open = did_open("this is an apropriate test\nfo typos\n");
 
     let code_action = json!(
@@ -49,7 +60,7 @@ async fn test_code_action() {
           },
           "range": range(1, 0, 2),
           "context": {
-            "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 0, 2) ],
+            "diagnostics": [ diag("`fo` should be `of`, `for`", "fo", 1, 0, 2) ],
             "only": ["quickfix"],
             "triggerKind": 1
           }
@@ -69,7 +80,7 @@ async fn test_code_action() {
           },
           "range": range(0, 11, 21),
           "context": {
-            "diagnostics": [ diag("`apropriate` should be `appropriate`", 0, 11, 21) ],
+            "diagnostics": [ diag("`apropriate` should be `appropriate`", "apropriate", 0, 11, 21) ],
             "only": ["quickfix"],
             "triggerKind": 1
           }
@@ -85,8 +96,20 @@ async fn test_code_action() {
     similar_asserts::assert_eq!(
         server.request(&did_open).await,
         publish_diagnostics(&[
-            diag("`apropriate` should be `appropriate`", 0, 11, 21),
-            diag("`fo` should be `of`, `for`, `do`, `go`, `to`", 1, 0, 2)
+            diag(
+                "`apropriate` should be `appropriate`",
+                "apropriate",
+                0,
+                11,
+                21
+            ),
+            diag(
+                "`fo` should be `of`, `for`, `do`, `go`, `to`",
+                "fo",
+                1,
+                0,
+                2
+            )
         ])
     );
 
@@ -97,7 +120,7 @@ async fn test_code_action() {
             "jsonrpc": "2.0",
             "result": [
               {
-                "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 0, 2) ],
+                "diagnostics": [ diag("`fo` should be `of`, `for`", "fo", 1, 0, 2) ],
                 "edit": {
                   "changes": {
                     "file:///C%3A/diagnostics.txt": [
@@ -112,7 +135,7 @@ async fn test_code_action() {
                 "title": "of"
               },
               {
-                "diagnostics": [ diag("`fo` should be `of`, `for`", 1, 0, 2) ],
+                "diagnostics": [ diag("`fo` should be `of`, `for`", "fo", 1, 0, 2) ],
                 "edit": {
                   "changes": {
                     "file:///C%3A/diagnostics.txt": [
@@ -125,7 +148,17 @@ async fn test_code_action() {
                 },
                 "kind": "quickfix",
                 "title": "for"
-              }
+              },
+              {
+                "arguments": [
+                  {
+                    "config_file_path": expected_config_path,
+                    "typo": "fo",
+                  },
+                ],
+                "command": "ignore-in-project",
+                "title": "Ignore `fo` in the project",
+              },
             ],
             "id": 2
           }
@@ -139,7 +172,7 @@ async fn test_code_action() {
             "jsonrpc": "2.0",
             "result": [
               {
-                "diagnostics": [ diag("`apropriate` should be `appropriate`", 0, 11, 21) ],
+                "diagnostics": [ diag("`apropriate` should be `appropriate`", "apropriate", 0, 11, 21) ],
                 "edit": {
                   "changes": {
                     "file:///C%3A/diagnostics.txt": [
@@ -153,11 +186,59 @@ async fn test_code_action() {
                 "isPreferred": true,
                 "kind": "quickfix",
                 "title": "appropriate"
-              }
+              },
+              {
+                "arguments": [
+                  {
+                    "config_file_path": expected_config_path,
+                    "typo": "apropriate",
+                  },
+                ],
+                "command": "ignore-in-project",
+                "title": "Ignore `apropriate` in the project",
+              },
             ],
             "id": 3
           }
         ),
+    );
+}
+
+#[test_log::test(tokio::test)]
+async fn test_execute_command_ignore_in_project() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let config_path = temp_dir.path().join("typos.toml");
+
+    let workspace_folder_uri = Uri::from_file_path(temp_dir.path()).unwrap();
+    let mut server = TestServer::new();
+    let _ = server
+        .request(&initialize_with(Some(&workspace_folder_uri), None, None))
+        .await;
+
+    let execute_command = json!({
+        "jsonrpc": "2.0",
+        "method": "workspace/executeCommand",
+        "params": {
+            "command": "ignore-in-project",
+            "arguments": [{
+                "typo": "foobar",
+                "config_file_path": config_path
+            }]
+        },
+        "id": 2
+    })
+    .to_string();
+
+    server.request(&execute_command).await;
+
+    let content = std::fs::read_to_string(&config_path).unwrap();
+    assert!(
+        content.contains(
+            r#"[default.extend-words]
+foobar = "foobar""#
+        ) || content.contains("foobar = \"foobar\""),
+        "Content was: {}",
+        content
     );
 }
 
@@ -181,7 +262,10 @@ async fn test_config_file() {
     // check "fo" is corrected to "of" because of default.extend-words
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
-        publish_diagnostics_with(&[diag("`fo` should be `of`", 0, 0, 2)], Some(&diag_txt))
+        publish_diagnostics_with(
+            &[diag("`fo` should be `of`", "fo", 0, 0, 2)],
+            Some(&diag_txt)
+        )
     );
 
     // check changelog is excluded because of files.extend-exclude
@@ -223,7 +307,10 @@ async fn test_custom_config_file() {
     // in custom_typos.toml which overrides typos.toml
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
-        publish_diagnostics_with(&[diag("`fo` should be `go`", 0, 0, 2)], Some(&diag_txt))
+        publish_diagnostics_with(
+            &[diag("`fo` should be `go`", "fo", 0, 0, 2)],
+            Some(&diag_txt)
+        )
     );
 }
 
@@ -249,7 +336,10 @@ async fn test_custom_config_no_workspace_folder() {
     // in custom_typos.toml which overrides typos.toml
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
-        publish_diagnostics_with(&[diag("`fo` should be `go`", 0, 0, 2)], Some(&diag_txt))
+        publish_diagnostics_with(
+            &[diag("`fo` should be `go`", "fo", 0, 0, 2)],
+            Some(&diag_txt)
+        )
     );
 }
 
@@ -268,7 +358,13 @@ async fn test_non_file_uri() {
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
         publish_diagnostics_with(
-            &[diag("`apropriate` should be `appropriate`", 0, 0, 10)],
+            &[diag(
+                "`apropriate` should be `appropriate`",
+                "apropriate",
+                0,
+                0,
+                10
+            )],
             Some(&uri)
         )
     );
@@ -287,7 +383,13 @@ async fn test_empty_file_uri() {
     similar_asserts::assert_eq!(
         server.request(&did_open_diag_txt).await,
         publish_diagnostics_with(
-            &[diag("`apropriate` should be `appropriate`", 0, 0, 10)],
+            &[diag(
+                "`apropriate` should be `appropriate`",
+                "apropriate",
+                0,
+                0,
+                10
+            )],
             Some(&uri)
         )
     );
@@ -302,14 +404,14 @@ async fn test_position_with_unicode_text() {
     let unicode_text = did_open("¿Qué hace él?");
     similar_asserts::assert_eq!(
         server.request(&unicode_text).await,
-        publish_diagnostics(&[diag("`hace` should be `have`", 0, 5, 9)])
+        publish_diagnostics(&[diag("`hace` should be `have`", "hace", 0, 5, 9)])
     );
 
     // ẽ has two code points U+0065 U+0303 (latin small letter e, combining tilde)
     let unicode_text = did_open("ẽ hace");
     similar_asserts::assert_eq!(
         server.request(&unicode_text).await,
-        publish_diagnostics(&[diag("`hace` should be `have`", 0, 3, 7)])
+        publish_diagnostics(&[diag("`hace` should be `have`", "hace", 0, 3, 7)])
     );
 }
 
@@ -356,6 +458,7 @@ async fn test_custom_severity() {
         server.request(&did_open).await,
         publish_diagnostics(&[diag_with_severity(
             "`apropriate` should be `appropriate`",
+            "apropriate",
             0,
             11,
             21,
@@ -422,11 +525,18 @@ fn did_open_with(text: &str, uri: Option<&Uri>) -> String {
     .to_string()
 }
 
-fn diag(message: &str, line: u32, start: u32, end: u32) -> Value {
-    diag_with_severity(message, line, start, end, 3)
+fn diag(message: &str, typo: &str, line: u32, start: u32, end: u32) -> Value {
+    diag_with_severity(message, typo, line, start, end, 3)
 }
 
-fn diag_with_severity(message: &str, line: u32, start: u32, end: u32, severity: u32) -> Value {
+fn diag_with_severity(
+    message: &str,
+    typo: &str,
+    line: u32,
+    start: u32,
+    end: u32,
+    severity: u32,
+) -> Value {
     static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"`[^`]+` should be (.*)").unwrap());
 
     let caps = RE.captures(message).unwrap();
@@ -434,7 +544,7 @@ fn diag_with_severity(message: &str, line: u32, start: u32, end: u32, severity: 
     let corrections: Vec<&str> = caps[1].split(", ").map(|s| s.trim_matches('`')).collect();
 
     json!({
-      "data": { "corrections": corrections },
+      "data": { "corrections": corrections, "typo": typo },
       "message": message,
       "range": range(line,start,end),
       "severity": severity,

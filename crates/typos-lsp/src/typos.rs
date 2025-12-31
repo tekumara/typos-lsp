@@ -1,11 +1,21 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use bstr::ByteSlice;
 use ignore::overrides::{Override, OverrideBuilder};
 use typos_cli::policy;
+
+use crate::config;
+
 pub struct Instance<'s> {
+    /// File path rules to ignore
     pub ignores: Override,
     pub engine: policy::ConfigEngine<'s>,
+
+    /// The path to the configuration file for the files in this instance
+    pub config_file: PathBuf,
+
+    /// The explicit configuration file that was given to the LSP server at startup
+    pub custom_config: Option<PathBuf>,
 }
 
 impl Instance<'_> {
@@ -20,6 +30,7 @@ impl Instance<'_> {
 
         // TODO: currently mimicking typos here but do we need to create and update
         // a default config?
+
         let mut c = typos_cli::config::Config::default();
         if let Some(config_path) = config {
             let custom = typos_cli::config::Config::from_file(config_path)?;
@@ -33,21 +44,23 @@ impl Instance<'_> {
         engine.init_dir(path)?;
         let walk_policy = engine.walk(path);
 
-        let mut ignores = OverrideBuilder::new(path);
+        let mut ob = OverrideBuilder::new(path);
         // always ignore the config files like typos cli does
         for f in typos_cli::config::SUPPORTED_FILE_NAMES {
-            ignores.add(&format!("!{f}"))?;
+            ob.add(&format!("!{f}"))?;
         }
 
         // add any explicit excludes
         for pattern in walk_policy.extend_exclude.iter() {
-            ignores.add(&format!("!{pattern}"))?;
+            ob.add(&format!("!{pattern}"))?;
         }
-        let ignore = ignores.build()?;
+        let ignores = ob.build()?;
 
         Ok(Instance {
-            ignores: ignore,
+            ignores,
             engine,
+            config_file: config::find_config_file_or_default(path),
+            custom_config: config.map(|p| p.to_path_buf()),
         })
     }
 }

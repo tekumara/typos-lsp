@@ -8,7 +8,8 @@
     { "type": "fix", "section": "Bug Fixes" },
     { "type": "chore", "section": "Chores" },
     { "type": "refactor", "section": "Code Refactoring", "hidden": true },
-    { "type": "ci", "section": "Builds" }
+    { "type": "ci", "section": "Builds" },
+    { "type": "perf", "section": "Performance Improvements" }
   ],
   "packages": {
     ".": {

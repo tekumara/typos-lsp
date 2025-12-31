@@ -1,4 +1,4 @@
-use matchit::Match;
+use matchit::{Match, Router};
 
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -158,20 +158,32 @@ impl LanguageServer for Backend<'static, 'static> {
     async fn did_change(&self, params: DidChangeTextDocumentParams) {
         tracing::debug!("did_change: {:?}", to_string(&params).unwrap_or_default());
 
-        let doc = self.state.lock().unwrap().update_document(
-            &params.text_document.uri,
-            params.text_document.version,
-            params.content_changes,
-        );
+        let DidChangeTextDocumentParams {
+            text_document: VersionedTextDocumentIdentifier { uri, version },
+            content_changes,
+        } = params;
 
-        if let Some(text) = doc {
-            self.report_diagnostics(
-                params.text_document.uri,
-                params.text_document.version,
-                &text,
-            )
+        let diagnostics = {
+            let mut state = self.state.lock().unwrap();
+            let BackendState {
+                documents,
+                router,
+                severity,
+                ..
+            } = &mut *state;
+
+            let Some(doc) = documents.get_mut(&uri) else {
+                tracing::warn!("Received update for unknown document: {:?}", uri);
+                return;
+            };
+
+            doc.update(version, content_changes);
+            self.check_text_inner(&doc.text, &uri, router, *severity)
+        };
+
+        self.client
+            .publish_diagnostics(uri, diagnostics, Some(version))
             .await;
-        }
     }
 
     async fn did_save(&self, params: DidSaveTextDocumentParams) {
@@ -420,8 +432,17 @@ impl<'s> Backend<'s, '_> {
 
     fn check_text(&self, buffer: &str, uri: &Uri) -> Vec<Diagnostic> {
         let state = self.state.lock().unwrap();
+        self.check_text_inner(buffer, uri, &state.router, state.severity)
+    }
 
-        let Some((tokenizer, dict, ignore)) = self.workspace_policy(uri, &state) else {
+    fn check_text_inner(
+        &self,
+        buffer: &str,
+        uri: &Uri,
+        router: &Router<crate::typos::Instance<'s>>,
+        severity: Option<DiagnosticSeverity>,
+    ) -> Vec<Diagnostic> {
+        let Some((tokenizer, dict, ignore)) = self.workspace_policy(uri, router) else {
             // skip file because it matches extend-exclude
             return Vec::default();
         };
@@ -433,7 +454,7 @@ impl<'s> Backend<'s, '_> {
                         Position::new(line_num as u32, line_pos as u32),
                         Position::new(line_num as u32, (line_pos + typo.typo.len()) as u32),
                     ),
-                    severity: state.severity,
+                    severity,
                     source: Some("typos".to_string()),
                     message: match &typo.corrections {
                         typos::Status::Invalid => format!("`{}` is disallowed", typo.typo),
@@ -461,7 +482,7 @@ impl<'s> Backend<'s, '_> {
     fn workspace_policy<'a>(
         &'a self,
         uri: &Uri,
-        state: &'a std::sync::MutexGuard<'a, BackendState<'s>>,
+        router: &'a Router<crate::typos::Instance<'s>>,
     ) -> Option<(
         &'a typos::tokens::Tokenizer,
         &'a dyn typos::Dictionary,
@@ -484,7 +505,7 @@ impl<'s> Backend<'s, '_> {
                 let uri_path = uri_path_sanitised(uri);
 
                 // find relevant tokenizer, and dict for the workspace folder
-                let (tokenizer, dict, ignore) = match state.router.at(&uri_path) {
+                let (tokenizer, dict, ignore) = match router.at(&uri_path) {
                     Err(_) => {
                         // ie: file:///
                         tracing::debug!(

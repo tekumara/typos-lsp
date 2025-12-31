@@ -1,6 +1,5 @@
 use anyhow::anyhow;
 use matchit::Router;
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tower_lsp_server::ls_types::{
@@ -45,7 +44,7 @@ impl Document {
     }
 }
 
-impl BackendState<'_> {
+impl<'s> BackendState<'s> {
     pub(crate) fn set_workspace_folders(
         &mut self,
         workspace_folders: Vec<WorkspaceFolder>,
@@ -101,25 +100,6 @@ impl BackendState<'_> {
 
         Ok(())
     }
-
-    pub(crate) fn update_document(
-        &mut self,
-        uri: &Uri,
-        version: i32,
-        changes: Vec<TextDocumentContentChangeEvent>,
-    ) -> Option<String> {
-        match self.documents.entry(uri.clone()) {
-            Entry::Occupied(mut entry) => {
-                let doc = entry.get_mut();
-                doc.update(version, changes);
-                Some(doc.text.clone())
-            }
-            Entry::Vacant(_entry) => {
-                tracing::warn!("Received update for unknown document: {:?}", uri);
-                None
-            }
-        }
-    }
 }
 
 trait RouterExt {
@@ -159,19 +139,12 @@ pub fn uri_path_sanitised(uri: &Uri) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tower_lsp_server::lsp_types::Uri;
 
     #[test]
     fn test_update_document_full() {
-        let mut state = BackendState::default();
-        let uri = Uri::from_file_path("/tmp/test.txt").unwrap();
+        let mut doc = Document::new(0, "".to_string());
         let version = 1;
         let text = "hello world";
-
-        // Initial state
-        state
-            .documents
-            .insert(uri.clone(), Document::new(0, "".to_string()));
 
         let changes = vec![TextDocumentContentChangeEvent {
             range: None,
@@ -179,9 +152,9 @@ mod tests {
             text: text.to_string(),
         }];
 
-        state.update_document(&uri, version, changes);
+        doc.update(version, changes);
 
-        let doc = state.documents.get(&uri).unwrap();
         assert_eq!(doc.text, "hello world");
+        assert_eq!(doc.version, 1);
     }
 }

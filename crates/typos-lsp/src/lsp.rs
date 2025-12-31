@@ -31,7 +31,7 @@ struct DiagnosticData<'c> {
 struct IgnoreInProjectCommandArguments {
     typo: String,
     /// The configuration file that should be modified to ignore the typo
-    config_file_path: String,
+    config_file_path: PathBuf,
 }
 
 impl LanguageServer for Backend<'static, 'static> {
@@ -225,35 +225,38 @@ impl LanguageServer for Backend<'static, 'static> {
                             .router
                             .at(&uri_path)
                         {
-                            suggestions.push(CodeActionOrCommand::Command(Command {
-                                title: format!("Ignore `{}` in the project", typo),
-                                command: IGNORE_IN_PROJECT.to_string(),
-                                arguments: Some(
-                                    [serde_json::to_value(IgnoreInProjectCommandArguments {
-                                        typo: typo.to_string(),
-                                        config_file_path: instance
-                                            .config_file
-                                            .to_string_lossy()
-                                            .to_string(),
-                                    })
-                                        .unwrap()]
-                                        .into(),
-                                ),
-                            }));
+                            match serde_json::to_value(IgnoreInProjectCommandArguments {
+                                typo: typo.to_string(),
+                                config_file_path: instance.config_file.clone(),
+                            }) {
+                                Ok(args) => {
+                                    suggestions.push(CodeActionOrCommand::Command(Command {
+                                        title: format!("Ignore `{}` in the project", typo),
+                                        command: IGNORE_IN_PROJECT.to_string(),
+                                        arguments: Some(vec![args]),
+                                    }));
+                                }
+                                Err(e) => {
+                                    tracing::error!("Failed to serialize arguments: {}", e);
+                                }
+                            }
 
                             if let Some(explicit_config) = &instance.custom_config {
-                                suggestions.push(CodeActionOrCommand::Command(Command {
-                                    title: format!("Ignore `{}` in the configuration file", typo),
-                                    command: IGNORE_IN_PROJECT.to_string(),
-                                    arguments: Some(
-                                        [serde_json::to_value(IgnoreInProjectCommandArguments {
-                                            typo: typo.to_string(),
-                                            config_file_path: explicit_config.to_string_lossy().to_string(),
-                                        })
-                                            .unwrap()]
-                                            .into(),
-                                    ),
-                                }));
+                                match serde_json::to_value(IgnoreInProjectCommandArguments {
+                                    typo: typo.to_string(),
+                                    config_file_path: explicit_config.clone(),
+                                }) {
+                                    Ok(args) => {
+                                        suggestions.push(CodeActionOrCommand::Command(Command {
+                                            title: format!("Ignore `{}` in the configuration file", typo),
+                                            command: IGNORE_IN_PROJECT.to_string(),
+                                            arguments: Some(vec![args]),
+                                        }));
+                                    }
+                                    Err(e) => {
+                                        tracing::error!("Failed to serialize arguments: {}", e);
+                                    }
+                                }
                             }
                         } else {
                             tracing::warn!(
@@ -305,8 +308,7 @@ impl LanguageServer for Backend<'static, 'static> {
                 ..
             }) = serde_json::from_value::<IgnoreInProjectCommandArguments>(argument)
             {
-                crate::config::add_ignore(PathBuf::from(config_file_path).as_path(), &typo)
-                    .unwrap();
+                crate::config::add_ignore(&config_file_path, &typo).unwrap();
                 // reload the instance so new ignore takes effect
                 self.state.lock().unwrap().update_router().unwrap();
             };

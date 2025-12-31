@@ -210,8 +210,6 @@ async fn test_execute_command_ignore_in_project() {
     let config_path = temp_dir.path().join("typos.toml");
 
     let workspace_folder_uri = Uri::from_file_path(temp_dir.path()).unwrap();
-    let config_uri_str = config_path.to_string_lossy();
-
     let mut server = TestServer::new();
     let _ = server
         .request(&initialize_with(Some(&workspace_folder_uri), None, None))
@@ -224,7 +222,7 @@ async fn test_execute_command_ignore_in_project() {
             "command": "ignore-in-project",
             "arguments": [{
                 "typo": "foobar",
-                "config_file_path": config_uri_str
+                "config_file_path": config_path
             }]
         },
         "id": 2

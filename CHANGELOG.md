@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.1.47](https://github.com/tekumara/typos-lsp/compare/v0.1.46...v0.1.47) (2026-01-01)
+
+
+### Features
+
+* ignore code action to add a misspelling to the config file ([#72](https://github.com/tekumara/typos-lsp/issues/72)) ([c496d67](https://github.com/tekumara/typos-lsp/commit/c496d679da645c248cbc89a834993ba0ef3e5cbb))
+* refresh diagnostics on ignore action ([1d60a73](https://github.com/tekumara/typos-lsp/commit/1d60a7390908b74ae1db0c4a1ddcfe36a8728eee))
+* **typos:** version 1.40.1 ([#282](https://github.com/tekumara/typos-lsp/issues/282)) ([cf984b0](https://github.com/tekumara/typos-lsp/commit/cf984b085f9f8843375660b2c0caf3a86c7a1fde))
+* **typos:** version 1.41.0 - December 2025 dictionary update ([#286](https://github.com/tekumara/typos-lsp/issues/286)) ([452501a](https://github.com/tekumara/typos-lsp/commit/452501a8d95d2218f364e176763705dcae701af7))
+
+
+### Bug Fixes
+
+* **vscode:** surface ignore actions in mouse-triggered Quick Fix menu ([d92b5cd](https://github.com/tekumara/typos-lsp/commit/d92b5cdaf7e4abf45a660bc52a3ceed296a8871c))
+
+
+### Chores
+
+* **deps-dev:** bump the vscode group with 2 updates ([#285](https://github.com/tekumara/typos-lsp/issues/285)) ([f91dfdf](https://github.com/tekumara/typos-lsp/commit/f91dfdfe66818d6d4a3d62dd0ae08ef2faa84625))
+* **deps-dev:** bump the vscode group with 4 updates ([#279](https://github.com/tekumara/typos-lsp/issues/279)) ([efae782](https://github.com/tekumara/typos-lsp/commit/efae782be09b3dcf19f791c1dbc88a82c487af37))
+* **deps:** bump actions/create-github-app-token from 1 to 2 ([#271](https://github.com/tekumara/typos-lsp/issues/271)) ([01304c5](https://github.com/tekumara/typos-lsp/commit/01304c540a05fd8056a0203eb56ffa1a9f2f20d3))
+* **deps:** bump actions/download-artifact from 4 to 6 ([#272](https://github.com/tekumara/typos-lsp/issues/272)) ([b7130a0](https://github.com/tekumara/typos-lsp/commit/b7130a0cb651a3eab57a429df57124302b32ca7d))
+* **deps:** bump actions/github-script from 7 to 8 ([#270](https://github.com/tekumara/typos-lsp/issues/270)) ([1daeffa](https://github.com/tekumara/typos-lsp/commit/1daeffa1d98644554ca3aeff317946e25cbb9f6b))
+* **deps:** bump actions/setup-node from 4 to 6 ([#269](https://github.com/tekumara/typos-lsp/issues/269)) ([b482ae4](https://github.com/tekumara/typos-lsp/commit/b482ae4915201e798aed363c5b5edb50f3c033a0))
+* **deps:** bump poseidon/wait-for-status-checks from 0.4.1 to 0.6.0 ([#273](https://github.com/tekumara/typos-lsp/issues/273)) ([59e1a02](https://github.com/tekumara/typos-lsp/commit/59e1a02ae129ea3e07f41e70bba8dbc59f7fc8b0))
+* **deps:** bump the lsp group across 1 directory with 6 updates ([#284](https://github.com/tekumara/typos-lsp/issues/284)) ([b97c5a3](https://github.com/tekumara/typos-lsp/commit/b97c5a3dc829675c5404813f37e164cea1dfb7ec))
+* **deps:** bump typos-dict from 0.13.12 to 0.13.13 in the typos group ([#280](https://github.com/tekumara/typos-lsp/issues/280)) ([a71529e](https://github.com/tekumara/typos-lsp/commit/a71529e7b9583c55ef45bd84edcb881e13092704))
+
+
+### Builds
+
+* **dependabot:** add github-actions ([e7cd73f](https://github.com/tekumara/typos-lsp/commit/e7cd73f14c1a672ce1f4e9040172c77323ee9b9f))
+* **dependabot:** use ci prefix for gha updates ([78dcb41](https://github.com/tekumara/typos-lsp/commit/78dcb41c6fd34438f8f257edb47566a9028cd2f2))
+* **deps:** bump actions/checkout from 4 to 6 ([#275](https://github.com/tekumara/typos-lsp/issues/275)) ([2103205](https://github.com/tekumara/typos-lsp/commit/2103205888cfae93cc1033145f83bc4921fb1afa))
+* **deps:** bump actions/download-artifact from 6 to 7 ([#277](https://github.com/tekumara/typos-lsp/issues/277)) ([6c534a2](https://github.com/tekumara/typos-lsp/commit/6c534a2e31b2d5cf1a7768685a320cd9f57f0474))
+* **deps:** bump actions/upload-artifact from 4 to 6 ([#276](https://github.com/tekumara/typos-lsp/issues/276)) ([9cb7bb2](https://github.com/tekumara/typos-lsp/commit/9cb7bb22e922efb24b15fe701554af9294c0f1e6))
+
+
+### Performance Improvements
+
+* **did_change:** borrow doc.text rather than clone ([93b063f](https://github.com/tekumara/typos-lsp/commit/93b063fc9772bd326ab5bcf0237d074ead6c1fbe))
+* **did_change:** support incremental document changes ([f96e533](https://github.com/tekumara/typos-lsp/commit/f96e5335e4abd299f0ee759412065f1a4874f209))
+
 ## [0.1.46](https://github.com/tekumara/typos-lsp/compare/v0.1.45...v0.1.46) (2025-12-06)
 
 

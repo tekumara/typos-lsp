@@ -1,7 +1,6 @@
 use serde_json::{json, Value};
 use std::{path::PathBuf, str::FromStr};
-use tower_lsp_server::lsp_types::Uri;
-use tower_lsp_server::UriExt;
+use tower_lsp_server::ls_types::Uri;
 mod common;
 use common::TestServer;
 use {once_cell::sync::Lazy, regex::Regex};

@@ -6,9 +6,9 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use serde_json::{json, to_string};
-use tower_lsp_server::lsp_types::*;
+use tower_lsp_server::ls_types::*;
 use tower_lsp_server::*;
-use tower_lsp_server::{Client, LanguageServer, UriExt};
+use tower_lsp_server::{Client, LanguageServer};
 use typos_cli::policy;
 
 use crate::state::{uri_path_sanitised, BackendState};

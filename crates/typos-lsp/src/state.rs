@@ -1,8 +1,7 @@
 use anyhow::anyhow;
 use matchit::Router;
 use std::path::{Path, PathBuf};
-use tower_lsp_server::lsp_types::{DiagnosticSeverity, Uri, WorkspaceFolder};
-use tower_lsp_server::UriExt;
+use tower_lsp_server::ls_types::{DiagnosticSeverity, Uri, WorkspaceFolder};
 
 use crate::typos::Instance;
 

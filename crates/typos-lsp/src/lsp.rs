@@ -451,7 +451,11 @@ impl<'s> Backend<'s, '_> {
                 Diagnostic {
                     range: Range::new(
                         Position::new(line_num as u32, line_pos as u32),
-                        Position::new(line_num as u32, (line_pos + typo.typo.len()) as u32),
+                        Position::new(
+                            line_num as u32,
+                            (line_pos + typo.typo.chars().map(char::len_utf16).sum::<usize>())
+                                as u32,
+                        ),
                     ),
                     severity,
                     source: Some("typos".to_string()),

@@ -573,6 +573,36 @@ async fn test_custom_severity() {
     );
 }
 
+#[test_log::test(tokio::test)]
+async fn test_multibyte_typo_range() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let config_path = temp_dir.path().join("typos.toml");
+    std::fs::write(&config_path, "[default.extend-words]\n\"café\" = \"cafe\"").unwrap();
+
+    let workspace_folder_uri = Uri::from_file_path(temp_dir.path()).unwrap();
+    let file_path = temp_dir.path().join("test.txt");
+    let file_uri = Uri::from_file_path(&file_path).unwrap();
+
+    // "café" is 4 UTF-16 units (c, a, f, é).
+    // byte length is 5.
+    let did_open_txt = did_open_with("café", Some(&file_uri));
+
+    let mut server = TestServer::new();
+    let _ = server
+        .request(&initialize_with(Some(&workspace_folder_uri), None, None))
+        .await;
+
+    // Expected range: line 0, start 0, end 4.
+    // With bug: end 5.
+    similar_asserts::assert_eq!(
+        server.request(&did_open_txt).await,
+        publish_diagnostics_with(
+            &[diag("`café` should be `cafe`", "café", 0, 0, 4)],
+            Some(&file_uri)
+        )
+    );
+}
+
 fn initialize() -> String {
     initialize_with(None, None, None)
 }

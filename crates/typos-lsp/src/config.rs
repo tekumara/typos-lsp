@@ -7,7 +7,7 @@ pub fn find_config_file_or_default(directory: &Path) -> PathBuf {
     assert!(
         directory.is_dir(),
         "Expected a directory that might contain a configuration file, got {:?}",
-        directory.is_dir()
+        directory
     );
 
     // adapted from typos_cli::config::Config::from_dir

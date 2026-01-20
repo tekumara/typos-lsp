@@ -1677,9 +1677,9 @@ dependencies = [
 
 [[package]]
 name = "typos"
-version = "0.10.39"
+version = "0.10.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13ac11bb0364cd558a914e3b979062e7ca423893da243c14897b0c122e907a61"
+checksum = "49322d821a622bd2ea1e9f517538ac058bcd8158816a489aa6e06023cdf518eb"
 dependencies = [
  "bstr",
  "itertools",
@@ -1691,9 +1691,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.42.0"
+version = "1.42.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d840003d13a4ec69422cab07edfd852697fe90f04a7429f4ff9c2a94b52ec26a"
+checksum = "5851a41288a2285ce5b640ae72b323cc0c9cb7ca84c7f72f2e87f311aba5039a"
 dependencies = [
  "ahash",
  "annotate-snippets",

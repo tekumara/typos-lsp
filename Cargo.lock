@@ -1691,9 +1691,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.42.2"
+version = "1.42.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5eee225a513823f1ed6a7b52ac2e5ecf0c201100408fbb2e299e3e9ee711cd8e"
+checksum = "8a52d97bae84d4b0a2c1e4081396c768b0ce9ce33573af9e920deeb0f4b17f75"
 dependencies = [
  "ahash",
  "annotate-snippets",
@@ -1737,9 +1737,9 @@ dependencies = [
 
 [[package]]
 name = "typos-dict"
-version = "0.13.17"
+version = "0.13.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "219a396a8f745e1c53184ce701b4e8959071c0e23d4496eb2747a7c17888ba8d"
+checksum = "35925d7c0403b98aff2eef3a43e5cbac3547a962b4526c3f3ce6779becb9b905"
 dependencies = [
  "dictgen",
  "phf",

@@ -1677,9 +1677,9 @@ dependencies = [
 
 [[package]]
 name = "typos"
-version = "0.10.40"
+version = "0.10.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49322d821a622bd2ea1e9f517538ac058bcd8158816a489aa6e06023cdf518eb"
+checksum = "d65f53b6baea4f3d65153954db9ccf90e483fa7754d1aac10e71c2bf3888ca2f"
 dependencies = [
  "bstr",
  "itertools",
@@ -1691,9 +1691,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.42.3"
+version = "1.43.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a52d97bae84d4b0a2c1e4081396c768b0ce9ce33573af9e920deeb0f4b17f75"
+checksum = "522f65234bc45cb436b403662b034e2ce2b8c4dfec8cc2f0e90923fc51cd0593"
 dependencies = [
  "ahash",
  "annotate-snippets",
@@ -1737,9 +1737,9 @@ dependencies = [
 
 [[package]]
 name = "typos-dict"
-version = "0.13.18"
+version = "0.13.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35925d7c0403b98aff2eef3a43e5cbac3547a962b4526c3f3ce6779becb9b905"
+checksum = "ac65d5d36b1e0912428c6b182bf2c43cfccb6da7848ca5ba7c837ce04d881213"
 dependencies = [
  "dictgen",
  "phf",
@@ -1776,9 +1776,9 @@ dependencies = [
 
 [[package]]
 name = "typos-vars"
-version = "0.10.2"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4968cc8399498a84145d4c79e6123c96ed9a35244b4b387883b74824efebf61e"
+checksum = "3da606d66ccc1156d5ca0e6061048e55b3f8d1b3e37b5871055cdf029d9934f9"
 dependencies = [
  "dictgen",
  "varcon-core",
@@ -1847,9 +1847,9 @@ checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 
 [[package]]
 name = "varcon-core"
-version = "5.0.5"
+version = "5.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "afb64a4e50cd74781cd8cd28e34460b5f31998063a09806659985d822be40b1a"
+checksum = "31da2b0caca63916319ab40df590e59b8f43ac2c2800dca91d2beb789239c96d"
 dependencies = [
  "enumflags2",
 ]

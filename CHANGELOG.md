@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.48](https://github.com/tekumara/typos-lsp/compare/v0.1.47...v0.1.48) (2026-02-03)
+
+
+### Features
+
+* **typos:** version 1.42.0 ([#289](https://github.com/tekumara/typos-lsp/issues/289)) ([66d9f8b](https://github.com/tekumara/typos-lsp/commit/66d9f8b1445b0cfb019d14221e403365506c0704))
+* **typos:** version 1.42.1 ([#296](https://github.com/tekumara/typos-lsp/issues/296)) ([64a2138](https://github.com/tekumara/typos-lsp/commit/64a213836cbd6c2bcc91869a23fe5575540b1fe5))
+* **typos:** version 1.42.2 ([#297](https://github.com/tekumara/typos-lsp/issues/297)) ([d269324](https://github.com/tekumara/typos-lsp/commit/d269324b77bafbe1719cc197dbac54254e3cdc64))
+* **typos:** version 1.42.3 ([#298](https://github.com/tekumara/typos-lsp/issues/298)) ([4e3a84c](https://github.com/tekumara/typos-lsp/commit/4e3a84c0cbb18e97f04c38151c2b50b8bdc26e3c))
+* **typos:** version 1.43.0 - January 2026 dictionary update ([#301](https://github.com/tekumara/typos-lsp/issues/301)) ([ac2f99b](https://github.com/tekumara/typos-lsp/commit/ac2f99bc16d23b96c0759bb3968cf5fa97572b1e))
+
 ## [0.1.47](https://github.com/tekumara/typos-lsp/compare/v0.1.46...v0.1.47) (2026-01-01)
 
 

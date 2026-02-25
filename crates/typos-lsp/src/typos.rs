@@ -1,14 +1,14 @@
 use std::path::{Path, PathBuf};
 
 use bstr::ByteSlice;
-use ignore::overrides::{Override, OverrideBuilder};
+use ignore::gitignore::{Gitignore, GitignoreBuilder};
 use typos_cli::policy;
 
 use crate::config;
 
 pub struct Instance<'s> {
     /// File path rules to ignore
-    pub ignores: Override,
+    pub ignores: Gitignore,
     pub engine: policy::ConfigEngine<'s>,
 
     /// The path to the configuration file for the files in this instance
@@ -44,15 +44,15 @@ impl Instance<'_> {
         engine.init_dir(path)?;
         let walk_policy = engine.walk(path);
 
-        let mut ob = OverrideBuilder::new(path);
+        let mut ob = GitignoreBuilder::new(path);
         // always ignore the config files like typos cli does
         for f in typos_cli::config::SUPPORTED_FILE_NAMES {
-            ob.add(&format!("!{f}"))?;
+            ob.add_line(None, f)?;
         }
 
-        // add any explicit excludes
+        // add any explicit extend-exclude patterns
         for pattern in walk_policy.extend_exclude.iter() {
-            ob.add(&format!("!{pattern}"))?;
+            ob.add_line(None, pattern)?;
         }
         let ignores = ob.build()?;
 

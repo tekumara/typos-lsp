@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.49](https://github.com/tekumara/typos-lsp/compare/v0.1.48...v0.1.49) (2026-02-28)
+
+
+### Features
+
+* **typos:** version 1.43.1 ([#303](https://github.com/tekumara/typos-lsp/issues/303)) ([5f0aa05](https://github.com/tekumara/typos-lsp/commit/5f0aa051bd519cdaa521d862cb13eae1bdd17f9c))
+* **typos:** version 1.43.2 ([#304](https://github.com/tekumara/typos-lsp/issues/304)) ([1d7e8c1](https://github.com/tekumara/typos-lsp/commit/1d7e8c17e38f565d21f489c37d798e93e32da64d))
+* **typos:** version 1.43.3 ([#305](https://github.com/tekumara/typos-lsp/issues/305)) ([7f36c46](https://github.com/tekumara/typos-lsp/commit/7f36c464043439614722061b896527cb659b7368))
+* **typos:** version 1.43.4 ([#306](https://github.com/tekumara/typos-lsp/issues/306)) ([ed3dff4](https://github.com/tekumara/typos-lsp/commit/ed3dff4d1ad2e2f7f59e0285738f450f9d42d5a0))
+* **typos:** version 1.43.5 ([#307](https://github.com/tekumara/typos-lsp/issues/307)) ([da683c8](https://github.com/tekumara/typos-lsp/commit/da683c82e9e28f67d17d9c9cd3e67f7a9ac0723b))
+
+
+### Bug Fixes
+
+* diagnostic range when typo contains non-ASCII characters ([b4f448d](https://github.com/tekumara/typos-lsp/commit/b4f448d08f89bfbb09077ba69a34269e35ae9bbc)), closes [#292](https://github.com/tekumara/typos-lsp/issues/292)
+* more useful assertion error message when config is a file ([c77018b](https://github.com/tekumara/typos-lsp/commit/c77018b18303a19fdee412345ee440737f700673)), closes [#290](https://github.com/tekumara/typos-lsp/issues/290)
+* **typos:** support negations in files.extend-exclude ([#308](https://github.com/tekumara/typos-lsp/issues/308)) ([870499c](https://github.com/tekumara/typos-lsp/commit/870499c2877d6af2368f7c97a4abb2dcf925da65))
+
 ## [0.1.48](https://github.com/tekumara/typos-lsp/compare/v0.1.47...v0.1.48) (2026-02-03)
 
 

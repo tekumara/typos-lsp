@@ -7,5 +7,5 @@ extend-ignore-re = ["(?Rm)^.*#\\s*skip_me$"]
 fo = "of"
 
 [files]
-# ignore typos in CHANGELOG.md, integration_test.rs
-extend-exclude = ["CHANGELOG.md", "integration_test.rs"]
+# ignore typos in CHANGELOG.md, integration_test.rs and all .bat files, except for unignore_me.bat
+extend-exclude = ["CHANGELOG.md", "integration_test.rs", "*.bat", "!unignore_me.bat"]

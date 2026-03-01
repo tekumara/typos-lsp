@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.1.50](https://github.com/tekumara/typos-lsp/compare/v0.1.49...v0.1.50) (2026-03-01)
+
+
+### Features
+
+* **typos:** version 1.44.0 - February 2026 dictionary update ([#315](https://github.com/tekumara/typos-lsp/issues/315)) ([7b53dc4](https://github.com/tekumara/typos-lsp/commit/7b53dc47705b29575c71e8680f94921680bbf795))
+
+
+### Chores
+
+* **dependabot:** group github-actions updates ([07c9421](https://github.com/tekumara/typos-lsp/commit/07c94217fe431e25a416b716787a13f040e6b6e0))
+
+
+### Builds
+
+* **deps:** bump actions/download-artifact from 7 to 8 ([#312](https://github.com/tekumara/typos-lsp/issues/312)) ([6126036](https://github.com/tekumara/typos-lsp/commit/6126036588499eba03e6389be1b5d4fa46eca5e2))
+* **deps:** bump actions/upload-artifact from 6 to 7 ([#313](https://github.com/tekumara/typos-lsp/issues/313)) ([4283021](https://github.com/tekumara/typos-lsp/commit/428302148a79e74c0604a1764ac2f6a5782896ca))
+
 ## [0.1.49](https://github.com/tekumara/typos-lsp/compare/v0.1.48...v0.1.49) (2026-02-28)
 
 

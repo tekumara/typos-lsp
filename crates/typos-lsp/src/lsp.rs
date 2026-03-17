@@ -524,7 +524,12 @@ impl<'s> Backend<'s, '_> {
                     Ok(Match { value, params: _ }) => {
                         tracing::debug!("workspace_policy: path {}", &path.display());
                         // skip file if matches extend-exclude
-                        if value.ignores.matched(&path, false).is_ignore() {
+                        // note that matched_path_or_any_parents panics if path is not under the matcher's root (ignores.path())
+                        if value
+                            .ignores
+                            .matched_path_or_any_parents(&path, false)
+                            .is_ignore()
+                        {
                             tracing::debug!(
                                 "workspace_policy: Ignoring {:?} because it matches extend-exclude.",
                                 uri

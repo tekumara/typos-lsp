@@ -8,4 +8,5 @@ fo = "of"
 
 [files]
 # ignore typos in CHANGELOG.md, integration_test.rs and all .bat files, except for unignore_me.bat
-extend-exclude = ["CHANGELOG.md", "integration_test.rs", "*.bat", "!unignore_me.bat"]
+# also ignore all typos in the ignore_dir directory, recursively
+extend-exclude = ["CHANGELOG.md", "integration_test.rs", "*.bat", "!unignore_me.bat", "ignore_dir/"]

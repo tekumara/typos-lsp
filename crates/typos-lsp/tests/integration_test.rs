@@ -345,11 +345,13 @@ async fn test_config_file() {
     let changelog_md = Uri::from_file_path(workspace_folder_path.join("CHANGELOG.md")).unwrap();
     let skip_me = Uri::from_file_path(workspace_folder_path.join("skip_me.txt")).unwrap();
     let unignore_me = Uri::from_file_path(workspace_folder_path.join("unignore_me.bat")).unwrap();
+    let ignore_dir = Uri::from_file_path(workspace_folder_path.join("ignore_dir/foo.txt")).unwrap();
 
     let did_open_diag_txt = did_open_with("fo typos", Some(&diag_txt));
     let did_open_changelog_md = did_open_with("fo typos", Some(&changelog_md));
     let did_open_skip_me = did_open_with("fo typos # skip_me", Some(&skip_me));
     let did_open_unignore_me = did_open_with("typos fo", Some(&unignore_me));
+    let did_open_ignore_dir = did_open_with("typos fo", Some(&ignore_dir));
 
     let mut server = TestServer::new();
     let _ = server
@@ -384,6 +386,12 @@ async fn test_config_file() {
     similar_asserts::assert_eq!(
         server.request(&did_open_skip_me).await,
         publish_diagnostics_with(&[], Some(&skip_me)),
+    );
+
+    // check ignore_dir/foo.txt is excluded because of files.extend-exclude
+    similar_asserts::assert_eq!(
+        server.request(&did_open_ignore_dir).await,
+        publish_diagnostics_with(&[], Some(&ignore_dir)),
     );
 }
 

@@ -4,11 +4,15 @@ use anyhow::{anyhow, Context};
 use toml_edit::DocumentMut;
 
 pub fn find_config_file_or_default(directory: &Path) -> PathBuf {
-    assert!(
-        directory.is_dir(),
-        "Expected a directory that might contain a configuration file, got {:?}",
+    // Handle file paths by using their parent directory.
+    // This can happen when LSP clients pass file URIs as workspace folders
+    // (e.g., when opening orphan files not in a workspace).
+    // See: https://github.com/tekumara/typos-lsp/issues/316
+    let directory = if directory.is_file() {
+        directory.parent().unwrap_or(Path::new("."))
+    } else {
         directory
-    );
+    };
 
     // adapted from typos_cli::config::Config::from_dir
     for file in typos_cli::config::SUPPORTED_FILE_NAMES {
@@ -86,6 +90,38 @@ mod tests {
             find_config_file_or_default(dir_path),
             dir_path.join("typos.toml").to_path_buf()
         );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_find_config_file_with_file_path() -> anyhow::Result<()> {
+        // when a file path is passed (e.g., orphan file opened in editor),
+        // should use the parent directory and not panic.
+        // This is the fix for https://github.com/tekumara/typos-lsp/issues/316
+        let dir = tempdir()?;
+        let dir_path = dir.path();
+        let file_path = dir_path.join("src/main.rs");
+
+        // Create the file
+        std::fs::create_dir_all(file_path.parent().unwrap())?;
+        File::create(&file_path)?;
+
+        // Passing the file path should not panic, should return default path in parent
+        let result = find_config_file_or_default(&file_path);
+        assert_eq!(result, dir_path.join("src").join("typos.toml"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_find_config_file_with_nonexistent_parent() -> anyhow::Result<()> {
+        // when a file path with no parent is passed, should fall back to current directory
+        let file_path = Path::new("nonexistent_file.rs");
+
+        // Should not panic, should return default path
+        let result = find_config_file_or_default(file_path);
+        assert!(result.ends_with("typos.toml"));
 
         Ok(())
     }

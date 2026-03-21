@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.51](https://github.com/tekumara/typos-lsp/compare/v0.1.50...v0.1.51) (2026-03-21)
+
+
+### Bug Fixes
+
+* **typos:** support directory ignores in files.extend-exclude ([#317](https://github.com/tekumara/typos-lsp/issues/317)) ([3bff7f7](https://github.com/tekumara/typos-lsp/commit/3bff7f7d34e7e5609e3d6d89974be56b52eb9b95))
+
 ## [0.1.50](https://github.com/tekumara/typos-lsp/compare/v0.1.49...v0.1.50) (2026-03-01)
 
 

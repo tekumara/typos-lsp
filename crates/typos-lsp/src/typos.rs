@@ -29,11 +29,20 @@ impl Instance<'_> {
             }
         }
 
-        // initialise an engine and overrides using the config file from path or its parent
-        engine.init_dir(path)?;
-        let walk_policy = engine.walk(path);
+        // init_dir, walk and OverrideBuilder all expect a directory.
+        // Some LSP clients (e.g. Zed) send the opened file path as the workspace
+        // root when a single file is opened without a workspace.
+        let dir = if path.is_file() {
+            path.parent().unwrap_or(path)
+        } else {
+            path
+        };
 
-        let mut ignores = OverrideBuilder::new(path);
+        // initialise an engine and overrides using the config file from path or its parent
+        engine.init_dir(dir)?;
+        let walk_policy = engine.walk(dir);
+
+        let mut ignores = OverrideBuilder::new(dir);
         // always ignore the config files like typos cli does
         for f in typos_cli::config::SUPPORTED_FILE_NAMES {
             ignores.add(&format!("!{}", f))?;

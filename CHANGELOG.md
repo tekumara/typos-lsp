@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.1.51](https://github.com/tekumara/typos-lsp/compare/v0.1.50...v0.1.51) (2026-04-04)
+
+
+### Features
+
+* **typos:** version 1.45.0 - March 2026 dictionary update ([#328](https://github.com/tekumara/typos-lsp/issues/328)) ([8dc352d](https://github.com/tekumara/typos-lsp/commit/8dc352d3cfd08afefd0441f74350fc0b0c6b2f5b))
+
+
+### Bug Fixes
+
+* **typos:** support directory ignores in files.extend-exclude ([#317](https://github.com/tekumara/typos-lsp/issues/317)) ([3bff7f7](https://github.com/tekumara/typos-lsp/commit/3bff7f7d34e7e5609e3d6d89974be56b52eb9b95))
+* **windows:** skip inaccessible drives when building router ([1689314](https://github.com/tekumara/typos-lsp/commit/168931497498d7de4e3a95fedb668870be74531b)), closes [#319](https://github.com/tekumara/typos-lsp/issues/319)
+
+
+### Chores
+
+* **deps-dev:** bump the vscode group with 8 updates ([#326](https://github.com/tekumara/typos-lsp/issues/326)) ([2d1c0fd](https://github.com/tekumara/typos-lsp/commit/2d1c0fd371d95634cc50154112d9128db08812fc))
+* **deps:** bump the lsp group with 5 updates ([#325](https://github.com/tekumara/typos-lsp/issues/325)) ([87f9f33](https://github.com/tekumara/typos-lsp/commit/87f9f33b49789e017fbeaae20f932d42f4e492b5))
+
+
+### Builds
+
+* **deps:** bump actions/create-github-app-token from 2 to 3 in the github-actions group ([#327](https://github.com/tekumara/typos-lsp/issues/327)) ([c84fcfa](https://github.com/tekumara/typos-lsp/commit/c84fcfafee1af4a972c9e302a6e44176ac1801de))
+
 ## [0.1.50](https://github.com/tekumara/typos-lsp/compare/v0.1.49...v0.1.50) (2026-03-01)
 
 

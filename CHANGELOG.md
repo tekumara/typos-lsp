@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.52](https://github.com/tekumara/typos-lsp/compare/v0.1.51...v0.1.52) (2026-04-18)
+
+
+### Features
+
+* **typos:** version 1.45.1 ([#329](https://github.com/tekumara/typos-lsp/issues/329)) ([adf20f4](https://github.com/tekumara/typos-lsp/commit/adf20f4c4e18b929ca3e4166558c05d7efe343fc))
+
+
+### Bug Fixes
+
+* handle workspace folders that are file paths ([#318](https://github.com/tekumara/typos-lsp/issues/318)) ([493616b](https://github.com/tekumara/typos-lsp/commit/493616b780d79aa3d669b336b1584d8d01d6c93a))
+
 ## [0.1.51](https://github.com/tekumara/typos-lsp/compare/v0.1.50...v0.1.51) (2026-04-04)
 
 

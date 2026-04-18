@@ -6,7 +6,8 @@ use toml_edit::DocumentMut;
 pub fn find_config_file_or_default(directory: &Path) -> PathBuf {
     // Handle file paths by using their parent directory.
     // This can happen when LSP clients pass file URIs as workspace folders
-    // (e.g., when opening orphan files not in a workspace).
+    // (e.g., when opening orphan files outside a workspace in Zed).
+    // This is not part of the LSP spec, but we support this for compatibility with Zed.
     // See: https://github.com/tekumara/typos-lsp/issues/316
     let directory = if directory.is_file() {
         directory
@@ -98,9 +99,8 @@ mod tests {
 
     #[test]
     fn test_find_config_file_with_file_path() -> anyhow::Result<()> {
-        // when a file path is passed (e.g., orphan file opened in editor),
+        // when a file path is passed (e.g., orphan file opened outside the workspace in Zed),
         // should use the parent directory and not panic.
-        // This is the fix for https://github.com/tekumara/typos-lsp/issues/316
         let dir = tempdir()?;
         let dir_path = dir.path();
         let file_path = dir_path.join("src/main.rs");

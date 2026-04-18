@@ -9,7 +9,9 @@ pub fn find_config_file_or_default(directory: &Path) -> PathBuf {
     // (e.g., when opening orphan files not in a workspace).
     // See: https://github.com/tekumara/typos-lsp/issues/316
     let directory = if directory.is_file() {
-        directory.parent().expect(&format!("file path {} has no parent", directory.display()))
+        directory
+            .parent()
+            .expect(&format!("file path {} has no parent", directory.display()))
     } else {
         directory
     };

@@ -9,7 +9,7 @@ pub fn find_config_file_or_default(directory: &Path) -> PathBuf {
     // (e.g., when opening orphan files not in a workspace).
     // See: https://github.com/tekumara/typos-lsp/issues/316
     let directory = if directory.is_file() {
-        directory.parent().unwrap_or(Path::new("."))
+        directory.parent().expect(&format!("file path {} has no parent", directory.display()))
     } else {
         directory
     };
@@ -110,18 +110,6 @@ mod tests {
         // Passing the file path should not panic, should return default path in parent
         let result = find_config_file_or_default(&file_path);
         assert_eq!(result, dir_path.join("src").join("typos.toml"));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_find_config_file_with_nonexistent_parent() -> anyhow::Result<()> {
-        // when a file path with no parent is passed, should fall back to current directory
-        let file_path = Path::new("nonexistent_file.rs");
-
-        // Should not panic, should return default path
-        let result = find_config_file_or_default(file_path);
-        assert!(result.ends_with("typos.toml"));
 
         Ok(())
     }

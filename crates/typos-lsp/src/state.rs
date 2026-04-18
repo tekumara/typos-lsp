@@ -146,12 +146,16 @@ impl<'s> BackendState<'s> {
         // when there is no workspace folder
         #[cfg(windows)]
         for drive in crate::windows::get_drives() {
+            let root = PathBuf::from(format!("{}:\\", &drive));
+            // GetLogicalDrives returns all drives known to the system, including disconnected
+            // removable drives and offline network drives. Skip any that aren't accessible.
+            if !root.is_dir() {
+                tracing::debug!("Skipping inaccessible drive {}:\\", drive);
+                continue;
+            }
             let route = format!("/{}%3A/{{*p}}", &drive);
-            self.router.insert_instance(
-                &route,
-                &PathBuf::from(format!("{}:\\", &drive)),
-                self.config.as_deref(),
-            )?;
+            self.router
+                .insert_instance(&route, &root, self.config.as_deref())?;
         }
 
         #[cfg(not(windows))]

@@ -41,7 +41,7 @@ cargo binstall --git https://github.com/tekumara/typos-lsp typos-lsp
 For Linux users (via Cargo):
 
 ```sh
-cargo install --git https://github.com/tekumara/typos-lsp typos-lsp
+cargo install --git https://github.com/tekumara/typos-lsp --locked typos-lsp
 ```
 
 See [typos-lsp versions on repology](https://repology.org/project/typos-lsp/versions) for other package managers. Or manually download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).
@@ -71,7 +71,9 @@ Supports [config fields](https://github.com/crate-ci/typos/blob/master/docs/refe
 
 Config files will be read from the workspace folder or its parents. If there is no workspace folder, then no config file will be read and the typos defaults will be used.
 
-Restart the server after changing the config file for the new changes to take affect.
+You can also provide an explicit custom config file. In VS Code, set `typos.config`. In other LSP clients, set `initializationOptions.config`. This custom config is used together with any config file found from the workspace folder or its parents, and it takes precedence for settings declared in both. If there is no workspace folder, the explicit custom config is still used.
+
+Restart the server after changing either the workspace config file or the explicit custom config file for the new changes to take effect.
 
 ## Caveats
 

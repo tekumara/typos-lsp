@@ -1,17 +1,33 @@
 # Zed Settings
 
-Example Zed configuration for the typos-lsp server:
+Zed configuration for the typos-lsp server. It's entirely optional and only needed if you want to customise typos-lsp.
+
+Everything under `initialization_options` is passed to the server during initialization.
+
+The `binary` section can be used to choose the executable, pass extra argv, or set process environment variables. See Zed’s [Configuring Languages](https://zed.dev/docs/configuring-languages) documentation.
+
+Example:
 
 ```javascript
 {
     "lsp": {
         "typos": {
+            // Optional. Omit the entire "binary" object to use Zed’s default typos-lsp discovery.
+            "binary": {
+                // Prefer your install instead of auto-download when applicable.
+                "ignore_system_version": false,
+                "path": "/absolute/path/to/typos-lsp",
+                "arguments": [],
+                "env": {
+                    // Rust tracing; shows in Zed's log when debugging the server process.
+                    "RUST_LOG": "typos_lsp=debug"
+                }
+            },
             "initialization_options": {
-                // Path to your typos config file, .typos.toml by default.
-                "config": ".typos.toml",
-                // Path to the typos-lsp binary, can be on $PATH or be an absolute path.
-                // If empty the bundled binary will be used.
-                "path": "typos-lsp",
+                // Custom config. Used together with a config file found in the workspace or its parents,
+                // taking precedence for settings declared in both.
+                // Equivalent to the typos `--config` cli argument.
+                "config": "~/code/typos-lsp/crates/typos-lsp/tests/typos.toml",
                 // Diagnostic severity within Zed. "Information" by default, can be:
                 // "Error", "Hint", "Information", "Warning"
                 "diagnosticSeverity": "Information",
@@ -26,5 +42,3 @@ Example Zed configuration for the typos-lsp server:
     }
 }
 ```
-
-You do not need to reload when editing Zed's `settings.json`.

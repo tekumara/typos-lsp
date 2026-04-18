@@ -8,7 +8,7 @@ In your [languages.toml](https://docs.helix-editor.com/languages.html) file conf
 command = "typos-lsp"
 # Logging level of the language server. Defaults to error.
 # Run with helix -v to output LSP logs to the editor log (:log-open)
-environment = {"RUST_LOG" = "error"}
+environment = {"RUST_LOG" = "typos_lsp=error"}
 # Custom config. Used together with a config file found in the workspace or its parents,
 # taking precedence for settings declared in both. Equivalent to the typos `--config` cli argument.
 config.config = "~/code/typos-lsp/crates/typos-lsp/tests/typos.toml"

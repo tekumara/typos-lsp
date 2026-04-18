@@ -35,7 +35,7 @@ You can configure the following [settings](https://github.com/mattn/vim-lsp-sett
 
 - **`cmd`**: Absolute path to the typos-lsp executable. Defaults to the location of the bundled version in vim-lsp-settings.
 
-- **`env`**: Environment variables to set when running typos-lsp. Use `RUST_LOG` to change the log level (defaults to error), eg: `{ 'RUST_LOG': 'info' }`.
+- **`env`**: Environment variables to set when running typos-lsp. Use `RUST_LOG` to change the log level (defaults to error), eg: `{ 'RUST_LOG': 'typos_lsp=error' }`.
 
 - **`initialization_options.config`**: Custom configuration file path. This is used together with any config file found in the workspace or its parents, with this custom config taking precedence for settings declared in both. Equivalent to the typos `--config` CLI argument.
 
@@ -47,7 +47,7 @@ Example:
 let g:lsp_settings = {
 \  'typos-lsp': {
 \    'disabled' : v:false,
-\    'env': { 'RUST_LOG': 'info' },
+\    'env': { 'RUST_LOG': 'typos_lsp=error' },
 \    'cmd': ['/absolute/path/typos-lsp'],
 \    'initialization_options': {
 \      'config': '~/code/typos-lsp/crates/typos-lsp/tests/typos.toml',

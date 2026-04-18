@@ -4,11 +4,18 @@ use anyhow::{anyhow, Context};
 use toml_edit::DocumentMut;
 
 pub fn find_config_file_or_default(directory: &Path) -> PathBuf {
-    assert!(
-        directory.is_dir(),
-        "Expected a directory that might contain a configuration file, got {:?}",
+    // Handle file paths by using their parent directory.
+    // This can happen when LSP clients pass file URIs as workspace folders
+    // (e.g., when opening orphan files outside a workspace in Zed).
+    // This is not part of the LSP spec, but we support this for compatibility with Zed.
+    // See: https://github.com/tekumara/typos-lsp/issues/316
+    let directory = if directory.is_file() {
         directory
-    );
+            .parent()
+            .expect(&format!("file path {} has no parent", directory.display()))
+    } else {
+        directory
+    };
 
     // adapted from typos_cli::config::Config::from_dir
     for file in typos_cli::config::SUPPORTED_FILE_NAMES {
@@ -86,6 +93,25 @@ mod tests {
             find_config_file_or_default(dir_path),
             dir_path.join("typos.toml").to_path_buf()
         );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_find_config_file_with_file_path() -> anyhow::Result<()> {
+        // when a file path is passed (e.g., orphan file opened outside the workspace in Zed),
+        // should use the parent directory and not panic.
+        let dir = tempdir()?;
+        let dir_path = dir.path();
+        let file_path = dir_path.join("src/main.rs");
+
+        // Create the file
+        std::fs::create_dir_all(file_path.parent().unwrap())?;
+        File::create(&file_path)?;
+
+        // Passing the file path should not panic, should return default path in parent
+        let result = find_config_file_or_default(&file_path);
+        assert_eq!(result, dir_path.join("src").join("typos.toml"));
 
         Ok(())
     }

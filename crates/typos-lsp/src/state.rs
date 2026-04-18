@@ -130,7 +130,14 @@ impl<'s> BackendState<'s> {
                 .uri
                 .to_file_path()
                 .ok_or_else(|| anyhow!("Cannot convert uri {:?} to file path", folder.uri))?;
-            let route = format!("{}{}", uri_path_sanitised(&folder.uri), "/{*p}");
+            let route = if path.is_file() {
+                // Some clients use the opened file URI itself as a workspace folder for orphan
+                // files. Register an exact route for that URI so it resolves to the file-specific
+                // instance instead of falling through to the global catch-all route.
+                uri_path_sanitised(&folder.uri)
+            } else {
+                format!("{}{}", uri_path_sanitised(&folder.uri), "/{*p}")
+            };
             self.router
                 .insert_instance(&route, &path, self.config.as_deref())?;
         }
@@ -195,6 +202,8 @@ pub fn uri_path_sanitised(uri: &Uri) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::File;
+    use tempfile::tempdir;
     use tower_lsp_server::ls_types::Range;
 
     #[test]
@@ -435,5 +444,29 @@ mod tests {
             }),
             None
         );
+    }
+
+    #[test]
+    fn test_router_matches_workspace_folder_when_folder_uri_is_a_file() -> anyhow::Result<()> {
+        let dir = tempdir()?;
+        let file_path = dir.path().join("src/main.rs");
+        std::fs::create_dir_all(file_path.parent().unwrap())?;
+        File::create(&file_path)?;
+
+        let file_uri = Uri::from_file_path(&file_path).unwrap();
+        let mut state = BackendState::default();
+        state.set_workspace_folders(vec![WorkspaceFolder {
+            uri: file_uri.clone(),
+            name: "tests".to_string(),
+        }])?;
+
+        let uri_path = uri_path_sanitised(&file_uri);
+        let matched = state.router.at(&uri_path).unwrap();
+        assert_eq!(
+            matched.value.config_file,
+            file_path.parent().unwrap().join("typos.toml")
+        );
+
+        Ok(())
     }
 }

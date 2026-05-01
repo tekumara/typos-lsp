@@ -21,7 +21,7 @@ jobs:
           # https://github.com/apps/potatobot-prime
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         with:
           # use app token so that PRs and releases created by release-please trigger
           # additional workflows. They'll also be authored by the app.

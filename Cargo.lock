@@ -1172,7 +1172,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1458,7 +1458,7 @@ dependencies = [
  "getrandom 0.4.2",
  "once_cell",
  "rustix",
- "windows-sys 0.60.2",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1788,9 +1788,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.45.2"
+version = "1.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2fb6f60a76352dc04077b5098204104bc37ea72f3852d2d23603c9156294921"
+checksum = "f6209b5041103a05eef8fa00b2ccbc4f25c489f3fd6769f16b8b757818d77abf"
 dependencies = [
  "ahash",
  "annotate-snippets",
@@ -1834,9 +1834,9 @@ dependencies = [
 
 [[package]]
 name = "typos-dict"
-version = "0.13.23"
+version = "0.13.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe7dfdd71165cbbf474578088d0bf268ee53823ffca9a1c3055a97855f93b6e9"
+checksum = "9bf61d1e00ac951b99082b575df310afdc6bc99ac50fa41498f9defca7678938"
 dependencies = [
  "dictgen",
  "phf",

@@ -14,11 +14,11 @@ jobs:
     steps:
       - name: Dependabot metadata
         id: dependabot-metadata
-        uses: dependabot/fetch-metadata@v2
+        uses: dependabot/fetch-metadata@v3
 
       - name: Set PR title with feat prefix for typos-cli updates
         if: contains(steps.dependabot-metadata.outputs.dependency-names, 'typos-cli')
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             // copied from https://github.com/dependabot/fetch-metadata/pull/632/files#diff-3d2b59189eeedc2d428ddd632e97658fe310f587f7cb63b01f9b98ffc11c0197R10284

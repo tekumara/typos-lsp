@@ -136,7 +136,7 @@ jobs:
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
       - name: Upload to GH release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           # unset the prerelease flag and make it the latest release
           prerelease: false

@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.53](https://github.com/tekumara/typos-lsp/compare/v0.1.52...v0.1.53) (2026-05-29)
+
+
+### Features
+
+* **deps-dev:** bump the vscode group with 9 updates ([#334](https://github.com/tekumara/typos-lsp/issues/334)) ([cfaace2](https://github.com/tekumara/typos-lsp/commit/cfaace2f2d2d106ba9d4dc52e98d14ad4a6055eb))
+* **deps:** bump the lsp group with 5 updates ([#333](https://github.com/tekumara/typos-lsp/issues/333)) ([e6d19a3](https://github.com/tekumara/typos-lsp/commit/e6d19a3e9188b0911c8858a5c1e24a7d896d0d13))
+* **deps:** bump the typos group across 1 directory with 2 updates ([#332](https://github.com/tekumara/typos-lsp/issues/332)) ([f526d96](https://github.com/tekumara/typos-lsp/commit/f526d96d5ad7d02314c91fc51039669c87dbed9d))
+* **typos:** version 1.45.2 ([#331](https://github.com/tekumara/typos-lsp/issues/331)) ([5ed86e6](https://github.com/tekumara/typos-lsp/commit/5ed86e621c299b4341fab8ee7ad0c817d4551762))
+* **typos:** version 1.46.1 ([#336](https://github.com/tekumara/typos-lsp/issues/336)) ([c33b1ea](https://github.com/tekumara/typos-lsp/commit/c33b1ea63789efc3c93a683275707efdfacff6e8))
+* **typos:** version 1.46.2 ([#337](https://github.com/tekumara/typos-lsp/issues/337)) ([449d531](https://github.com/tekumara/typos-lsp/commit/449d531d70a9caaae9015c5f7aadc3fa7970dfdf))
+* **typos:** version 1.46.3 ([#338](https://github.com/tekumara/typos-lsp/issues/338)) ([c3c7eb8](https://github.com/tekumara/typos-lsp/commit/c3c7eb8cf1ba522b8d64c4b327ce2423d1be7bcb))
+* **typos:** version 1.47.0 - May 2026 dictionary update ([#339](https://github.com/tekumara/typos-lsp/issues/339)) ([dc9bfc3](https://github.com/tekumara/typos-lsp/commit/dc9bfc31eb36df2b2af4a74eef0542ca7f4ddec4))
+
+
+### Builds
+
+* **deps:** bump the github-actions group with 4 updates ([#335](https://github.com/tekumara/typos-lsp/issues/335)) ([a975487](https://github.com/tekumara/typos-lsp/commit/a975487d4b073846d678958559f6118735b7154b))
+
 ## [0.1.52](https://github.com/tekumara/typos-lsp/compare/v0.1.51...v0.1.52) (2026-04-18)
 
 

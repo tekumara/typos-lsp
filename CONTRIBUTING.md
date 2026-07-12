@@ -24,6 +24,15 @@ cargo build
 
 Next, configure your editor to launch the LSP server.
 
+### Run the VS Code extension locally
+
+1. Run `npm install` to install the extension dependencies.
+2. Run `cargo build` to build `target/debug/typos-lsp`.
+3. Open the repository root in VS Code.
+4. Select 'Run Extension' in the Run and Debug view, then press F5.
+
+VS Code opens an Extension Development Host with the test fixture. Use the 'Typos' output channel to check which server binary the extension started.
+
 #### Running locally in Neovim
 
 For example, in Neovim, you can use the [sample neovim LSP config](docs/neovim-lsp-config.md) in the following way:

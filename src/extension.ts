@@ -119,25 +119,28 @@ async function getServerPath(
   context: vscode.ExtensionContext,
   config: vscode.WorkspaceConfiguration,
 ): Promise<string> {
-  let path = process.env.TYPOS_LSP_PATH ?? config.get<null | string>("path");
+  let serverPath =
+    process.env.TYPOS_LSP_PATH ?? config.get<null | string>("path");
 
-  if (path) {
-    if (path.startsWith("~/")) {
-      path = os.homedir() + path.slice("~".length);
+  if (serverPath) {
+    if (isExecutableName(serverPath)) {
+      return serverPath;
     }
-    const pathUri = vscode.Uri.file(path);
+
+    if (serverPath.startsWith("~/")) {
+      serverPath = os.homedir() + serverPath.slice("~".length);
+    }
+    const pathUri = vscode.Uri.file(serverPath);
 
     return await vscode.workspace.fs.stat(pathUri).then(
       () => pathUri.fsPath,
       () => {
         throw new Error(
-          `${path} does not exist. Please check typos.path in Settings.`,
+          `${serverPath} does not exist. Please check typos.path in Settings.`,
         );
       },
     );
   }
-
-  //if (config.package.releaseTag === null) return "typos-lsp";
 
   const ext = process.platform === "win32" ? ".exe" : "";
   const bundled = vscode.Uri.joinPath(
@@ -156,6 +159,14 @@ async function getServerPath(
           "to request a binary for your platform.",
       );
     },
+  );
+}
+
+export function isExecutableName(command: string): boolean {
+  return (
+    !command.includes("/") &&
+    !command.includes("\\") &&
+    !/^[A-Za-z]:/.test(command)
   );
 }
 

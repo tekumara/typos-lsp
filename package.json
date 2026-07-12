@@ -25,6 +25,15 @@
     "node": "^20.18.0",
     "vscode": "^1.84.0"
   },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "The typos.path setting can point to an executable and is ignored from workspace settings unless the workspace is trusted.",
+      "restrictedConfigurations": [
+        "typos.path"
+      ]
+    }
+  },
   "activationEvents": [
     "onStartupFinished"
   ],
@@ -44,7 +53,11 @@
         "typos.path": {
           "scope": "machine-overridable",
           "type": "string",
-          "description": "Path to the `typos-lsp` binary. If empty the bundled binary will be used."
+          "description": "Path to the `typos-lsp` binary, or executable name to resolve from PATH. If empty the bundled binary will be used.",
+          "examples": [
+            "typos-lsp",
+            "/usr/local/bin/typos-lsp"
+          ]
         },
         "typos.config": {
           "scope": "machine-overridable",

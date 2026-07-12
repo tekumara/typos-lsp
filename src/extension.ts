@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 import * as os from "os";
+import { access, constants, realpath } from "fs/promises";
+import * as path from "path";
 
 import {
   LanguageClient,
@@ -124,7 +126,7 @@ async function getServerPath(
 
   if (serverPath) {
     if (isExecutableName(serverPath)) {
-      return serverPath;
+      return await resolveExecutable(serverPath);
     }
 
     if (serverPath.startsWith("~/")) {
@@ -167,6 +169,64 @@ export function isExecutableName(command: string): boolean {
     !command.includes("/") &&
     !command.includes("\\") &&
     !/^[A-Za-z]:/.test(command)
+  );
+}
+
+export async function resolveExecutable(
+  command: string,
+  searchPath = process.env.PATH,
+  platform = process.platform,
+  workspaceRoots = vscode.workspace.workspaceFolders
+    ?.filter(({ uri }) => uri.scheme === "file")
+    .map(({ uri }) => uri.fsPath) ?? [],
+  trusted = vscode.workspace.isTrusted,
+): Promise<string> {
+  const roots = trusted
+    ? []
+    : await Promise.all(workspaceRoots.map((root) => realpath(root)));
+  const names =
+    platform === "win32" && !path.extname(command)
+      ? [`${command}.com`, `${command}.exe`]
+      : [command];
+
+  for (const entry of searchPath?.split(path.delimiter) ?? []) {
+    const directory =
+      entry.startsWith('"') && entry.endsWith('"') ? entry.slice(1, -1) : entry;
+    if (!directory || !path.isAbsolute(directory)) {
+      continue;
+    }
+
+    for (const name of names) {
+      try {
+        const candidate = await realpath(path.join(directory, name));
+        await access(candidate, constants.X_OK);
+        if (!roots.some((root) => isWithin(root, candidate, platform))) {
+          return candidate;
+        }
+      } catch (error) {
+        if (
+          !(error instanceof Error) ||
+          !("code" in error) ||
+          !["EACCES", "ENOENT", "ENOTDIR"].includes(String(error.code))
+        ) {
+          throw error;
+        }
+      }
+    }
+  }
+
+  throw new Error(`${command} was not found in PATH.`);
+}
+
+function isWithin(root: string, candidate: string, platform: NodeJS.Platform) {
+  if (platform === "win32") {
+    root = root.toLowerCase();
+    candidate = candidate.toLowerCase();
+  }
+  const relative = path.relative(root, candidate);
+  return (
+    relative === "" ||
+    (!relative.startsWith("..") && !path.isAbsolute(relative))
   );
 }
 

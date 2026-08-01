@@ -1,3 +1,4 @@
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context};
@@ -49,7 +50,20 @@ pub fn add_ignore(config_file_path: &Path, typo: &str) -> anyhow::Result<()> {
     let mut document = input
         .parse::<DocumentMut>()
         .with_context(|| anyhow!("Cannot parse config file at {}", config_file_path.display()))?;
-    let extend_words = document
+    let typos_config = if config_file_path.file_name() == Some(OsStr::new("pyproject.toml")) {
+        document
+            .entry("tool")
+            .or_insert(toml_edit::table())
+            .as_table_mut()
+            .context("Cannot get 'tool' table")?
+            .entry("typos")
+            .or_insert(toml_edit::table())
+            .as_table_mut()
+            .context("Cannot get 'typos' table")?
+    } else {
+        document.as_table_mut()
+    };
+    let extend_words = typos_config
         .entry("default")
         .or_insert(toml_edit::table())
         .as_table_mut()
@@ -134,6 +148,60 @@ mod tests {
                 ""
             ]
             .join("\n")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_add_ignore_to_pyproject_file() -> anyhow::Result<()> {
+        let dir = tempdir()?;
+        let file_path = dir.path().join("pyproject.toml");
+
+        add_ignore(&file_path, "typo")?;
+
+        let content = std::fs::read_to_string(&file_path)?;
+        similar_asserts::assert_eq!(
+            content,
+            [
+                "[tool]",
+                "",
+                "[tool.typos]",
+                "",
+                "[tool.typos.default]",
+                "",
+                "[tool.typos.default.extend-words]",
+                "typo = \"typo\"",
+                ""
+            ]
+            .join("\n")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_add_ignore_to_existing_pyproject_file() -> anyhow::Result<()> {
+        let existing_file = [
+            "[project]",
+            "name = \"example\"",
+            "",
+            "[tool.typos.files]",
+            "extend-exclude = [\"generated\"]",
+            "",
+        ]
+        .join("\n");
+        let dir = tempdir()?;
+        let file_path = dir.path().join("pyproject.toml");
+        std::fs::write(&file_path, &existing_file)?;
+
+        add_ignore(&file_path, "typo")?;
+
+        let content = std::fs::read_to_string(&file_path)?;
+        assert!(content.starts_with(&existing_file));
+        let document = content.parse::<DocumentMut>()?;
+        assert_eq!(document["project"]["name"].as_str(), Some("example"));
+        assert_eq!(
+            document["tool"]["typos"]["default"]["extend-words"]["typo"].as_str(),
+            Some("typo")
         );
         Ok(())
     }

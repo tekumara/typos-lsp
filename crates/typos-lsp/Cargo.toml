@@ -2,7 +2,12 @@
 name = "typos-lsp"
 version = "0.1.54"
 edition = "2021"
+description = "Language server for typos, a source-code spell checker"
+license = "MIT"
 repository = "https://github.com/tekumara/typos-lsp"
+readme = "README.md"
+categories = ["development-tools", "text-processing"]
+keywords = ["lsp", "language-server", "spellcheck", "spelling"]
 
 [dependencies]
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["env-filter", "fmt", "smallvec", "std"] }

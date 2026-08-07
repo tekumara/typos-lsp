@@ -35,13 +35,13 @@ brew install typos-lsp
 For [cargo-binstall](https://github.com/cargo-bins/cargo-binstall) users:
 
 ```
-cargo binstall --git https://github.com/tekumara/typos-lsp typos-lsp
+cargo binstall typos-lsp
 ```
 
 For Linux users (via Cargo):
 
 ```sh
-cargo install --git https://github.com/tekumara/typos-lsp --locked typos-lsp
+cargo install --locked typos-lsp
 ```
 
 See [typos-lsp versions on repology](https://repology.org/project/typos-lsp/versions) for other package managers. Or manually download `typos-lsp` from the [releases page](https://github.com/tekumara/typos-lsp/releases).

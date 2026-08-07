@@ -388,9 +388,9 @@ dependencies = [
 
 [[package]]
 name = "dictgen"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbfc334588c9f2270c772e524696814b3208dbc1206d276770b758c55079a021"
+checksum = "a714f0de926b09893d4c5fbb8481beab6971be4251b25375ddec110fcce312c5"
 dependencies = [
  "phf",
  "phf_shared",
@@ -749,15 +749,6 @@ checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 
 [[package]]
 name = "itertools"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b4baf93f58d4425749ca49a51c50ebab072c5df6994d08fed93541c331481dc"
@@ -977,9 +968,9 @@ checksum = "e3148f5046208a5d56bcfc03053e3ca6334e51da8dfb19b6cdc8b306fae3283e"
 
 [[package]]
 name = "phf"
-version = "0.13.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1562dc717473dbaa4c1f85a36410e03c047b2e7df7f45ee938fbef64ae7fadf"
+checksum = "010378780309880b08997fae13be7834dba947d36393bd372f2b1556deb2a2f6"
 dependencies = [
  "phf_macros",
  "phf_shared",
@@ -988,9 +979,9 @@ dependencies = [
 
 [[package]]
 name = "phf_generator"
-version = "0.13.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "135ace3a761e564ec88c03a77317a7c6b80bb7f7135ef2544dbe054243b89737"
+checksum = "aeb62e0959d5a1bebc965f4d15d9e2b7cea002b6b0f5ba8cde6cc26738467100"
 dependencies = [
  "fastrand",
  "phf_shared",
@@ -998,9 +989,9 @@ dependencies = [
 
 [[package]]
 name = "phf_macros"
-version = "0.13.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "812f032b54b1e759ccd5f8b6677695d5268c588701effba24601f6932f8269ef"
+checksum = "5fa8d0ca26d424d27630da600c6624696e7dec8bf7b3b492b383c5dc49e5e085"
 dependencies = [
  "phf_generator",
  "phf_shared",
@@ -1012,9 +1003,9 @@ dependencies = [
 
 [[package]]
 name = "phf_shared"
-version = "0.13.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e57fef6bc5981e38c2ce2d63bfa546861309f875b8a75f092d1d54ae2d64f266"
+checksum = "c6fd9027e2d9319be6349febd1db4e8d02aa544921200c9b777720ac34a3aa89"
 dependencies = [
  "siphasher",
  "unicase",
@@ -1794,12 +1785,12 @@ dependencies = [
 
 [[package]]
 name = "typos"
-version = "0.10.43"
+version = "0.10.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc89e9df07f00957d70c4386975fcdcaf3803fe6a924bf94702ce95a103cc9fc"
+checksum = "24bef249424e2507467696ade480798bbc2cdf164443727edd75ad1030fec023"
 dependencies = [
  "bstr",
- "itertools 0.14.0",
+ "itertools",
  "serde",
  "simdutf8",
  "unicode-ident",
@@ -1808,9 +1799,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.48.0"
+version = "1.49.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81ac7577d8d661494682e7fe2cc75ba38643cad020de19c2e2ac33ab27d364e2"
+checksum = "2042b23d1f4f1b1b9ac38689dab524f5702163122cde7db36c48465286af8484"
 dependencies = [
  "ahash",
  "annotate-snippets",
@@ -1831,7 +1822,7 @@ dependencies = [
  "globset",
  "human-panic",
  "ignore",
- "itertools 0.14.0",
+ "itertools",
  "kstring",
  "log",
  "proc-exit",
@@ -1854,9 +1845,9 @@ dependencies = [
 
 [[package]]
 name = "typos-dict"
-version = "0.13.31"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64725d452f2656c7e8b8341721c261a8e33c2c7fb9f9061666403f63693abde7"
+checksum = "bfff674ff80bd3d96f2582851f0ead8d53b28d5325db5c19cc389c207905318d"
 dependencies = [
  "dictgen",
  "phf",
@@ -1871,7 +1862,7 @@ dependencies = [
  "env_logger",
  "httparse",
  "ignore",
- "itertools 0.15.0",
+ "itertools",
  "matchit",
  "once_cell",
  "regex",
@@ -1893,9 +1884,9 @@ dependencies = [
 
 [[package]]
 name = "typos-vars"
-version = "0.10.4"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "807dc16880ffa9c2e9cbe4768ac99aab02103d084104a3c542497efa929e37ae"
+checksum = "1fb79b29f760d10944a8a5fcc3e79dd2c5e7559bc1611983f83eb4a4f0fd3c8f"
 dependencies = [
  "dictgen",
  "varcon-core",

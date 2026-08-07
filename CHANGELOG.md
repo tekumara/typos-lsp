@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.1.55](https://github.com/tekumara/typos-lsp/compare/v0.1.54...v0.1.55) (2026-08-07)
+
+
+### Features
+
+* **deps:** bump the lsp group with 8 updates ([#355](https://github.com/tekumara/typos-lsp/issues/355)) ([2605f98](https://github.com/tekumara/typos-lsp/commit/2605f985f498ea49e74f20116e5496f9c5ee614f))
+* **deps:** bump the vscode group with 10 updates ([#348](https://github.com/tekumara/typos-lsp/issues/348)) ([9f430ed](https://github.com/tekumara/typos-lsp/commit/9f430ed6df62387b54a588c74b61e007a5d0511a))
+* **deps:** bump the vscode group with 8 updates ([#354](https://github.com/tekumara/typos-lsp/issues/354)) ([a1500df](https://github.com/tekumara/typos-lsp/commit/a1500df4433642f927f557bee3f30859948a68dc))
+* **typos:** version 1.49.0 - July 2026 dictionary update ([#358](https://github.com/tekumara/typos-lsp/issues/358)) ([9be400b](https://github.com/tekumara/typos-lsp/commit/9be400bd2f1634be15b5547724079036ce3b3dff))
+
+
+### Bug Fixes
+
+* **typos-lsp:** write ignores under tool.typos ([#357](https://github.com/tekumara/typos-lsp/issues/357)) ([dca05a7](https://github.com/tekumara/typos-lsp/commit/dca05a7d9675c1b22946b21cff0b3947170f6379))
+
+
+### Chores
+
+* **typos-vscode:** require Node.js 22 or later ([f05db30](https://github.com/tekumara/typos-lsp/commit/f05db30f35a4e4edf43cc81046f7318375b31204))
+
+
+### Builds
+
+* **deps:** bump the github-actions group with 2 updates ([#356](https://github.com/tekumara/typos-lsp/issues/356)) ([c8ca56f](https://github.com/tekumara/typos-lsp/commit/c8ca56ff15199856ea7c9f1dc722af2d60986f19))
+* **release:** publish typos-lsp to crates.io ([6860a2d](https://github.com/tekumara/typos-lsp/commit/6860a2ddb05e6e4f075a943249b30d5f057102b7)), closes [#207](https://github.com/tekumara/typos-lsp/issues/207)
+
 ## [0.1.54](https://github.com/tekumara/typos-lsp/compare/v0.1.53...v0.1.54) (2026-07-24)
 
 

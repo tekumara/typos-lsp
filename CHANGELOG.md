@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.56](https://github.com/tekumara/typos-lsp/compare/v0.1.55...v0.1.56) (2026-09-01)
+
+
+### Features
+
+* **deps-dev:** bump the vscode group with 7 updates ([#362](https://github.com/tekumara/typos-lsp/issues/362)) ([6aa8bbc](https://github.com/tekumara/typos-lsp/commit/6aa8bbc6bf8ff3f9cb52c0c1327dfb1f6bdc3bbf))
+* **deps:** bump the lsp group across 1 directory with 2 updates ([#361](https://github.com/tekumara/typos-lsp/issues/361)) ([39352bb](https://github.com/tekumara/typos-lsp/commit/39352bbfea6453d72a86869ed76d3ee678adf74d))
+* **typos:** version 1.49.1 ([#359](https://github.com/tekumara/typos-lsp/issues/359)) ([cc067ae](https://github.com/tekumara/typos-lsp/commit/cc067ae712b6474c5a2be1a4648f62ada30f0b5e))
+* **typos:** version 1.50.0 - August 2026 dictionary update ([#360](https://github.com/tekumara/typos-lsp/issues/360)) ([ab1fb9c](https://github.com/tekumara/typos-lsp/commit/ab1fb9c0bda11c6da83f91c5686ff944cdedee08))
+
 ## [0.1.55](https://github.com/tekumara/typos-lsp/compare/v0.1.54...v0.1.55) (2026-08-07)
 
 

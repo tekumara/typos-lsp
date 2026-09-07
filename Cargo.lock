@@ -193,9 +193,9 @@ dependencies = [
 
 [[package]]
 name = "clap-cargo"
-version = "0.18.3"
+version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "936551935c8258754bb8216aec040957d261f977303754b9bf1a213518388006"
+checksum = "ac0fb996b5acdd543c8b8ff723c719715d437fdce607ac1fda01c977f568020d"
 dependencies = [
  "anstyle",
  "clap",
@@ -1818,9 +1818,9 @@ dependencies = [
 
 [[package]]
 name = "typos-cli"
-version = "1.50.0"
+version = "1.50.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "934879bf10848236947964ee2689c8041d425d02434700ebbe4c200559e62536"
+checksum = "e0e2bd730afdb2b417af2abd5df89972153a41af9384dd82845a5eb70ac05320"
 dependencies = [
  "ahash",
  "annotate-snippets",

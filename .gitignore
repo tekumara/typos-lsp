@@ -5,3 +5,5 @@ node_modules
 *.vsix
 target/
 bundled/
+result
+result-*

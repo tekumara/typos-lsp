@@ -1,6 +1,6 @@
 [package]
 name = "typos-lsp"
-version = "0.1.57"
+version = "0.1.58"
 edition = "2021"
 description = "Language server for typos, a source-code spell checker"
 license = "MIT"
